@@ -600,27 +600,27 @@ Fixpoint rules2fragments (qi : nat) (rules : list Rule.t) {struct rules} : nat *
     (qmax, (rule, frag) :: frags)
   end.
 
-Fixpoint eps_step_from_edges (q : nat) (edges : list (nat * nat)) {struct edges} : list nat :=
+Fixpoint eps_step_from_edges (edges : list (nat * nat)) (q : nat) {struct edges} : list nat :=
   match edges with
   | [] => []
   | (src, dst) :: edges' =>
     if eq_dec@{Set} q src then
-      dst :: eps_step_from_edges q edges'
+      dst :: eps_step_from_edges edges' q
     else
-      eps_step_from_edges q edges'
+      eps_step_from_edges edges' q
   end.
 
-Fixpoint char_step_from_edges (q : nat) (c : ascii) (edges : list char_edge) {struct edges} : list nat :=
+Fixpoint char_step_from_edges (edges : list char_edge) (q : nat) (c : ascii) {struct edges} : list nat :=
   match edges with
   | [] => []
   | edge :: edges' =>
     if eq_dec@{Set} q edge.(char_edge_src) then
       if eq_dec@{Set} c edge.(char_edge_label) then
-        edge.(char_edge_dst) :: char_step_from_edges q c edges'
+        edge.(char_edge_dst) :: char_step_from_edges edges' q c
       else
-        char_step_from_edges q c edges'
+        char_step_from_edges edges' q c
     else
-      char_step_from_edges q c edges'
+      char_step_from_edges edges' q c
   end.
 
 Fixpoint fragment_eps_edges (frags : list (Rule.t * fragment)) {struct frags} : list (nat * nat) :=
@@ -642,8 +642,8 @@ Definition fragments2TaggedENFA (qmax : nat) (frags : list (Rule.t * fragment)) 
     states := seq 0 qmax;
     start_state := 0;
     accept_states := map (fun '(rule, frag) => (frag.(frag_accept), rule.(Rule.token))) frags;
-    eps_step := fun q => eps_step_from_edges q (fragment_eps_edges frags);
-    char_step := fun q => fun c => char_step_from_edges q c (fragment_char_edges frags);
+    eps_step := eps_step_from_edges (fragment_eps_edges frags);
+    char_step := char_step_from_edges (fragment_char_edges frags);
   |}.
 
 Definition mkUnitedTaggedENFA (rules : list Rule.t) : TaggedENFA.t :=
