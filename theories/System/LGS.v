@@ -406,4 +406,252 @@ Definition compileds : BuildErrorM@{Set} (list Rule.t) :=
 
 End Rule.
 
+Module TaggedENFA.
+
+#[projections(primitive)]
+Record t : Type :=
+  mk
+  { state : Set
+  ; state_hasEqDec : hasEqDec@{Set} state
+  ; states : list state
+  ; start_state : state
+  ; accept_states : list (state * Token.t)
+  ; eps_step (q : state) : list state
+  ; char_step (q : state) (c : ascii) : list state
+  } as M.
+
+#[global] Existing Instance state_hasEqDec.
+
+Variant okay (M : TaggedENFA.t) : Prop :=
+  | okay_intro
+    (start_okay : M.(TaggedENFA.start_state) ∈ M.(TaggedENFA.states))
+    (accept_states_okay : forall q, forall tag, (q, tag) ∈ M.(TaggedENFA.accept_states) -> q ∈ M.(TaggedENFA.states))
+    (eps_step_okay : forall q, forall q', q ∈ M.(TaggedENFA.states) -> q' ∈ M.(TaggedENFA.eps_step) q -> q' ∈ M.(TaggedENFA.states))
+    (char_step_okay : forall q, forall q', forall c, q ∈ M.(TaggedENFA.states) -> q' ∈ M.(TaggedENFA.char_step) q c -> q' ∈ M.(TaggedENFA.states)).
+
+Section TRANSITION.
+
+Context {Q : Type}.
+
+Variable eps_step : Q -> list Q.
+
+Inductive eclosure (q : Q) : ensemble Q :=
+  | eclosure_refl
+    : q \in eclosure q
+  | eclosure_step q1 q2
+    (STEP : q1 ∈ eps_step q)
+    (REST : q2 \in eclosure q1)
+    : q2 \in eclosure q.
+
+#[local] Hint Constructors eclosure : core.
+
+Lemma eclosure_trans (q1 : Q) (q2 : Q) (q3 : Q)
+  (H1_eclosure : q2 \in eclosure q1)
+  (H2_eclosure : q3 \in eclosure q2)
+  : q3 \in eclosure q1.
+Proof.
+  induction H1_eclosure as [q | q q1' q2' STEP REST IH]; simpl; eauto with *.
+Qed.
+
+Variable char_step : Q -> ascii -> list Q.
+
+Inductive delta_star (q : Q) : Input.t -> ensemble Q :=
+  | delta_star_nil
+    : q \in delta_star q []
+  | delta_star_eps q1 q2 s
+    (STEP : q1 ∈ eps_step q)
+    (REST : q2 \in delta_star q1 s)
+    : q2 \in delta_star q s
+  | delta_star_char q1 q2 c s
+    (STEP : q1 ∈ char_step q c)
+    (REST : q2 \in delta_star q1 s)
+    : q2 \in delta_star q (c :: s).
+
+#[local] Hint Constructors delta_star : core.
+
+Lemma delta_star_app (q1 : Q) (q2 : Q) (q3 : Q) (s1 : Input.t) (s2 : Input.t)
+  (H1_delta_star : q2 \in delta_star q1 s1)
+  (H2_delta_star : q3 \in delta_star q2 s2)
+  : q3 \in delta_star q1 (s1 ++ s2).
+Proof.
+  induction H1_delta_star as [q | q q1' q2' s STEP REST IH | q q1' q2' c s STEP REST IH]; simpl; eauto with *.
+Qed.
+
+Lemma delta_star_iff_eclosure (q : Q) (q' : Q)
+  : q' \in delta_star q [] <-> q' \in eclosure q.
+Proof.
+  split; [intros H_delta_star | intros H_eclosure].
+  - remember (@nil ascii) as s eqn: EQ; induction H_delta_star as [q | q q1' q2' s STEP REST IH | q q1' q2' c s STEP REST IH]; inv EQ; simpl; eauto with *.
+  - induction H_eclosure as [q | q q1' q2' STEP REST IH]; simpl; eauto with *.
+Qed.
+
+Lemma delta_star_elim (q1 : Q) (q3 : Q) (s : Input.t)
+  (H_delta_star : q3 \in delta_star q1 s)
+  : ⟪ DELTA_STAR_NIL : s = [] /\ q3 = q1 ⟫ \/ ⟪ DELTA_STAR_EPS : exists q2, q2 ∈ eps_step q1 /\ q3 \in delta_star q2 s ⟫ \/ ⟪ DELTA_STAR_CHAR : exists c, exists s', exists q2, s = c :: s' /\ q2 ∈ char_step q1 c /\ q3 \in delta_star q2 s' ⟫.
+Proof.
+  unnw; destruct H_delta_star as [ | q1' q2' s' STEP REST | q1' q2' c s' STEP REST]; [left | right; left | right; right]; done!.
+Qed.
+
+Lemma delta_star_stuck (q1 : Q) (q2 : Q) (s : Input.t)
+  (NO_EPS : forall q, ~ (q ∈ eps_step q1))
+  (NO_CHAR : forall c, forall q, ~ (q ∈ char_step q1 c))
+  (H_delta_star : q2 \in delta_star q1 s)
+  : s = [] /\ q2 = q1.
+Proof.
+  inv H_delta_star; ss!.
+Qed.
+
+End TRANSITION.
+
+#[local] Hint Constructors eclosure : core.
+#[local] Hint Constructors delta_star : core.
+
+Section BASICS.
+
+Variable M : TaggedENFA.t.
+
+#[local] Abbreviation Q := M.(TaggedENFA.state).
+#[local] Abbreviation M_eclosure := (eclosure M.(TaggedENFA.eps_step)).
+#[local] Abbreviation M_delta_star := (delta_star M.(TaggedENFA.eps_step) M.(TaggedENFA.char_step)).
+
+Lemma eclosure_okay (q1 : Q) (q2 : Q)
+  (OKAY : TaggedENFA.okay M)
+  (IN : q1 ∈ M.(TaggedENFA.states))
+  (H_eclosure : q2 \in M_eclosure q1)
+  : q2 ∈ M.(TaggedENFA.states).
+Proof.
+  destruct OKAY as [_ _ ? _]; induction H_eclosure as [q | q q1' q2' STEP REST IH]; simpl; eauto with *.
+Qed.
+
+Lemma delta_star_okay (q1 : Q) (q2 : Q) (s : Input.t)
+  (OKAY : TaggedENFA.okay M)
+  (IN : q1 ∈ M.(TaggedENFA.states))
+  (H_delta_star : q2 \in M_delta_star q1 s)
+  : q2 ∈ M.(TaggedENFA.states).
+Proof.
+  destruct OKAY as [_ _ ? ?]; induction H_delta_star as [q | q q1' q2' s STEP REST IH | q q1' q2' c s STEP REST IH]; simpl; eauto with *.
+Qed.
+
+Definition accepts (s : Input.t) (tag : Token.t) : Prop :=
+  exists qf, qf \in M_delta_star M.(TaggedENFA.start_state) s /\ (qf, tag) ∈ M.(TaggedENFA.accept_states).
+
+Definition accepted_tags (s : Input.t) : ensemble Token.t :=
+  fun tag => accepts s tag.
+
+End BASICS.
+
+Section Thompson's_construction.
+
+#[projections(primitive)]
+Record char_edge : Set :=
+  mkCharEdge
+  { char_edge_src : nat
+  ; char_edge_label : ascii
+  ; char_edge_dst : nat
+  } as char_edge.
+
+#[projections(primitive)]
+Record fragment : Set :=
+  mkFragment
+  { frag_start : nat
+  ; frag_accept : nat
+  ; frag_eps_edges : list (nat * nat)
+  ; frag_char_edges : list char_edge
+  } as frag.
+
+Fixpoint regex2fragment (e : regex ascii) (qi : nat) {struct e} : nat * fragment :=
+  match e with
+  | Re.Null =>
+    let qf := qi + 1 in
+    (qf, mkFragment qi qf [] [])
+  | Re.Empty =>
+    let qf := qi + 1 in
+    (qf, mkFragment qi qf [(qi, qf)] [])
+  | Re.Char c =>
+    let qf := qi + 1 in
+    (qf, mkFragment qi qf [] [mkCharEdge qi c qf])
+  | Re.Union e1 e2 =>
+    let qi1 := qi + 1 in
+    let '(qf1, frag1) := regex2fragment e1 qi1 in
+    let qi2 := qf1 + 1 in
+    let '(qf2, frag2) := regex2fragment e2 qi2 in
+    let qf := qf2 + 1 in
+    (qf, mkFragment qi qf ((qi, qi1) :: (qi, qi2) :: (qf1, qf) :: (qf2, qf) :: frag1.(frag_eps_edges) ++ frag2.(frag_eps_edges)) (frag1.(frag_char_edges) ++ frag2.(frag_char_edges)))
+  | Re.Append e1 e2 =>
+    let qi1 := qi + 1 in
+    let '(qf1, frag1) := regex2fragment e1 qi1 in
+    let qi2 := qf1 + 1 in
+    let '(qf2, frag2) := regex2fragment e2 qi2 in
+    let qf := qf2 + 1 in
+    (qf, mkFragment qi qf ((qi, qi1) :: (qf1, qi2) :: (qf2, qf) :: frag1.(frag_eps_edges) ++ frag2.(frag_eps_edges)) (frag1.(frag_char_edges) ++ frag2.(frag_char_edges)))
+  | Re.Star e1 =>
+    let qi1 := qi + 1 in
+    let '(qf1, frag1) := regex2fragment e1 qi1 in
+    let qf := qf1 + 1 in
+    (qf, mkFragment qi qf ((qi, qi1) :: (qf1, qi1) :: (qi1, qf) :: frag1.(frag_eps_edges)) frag1.(frag_char_edges))
+  end.
+
+Fixpoint rules2fragments (qi : nat) (rules : list Rule.t) {struct rules} : nat * list (Rule.t * fragment) :=
+  match rules with
+  | [] => (qi, [])
+  | rule :: rules' =>
+    let '(qf, frag) := regex2fragment rule.(Rule.regex) qi in
+    let '(qmax, frags) := rules2fragments (qf + 1) rules' in
+    (qmax, (rule, frag) :: frags)
+  end.
+
+Fixpoint eps_step_from_edges (q : nat) (edges : list (nat * nat)) {struct edges} : list nat :=
+  match edges with
+  | [] => []
+  | (src, dst) :: edges' =>
+    if eq_dec@{Set} q src then
+      dst :: eps_step_from_edges q edges'
+    else
+      eps_step_from_edges q edges'
+  end.
+
+Fixpoint char_step_from_edges (q : nat) (c : ascii) (edges : list char_edge) {struct edges} : list nat :=
+  match edges with
+  | [] => []
+  | edge :: edges' =>
+    if eq_dec@{Set} q edge.(char_edge_src) then
+      if eq_dec@{Set} c edge.(char_edge_label) then
+        edge.(char_edge_dst) :: char_step_from_edges q c edges'
+      else
+        char_step_from_edges q c edges'
+    else
+      char_step_from_edges q c edges'
+  end.
+
+Fixpoint fragment_eps_edges (frags : list (Rule.t * fragment)) {struct frags} : list (nat * nat) :=
+  match frags with
+  | [] => []
+  | (_, frag) :: frags' => (0, frag.(frag_start)) :: frag.(frag_eps_edges) ++ fragment_eps_edges frags'
+  end.
+
+Fixpoint fragment_char_edges (frags : list (Rule.t * fragment)) {struct frags} : list char_edge :=
+  match frags with
+  | [] => []
+  | (_, frag) :: frags' => frag.(frag_char_edges) ++ fragment_char_edges frags'
+  end.
+
+Definition fragments2TaggedENFA (qmax : nat) (frags : list (Rule.t * fragment)) : TaggedENFA.t :=
+  {|
+    state := nat;
+    state_hasEqDec := nat_hasEqDec;
+    states := seq 0 qmax;
+    start_state := 0;
+    accept_states := map (fun '(rule, frag) => (frag.(frag_accept), rule.(Rule.token))) frags;
+    eps_step := fun q => eps_step_from_edges q (fragment_eps_edges frags);
+    char_step := fun q => fun c => char_step_from_edges q c (fragment_char_edges frags);
+  |}.
+
+Definition mkUnitedTaggedENFA (rules : list Rule.t) : TaggedENFA.t :=
+  let '(qmax, frags) := rules2fragments 1 rules in
+  fragments2TaggedENFA qmax frags.
+
+End Thompson's_construction.
+
+End TaggedENFA.
+
 End MkLGS.
