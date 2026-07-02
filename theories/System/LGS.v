@@ -548,7 +548,18 @@ Record char_edge : Set :=
   { char_edge_src : nat
   ; char_edge_label : ascii
   ; char_edge_dst : nat
-  } as char_edge.
+  } as edge.
+
+Lemma char_edge_eq_intro edge edge'
+  (src_eq : edge.(char_edge_src) = edge'.(char_edge_src))
+  (label_eq : edge.(char_edge_label) = edge'.(char_edge_label))
+  (dst_eq : edge.(char_edge_dst) = edge'.(char_edge_dst))
+  : edge = edge'.
+Proof.
+  now assert ({| char_edge_src := edge.(char_edge_src); char_edge_label := edge.(char_edge_label); char_edge_dst := edge.(char_edge_dst) |} = {| char_edge_src := edge'.(char_edge_src); char_edge_label := edge'.(char_edge_label); char_edge_dst := edge'.(char_edge_dst) |}) by congruence.
+Qed.
+
+#[local] Hint Extern 0 (@eq char_edge _ _) => eapply char_edge_eq_intro : core.
 
 #[projections(primitive)]
 Record fragment : Set :=
@@ -649,6 +660,572 @@ Definition fragments2TaggedENFA (qmax : nat) (frags : list (Rule.t * fragment)) 
 Definition mkUnitedTaggedENFA (rules : list Rule.t) : TaggedENFA.t :=
   let '(qmax, frags) := rules2fragments 1 rules in
   fragments2TaggedENFA qmax frags.
+
+Lemma eps_step_from_edges_iff (q : nat) (q' : nat) (edges : list (nat * nat))
+  : q' ∈ eps_step_from_edges edges q <-> (q, q') ∈ edges.
+Proof.
+  induction edges as [ | [src dst] edges IH]; simpl; eauto.
+  des_ifs; simpl; rewrite IH; clear IH; done.
+Qed.
+
+#[local] Hint Rewrite eps_step_from_edges_iff : simplication_hints.
+
+Lemma char_step_from_edges_iff (edge : char_edge) (edges : list char_edge)
+  : edge.(char_edge_dst) ∈ char_step_from_edges edges edge.(char_edge_src) edge.(char_edge_label) <-> edge ∈ edges.
+Proof.
+  induction edges as [ | edge' edges IH]; simpl; eauto.
+  des_ifs; simpl; rewrite IH; clear IH; done.
+Qed.
+
+#[local] Hint Rewrite char_step_from_edges_iff : simplication_hints.
+
+Lemma q0_eps_qi_intro (frags : list (Rule.t * fragment)) (rule : Rule.t) (frag : fragment)
+  (IN : (rule, frag) ∈ frags)
+  : (0, frag.(frag_start)) ∈ fragment_eps_edges frags.
+Proof.
+  revert rule IN; induction frags as [ | [rule' frag'] frags IH]; simpl; ii; eauto. des; ss!.
+Qed.
+
+Lemma qi_eps_qf_intro (frags : list (Rule.t * fragment)) (rule : Rule.t) (frag : fragment) (q : nat) (q' : nat)
+  (in_frags : (rule, frag) ∈ frags)
+  (IN : (q, q') ∈ frag.(frag_eps_edges))
+  : (q, q') ∈ fragment_eps_edges frags.
+Proof.
+  revert rule in_frags q q' IN; induction frags as [ | [rule' frag'] frags IH]; simpl; ii; eauto. des; ss!.
+Qed.
+
+Lemma qi_char_qf_intro (frags : list (Rule.t * fragment)) (rule : Rule.t) (frag : fragment) (edge : char_edge)
+  (in_frags : (rule, frag) ∈ frags)
+  (IN : edge ∈ frag.(frag_char_edges))
+  : edge ∈ fragment_char_edges frags.
+Proof.
+  revert rule in_frags edge IN; induction frags as [ | [rule' frag'] frags IH]; simpl; ii; eauto. des; ss!.
+Qed.
+
+Lemma qf_accept_intro (frags : list (Rule.t * fragment)) (rule : Rule.t) (frag : fragment)
+  (in_frags : (rule, frag) ∈ frags)
+  : (frag.(frag_accept), rule.(Rule.token)) ∈ map (fun '(rule, frag) => (frag.(frag_accept), rule.(Rule.token))) frags.
+Proof.
+  revert rule frag in_frags; induction frags as [ | [rule' frag'] frags IH]; simpl; ii; eauto. ss!.
+Qed.
+
+Lemma in_eps_step_from_edges_iff (q : nat) (q' : nat) (edges : list (nat * nat))
+  : q' ∈ eps_step_from_edges edges q <-> (q, q') ∈ edges.
+Proof.
+  revert q q'; induction edges as [ | [? ?] edges IH]; simpl; ii; eauto. des_ifs; done!.
+Qed.
+
+Lemma in_char_step_from_edges_iff (edge : char_edge) (edges : list char_edge)
+  : edge.(char_edge_dst) ∈ char_step_from_edges edges edge.(char_edge_src) edge.(char_edge_label) <-> edge ∈ edges.
+Proof.
+  revert edge; induction edges as [ | ? edges IH]; simpl; ii; eauto. des_ifs; done!.
+Qed.
+Lemma eps_step_from_edges_complete (q : nat) (q' : nat) (edges : list (nat * nat))
+  (IN : (q, q') ∈ edges)
+  : q' ∈ eps_step_from_edges edges q.
+Proof.
+  ss!.
+Qed.
+
+Lemma eps_step_from_edges_sound (q : nat) (q' : nat) (edges : list (nat * nat))
+  (IN : q' ∈ eps_step_from_edges edges q)
+  : (q, q') ∈ edges.
+Proof.
+  ss!.
+Qed.
+
+Lemma char_step_from_edges_complete (edge : char_edge) (edges : list char_edge)
+  (IN : edge ∈ edges)
+  : edge.(char_edge_dst) ∈ char_step_from_edges edges edge.(char_edge_src) edge.(char_edge_label).
+Proof.
+  ss!.
+Qed.
+
+Lemma char_step_from_edges_sound (q : nat) (q' : nat) (c : ascii) (edges : list char_edge)
+  (IN : q' ∈ char_step_from_edges edges q c)
+  : exists edge, edge ∈ edges /\ edge.(char_edge_src) = q /\ edge.(char_edge_label) = c /\ edge.(char_edge_dst) = q'.
+Proof.
+  set {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} as edge.
+  change (edge.(char_edge_dst) ∈ char_step_from_edges edges edge.(char_edge_src) edge.(char_edge_label)) in IN.
+  rewrite in_char_step_from_edges_iff in IN. done.
+Qed.
+
+Lemma fragment_eps_edges_start_complete (frags : list (Rule.t * fragment)) (rule : Rule.t) (frag : fragment)
+  (IN : (rule, frag) ∈ frags)
+  : (0, frag.(frag_start)) ∈ fragment_eps_edges frags.
+Proof.
+  induction frags as [ | [rule' frag'] frags IH]; ss!.
+Qed.
+
+Lemma fragment_eps_edges_complete (frags : list (Rule.t * fragment)) (rule : Rule.t) (frag : fragment) (q : nat) (q' : nat)
+  (IN_FRAG : (rule, frag) ∈ frags)
+  (IN_EDGE : (q, q') ∈ frag.(frag_eps_edges))
+  : (q, q') ∈ fragment_eps_edges frags.
+Proof.
+  induction frags as [ | [rule' frag'] frags IH]; ss!.
+Qed.
+
+Lemma fragment_char_edges_complete (frags : list (Rule.t * fragment)) (rule : Rule.t) (frag : fragment) (edge : char_edge)
+  (IN_FRAG : (rule, frag) ∈ frags)
+  (IN_EDGE : edge ∈ frag.(frag_char_edges))
+  : edge ∈ fragment_char_edges frags.
+Proof.
+  induction frags as [ | [rule' frag'] frags IH]; ss!.
+Qed.
+
+Lemma fragment_accept_states_complete (frags : list (Rule.t * fragment)) (rule : Rule.t) (frag : fragment)
+  (IN_FRAG : (rule, frag) ∈ frags)
+  : (frag.(frag_accept), rule.(Rule.token)) ∈ map (fun '(rule, frag) => (frag.(frag_accept), rule.(Rule.token))) frags.
+Proof.
+  ss!.
+Qed.
+
+Lemma fragment_accept_states_sound (frags : list (Rule.t * fragment)) q tag
+  (IN : (q, tag) ∈ map (fun '(rule, frag) => (frag.(frag_accept), rule.(Rule.token))) frags)
+  : exists rule, exists frag, (rule, frag) ∈ frags /\ q = frag.(frag_accept) /\ tag = rule.(Rule.token).
+Proof.
+  rewrite L.in_map_iff in IN. destruct IN as ([rule frag] & EQ & IN_FRAG); ss!.
+Qed.
+
+Variant TaggedENFA_COMPILED (M : TaggedENFA.t) rules qmax frags : Prop :=
+  | TaggedENFA_COMPILED_INTRO
+    (COMPILED_RULES : Rule.compileds = inr rules)
+    (COMPILED_ENFA : M = mkUnitedTaggedENFA rules)
+    (COMPILED_FRAGS : rules2fragments 1 rules = (qmax, frags)).
+
+Variant TaggedENFA_FRAGMENTS (frags : list (Rule.t * fragment)) rule frag : Prop :=
+  | TaggedENFA_FRAGMENTS_INTRO
+    (IN1 : frag.(frag_start) ∈ eps_step_from_edges (fragment_eps_edges frags) 0)
+    (IN2 : (frag.(frag_accept), rule.(Rule.token)) ∈ map (fun '(rule, frag) => (frag.(frag_accept), rule.(Rule.token))) frags)
+    (EPS : forall q, forall q', (q, q') ∈ frag.(frag_eps_edges) -> q' ∈ eps_step_from_edges (fragment_eps_edges frags) q)
+    (CHAR : forall edge, edge ∈ frag.(frag_char_edges) -> edge.(char_edge_dst) ∈ char_step_from_edges (fragment_char_edges frags) edge.(char_edge_src) edge.(char_edge_label)).
+
+Theorem mkUnitedTaggedENFA_spec (M : TaggedENFA.t)
+  (COMPILE : fmap mkUnitedTaggedENFA Rule.compileds = inr M)
+  : exists rules, exists qmax, exists frags, TaggedENFA_COMPILED M rules qmax frags /\ ⟪ FRAGMENTS : forall rule, forall frag, (rule, frag) ∈ frags -> TaggedENFA_FRAGMENTS frags rule frag ⟫.
+Proof.
+  unnw. unfold fmap, mkFunctorFromMonad in COMPILE. simpl in COMPILE.
+  destruct (Rule.compileds) as [err | rules] eqn: COMPILED; inv COMPILE.
+  destruct (rules2fragments 1 rules) as [qmax frags] eqn: FRAGS.
+  exists rules, qmax, frags. split.
+  - econs; eauto.
+  - ii; econs; ii.
+    + rewrite eps_step_from_edges_iff. eapply q0_eps_qi_intro; eauto.
+    + eapply qf_accept_intro; eauto.
+    + rewrite eps_step_from_edges_iff. eapply qi_eps_qf_intro; eauto.
+    + rewrite char_step_from_edges_iff. eapply qi_char_qf_intro; eauto.
+Qed.
+
+Definition fragments_delta_star (frags : list (Rule.t * fragment)) : nat -> Input.t -> ensemble nat :=
+  delta_star (eps_step_from_edges (fragment_eps_edges frags)) (char_step_from_edges (fragment_char_edges frags)).
+
+Definition fragment_delta_star (frag : fragment) : nat -> Input.t -> ensemble nat :=
+  delta_star (eps_step_from_edges frag.(frag_eps_edges)) (char_step_from_edges frag.(frag_char_edges)).
+
+Lemma TaggedENFA_FRAGMENTS_delta_star_step frags rule frag
+  (FRAGMENTS : TaggedENFA_FRAGMENTS frags rule frag)
+  : ⟪ EPS : forall q, forall q', (q, q') ∈ frag.(frag_eps_edges) -> q' \in fragments_delta_star frags q [] ⟫ /\ ⟪ CHAR : forall edge, edge ∈ frag.(frag_char_edges) -> edge.(char_edge_dst) \in fragments_delta_star frags edge.(char_edge_src) [edge.(char_edge_label)] ⟫.
+Proof.
+  destruct FRAGMENTS as [_ _ EPS CHAR]; unnw; split.
+  - intros q q' IN. eapply delta_star_eps with (q1 := q'); eauto.
+  - intros edge IN. eapply delta_star_char with (q1 := edge.(char_edge_dst)); eauto.
+Qed.
+
+Lemma regex2fragment_start_accept e qi qf frag
+  (REGEX2FRAGMENT : regex2fragment e qi = (qf, frag))
+  : frag.(frag_start) = qi /\ frag.(frag_accept) = qf.
+Proof.
+  revert qi qf frag REGEX2FRAGMENT; induction e; simpl in *; ii; des_ifs.
+Qed.
+
+Lemma regex2fragment_same_fragment e qi1 qf1 qi2 qf2 frag
+  (REGEX1 : regex2fragment e qi1 = (qf1, frag))
+  (REGEX2 : regex2fragment e qi2 = (qf2, frag))
+  : qi1 = qi2 /\ qf1 = qf2.
+Proof.
+  pose proof (regex2fragment_start_accept _ _ _ _ REGEX1) as [START1 ACCEPT1].
+  pose proof (regex2fragment_start_accept _ _ _ _ REGEX2) as [START2 ACCEPT2].
+  split; congruence.
+Qed.
+
+Variant FRAGMENT_BOUNDS (lo : nat) (hi : nat) (frag : fragment) : Prop :=
+  | FRAGMENT_BOUNDS_INTRO
+    (BOUNDS_START : frag.(frag_start) = lo)
+    (BOUNDS_ACCEPT : frag.(frag_accept) = hi)
+    (BOUNDS_LT : lo < hi)
+    (BOUNDS_EPS : forall q, forall q', (q, q') ∈ frag.(frag_eps_edges) -> (lo <= q <= hi /\ lo <= q' <= hi)%nat)
+    (BOUNDS_CHAR : forall edge, edge ∈ frag.(frag_char_edges) -> (lo <= edge.(char_edge_src) <= hi /\ lo <= edge.(char_edge_dst) <= hi)%nat).
+
+Theorem regex2fragment_bounds e qi qf frag
+  (REGEX2FRAGMENT : regex2fragment e qi = (qf, frag))
+  : FRAGMENT_BOUNDS qi qf frag.
+Proof.
+  revert qi qf frag REGEX2FRAGMENT; induction e as [ | | c | e1 IH1 e2 IH2 | e1 IH1 e2 IH2 | e IH]; simpl in *; ii.
+  - inv REGEX2FRAGMENT. econs; simpl; try lia.
+  - inv REGEX2FRAGMENT. econs; simpl; try lia; intros q q' [EQ | []]; done.
+  - inv REGEX2FRAGMENT. econs; simpl; try lia; intros edge [EQ | IN]; done.
+  - destruct (regex2fragment e1 (qi + 1)) as [qf1 frag1] eqn: REGEX1.
+    destruct (regex2fragment e2 (qf1 + 1)) as [qf2 frag2] eqn: REGEX2.
+    pose proof (IH1 _ _ _ REGEX1) as [START1 ACCEPT1 LT1 EPS1 CHAR1].
+    pose proof (IH2 _ _ _ REGEX2) as [START2 ACCEPT2 LT2 EPS2 CHAR2].
+    inv REGEX2FRAGMENT. econs; simpl; try lia; ii; s!; des; subst; done.
+  - destruct (regex2fragment e1 (qi + 1)) as [qf1 frag1] eqn: REGEX1.
+    destruct (regex2fragment e2 (qf1 + 1)) as [qf2 frag2] eqn: REGEX2.
+    pose proof (IH1 _ _ _ REGEX1) as [START1 ACCEPT1 LT1 EPS1 CHAR1].
+    pose proof (IH2 _ _ _ REGEX2) as [START2 ACCEPT2 LT2 EPS2 CHAR2].
+    inv REGEX2FRAGMENT. econs; simpl; try lia; ii; s!; des; subst; done.
+  - destruct (regex2fragment e (qi + 1)) as [qf1 frag1] eqn: REGEX1.
+    pose proof (IH _ _ _ REGEX1) as [START1 ACCEPT1 LT1 EPS1 CHAR1].
+    inv REGEX2FRAGMENT. econs; simpl; try lia; ii; s!; des; subst; done.
+Qed.
+
+Lemma regex2fragment_edge_src_lt e qi qf frag
+  (REGEX2FRAGMENT : regex2fragment e qi = (qf, frag))
+  : (forall q, forall q', (q, q') ∈ frag.(frag_eps_edges) -> q < qf) /\ (forall edge, edge ∈ frag.(frag_char_edges) -> edge.(char_edge_src) < qf).
+Proof.
+  revert qi qf frag REGEX2FRAGMENT; induction e as [ | | c | e1 IH1 e2 IH2 | e1 IH1 e2 IH2 | e IH]; simpl in *; ii.
+  - inv REGEX2FRAGMENT; simpl in *; split; ii; done.
+  - inv REGEX2FRAGMENT; simpl in *; split; ii; done.
+  - inv REGEX2FRAGMENT; simpl in *; split; ii; done.
+  - destruct (regex2fragment e1 (qi + 1)) as [qf1 frag1] eqn: REGEX1.
+    destruct (regex2fragment e2 (qf1 + 1)) as [qf2 frag2] eqn: REGEX2.
+    pose proof (IH1 _ _ _ REGEX1) as [EPS1 CHAR1].
+    pose proof (IH2 _ _ _ REGEX2) as [EPS2 CHAR2].
+    pose proof (regex2fragment_bounds _ _ _ _ REGEX1) as [_ _ LT1 _ _].
+    pose proof (regex2fragment_bounds _ _ _ _ REGEX2) as [_ _ LT2 _ _].
+    inv REGEX2FRAGMENT; simpl in *; split; ii.
+    + des; try (inv H; lia). rewrite in_app_iff in H. des; eauto; [pose proof (EPS1 _ _ H) | pose proof (EPS2 _ _ H)]; lia.
+    + rewrite in_app_iff in H. des; eauto; [pose proof (CHAR1 _ H) | pose proof (CHAR2 _ H)]; lia.
+  - destruct (regex2fragment e1 (qi + 1)) as [qf1 frag1] eqn: REGEX1.
+    destruct (regex2fragment e2 (qf1 + 1)) as [qf2 frag2] eqn: REGEX2.
+    pose proof (IH1 _ _ _ REGEX1) as [EPS1 CHAR1].
+    pose proof (IH2 _ _ _ REGEX2) as [EPS2 CHAR2].
+    pose proof (regex2fragment_bounds _ _ _ _ REGEX1) as [_ _ LT1 _ _].
+    pose proof (regex2fragment_bounds _ _ _ _ REGEX2) as [_ _ LT2 _ _].
+    inv REGEX2FRAGMENT; simpl in *; split; ii.
+    + des; try (inv H; lia). rewrite in_app_iff in H. des; eauto; [pose proof (EPS1 _ _ H) | pose proof (EPS2 _ _ H)]; lia.
+    + rewrite in_app_iff in H. des; eauto; [pose proof (CHAR1 _ H) | pose proof (CHAR2 _ H)]; lia.
+  - destruct (regex2fragment e (qi + 1)) as [qf1 frag1] eqn: REGEX.
+    pose proof (IH _ _ _ REGEX) as [EPS1 CHAR1].
+    pose proof (regex2fragment_bounds _ _ _ _ REGEX) as [_ _ LT1 _ _].
+    inv REGEX2FRAGMENT; simpl in *; split; ii.
+    + des; try (inv H; lia). pose proof (EPS1 _ _ H). lia.
+    + pose proof (CHAR1 _ H). lia.
+Qed.
+
+Lemma regex2fragment_edge_dst_gt e qi qf frag
+  (REGEX2FRAGMENT : regex2fragment e qi = (qf, frag))
+  : (forall q, forall q', (q, q') ∈ frag.(frag_eps_edges) -> qi < q') /\ (forall edge, edge ∈ frag.(frag_char_edges) -> qi < edge.(char_edge_dst)).
+Proof.
+  revert qi qf frag REGEX2FRAGMENT; induction e as [ | | c | e1 IH1 e2 IH2 | e1 IH1 e2 IH2 | e IH]; simpl in *; ii.
+  - inv REGEX2FRAGMENT; simpl in *; split; ii; done.
+  - inv REGEX2FRAGMENT; simpl in *; split; ii; done.
+  - inv REGEX2FRAGMENT; simpl in *; split; ii; done.
+  - destruct (regex2fragment e1 (qi + 1)) as [qf1 frag1] eqn: REGEX1.
+    destruct (regex2fragment e2 (qf1 + 1)) as [qf2 frag2] eqn: REGEX2.
+    pose proof (IH1 _ _ _ REGEX1) as [EPS1 CHAR1].
+    pose proof (IH2 _ _ _ REGEX2) as [EPS2 CHAR2].
+    pose proof (regex2fragment_bounds _ _ _ _ REGEX1) as [_ _ LT1 _ _].
+    pose proof (regex2fragment_bounds _ _ _ _ REGEX2) as [_ _ LT2 _ _].
+    inv REGEX2FRAGMENT; simpl in *; split; ii.
+    + des; try (inv H; lia). rewrite in_app_iff in H. des; [pose proof (EPS1 _ _ H) | pose proof (EPS2 _ _ H)]; lia.
+    + rewrite in_app_iff in H. des; [pose proof (CHAR1 _ H) | pose proof (CHAR2 _ H)]; lia.
+  - destruct (regex2fragment e1 (qi + 1)) as [qf1 frag1] eqn: REGEX1.
+    destruct (regex2fragment e2 (qf1 + 1)) as [qf2 frag2] eqn: REGEX2.
+    pose proof (IH1 _ _ _ REGEX1) as [EPS1 CHAR1].
+    pose proof (IH2 _ _ _ REGEX2) as [EPS2 CHAR2].
+    pose proof (regex2fragment_bounds _ _ _ _ REGEX1) as [_ _ LT1 _ _].
+    pose proof (regex2fragment_bounds _ _ _ _ REGEX2) as [_ _ LT2 _ _].
+    inv REGEX2FRAGMENT; simpl in *; split; ii.
+    + des; try (inv H; lia). rewrite in_app_iff in H. des; [pose proof (EPS1 _ _ H) | pose proof (EPS2 _ _ H)]; lia.
+    + rewrite in_app_iff in H. des; [pose proof (CHAR1 _ H) | pose proof (CHAR2 _ H)]; lia.
+  - destruct (regex2fragment e (qi + 1)) as [qf1 frag1] eqn: REGEX.
+    pose proof (IH _ _ _ REGEX) as [EPS1 CHAR1].
+    pose proof (regex2fragment_bounds _ _ _ _ REGEX) as [_ _ LT1 _ _].
+    inv REGEX2FRAGMENT; simpl in *; split; ii.
+    + des; try (inv H; lia). pose proof (EPS1 _ _ H). lia.
+    + pose proof (CHAR1 _ H). lia.
+Qed.
+
+Lemma regex2fragment_complete' (e : regex ascii) (s : Input.t) (frags : list (Rule.t * fragment)) (rule : Rule.t) (qi : nat) (qf : nat) (frag : fragment) (topfrag : fragment)
+  (IN_REGEX : s \in eval_regex e)
+  (REGEX2FRAGMENT : regex2fragment e qi = (qf, frag))
+  (FRAGMENTS : TaggedENFA_FRAGMENTS frags rule topfrag)
+  (EPS_INCL : forall q, forall q', (q, q') ∈ frag.(frag_eps_edges) -> (q, q') ∈ topfrag.(frag_eps_edges))
+  (CHAR_INCL : forall edge, edge ∈ frag.(frag_char_edges) -> edge ∈ topfrag.(frag_char_edges))
+  : frag.(frag_accept) \in fragments_delta_star frags frag.(frag_start) s.
+Proof.
+  revert s IN_REGEX frags rule qi qf frag topfrag REGEX2FRAGMENT FRAGMENTS EPS_INCL CHAR_INCL.
+  induction e as [ | | c | e1 IH1 e2 IH2 | e1 IH1 e2 IH2 | e IH]; simpl; ii.
+  - s!; tauto.
+  - s!. des; subst.
+    pose proof (TaggedENFA_FRAGMENTS_delta_star_step frags rule topfrag FRAGMENTS) as [EPS _].
+    eapply EPS. eapply EPS_INCL. s!; tauto.
+  - s!. des; subst.
+    pose proof (TaggedENFA_FRAGMENTS_delta_star_step frags rule topfrag FRAGMENTS) as [_ CHAR].
+    eapply CHAR with (edge := mkCharEdge qi c (qi + 1)). eapply CHAR_INCL. s!; tauto.
+  - s!. cbn [eval_regex] in IN_REGEX.
+    destruct (regex2fragment e1 (qi + 1)) as [qf1 frag1] eqn: REGEX1.
+    destruct (regex2fragment e2 (qf1 + 1)) as [qf2 frag2] eqn: REGEX2.
+    inv REGEX2FRAGMENT. destruct IN_REGEX as [IN1 | IN2].
+    + pose proof (TaggedENFA_FRAGMENTS_delta_star_step _ _ _ FRAGMENTS) as [EPS _].
+      pose proof (regex2fragment_start_accept _ _ _ _ REGEX1) as [START1 ACCEPT1].
+      rewrite <- app_nil_r with (l := s). eapply delta_star_app with (q2 := qf1).
+      { change s with ([] ++ s). eapply delta_star_app with (q2 := qi + 1).
+        - eapply EPS. eapply EPS_INCL. s!; tauto.
+        - rewrite <- START1. rewrite <- ACCEPT1.
+          eapply IH1 with (s := s) (frags := frags) (qi := qi + 1) (qf := qf1)  (topfrag := topfrag); eauto.
+          + ii. eapply EPS_INCL. s!; tauto.
+          + ii. eapply CHAR_INCL. s!; tauto.
+      }
+      { eapply EPS. eapply EPS_INCL. s!; tauto. }
+    + pose proof (TaggedENFA_FRAGMENTS_delta_star_step frags rule topfrag FRAGMENTS) as [EPS _].
+      pose proof (regex2fragment_start_accept _ _ _ _ REGEX2) as [START2 ACCEPT2].
+      rewrite <- app_nil_r with (l := s). eapply delta_star_app with (q2 := qf2).
+      { change s with ([] ++ s). eapply delta_star_app with (q2 := qf1 + 1).
+        - eapply EPS. eapply EPS_INCL. s!; tauto.
+        - rewrite <- START2. rewrite <- ACCEPT2.
+          eapply IH2 with (s := s) (qi := qf1 + 1) (qf := qf2) (frag := frag2) (topfrag := topfrag); eauto.
+          + ii. eapply EPS_INCL. s!; tauto.
+          + ii. eapply CHAR_INCL. s!; tauto.
+      }
+      { eapply EPS. eapply EPS_INCL. s!; tauto. }
+  - s!. cbn [eval_regex] in IN_REGEX.
+    destruct (regex2fragment e1 (qi + 1)) as [qf1 frag1] eqn: REGEX1.
+    destruct (regex2fragment e2 (qf1 + 1)) as [qf2 frag2] eqn: REGEX2.
+    inv REGEX2FRAGMENT. destruct IN_REGEX as (s1 & IN1 & s2 & IN2 & EQ). subst s.
+    pose proof (TaggedENFA_FRAGMENTS_delta_star_step frags rule topfrag FRAGMENTS) as [EPS _].
+    pose proof (regex2fragment_start_accept _ _ _ _ REGEX1) as [START1 ACCEPT1].
+    pose proof (regex2fragment_start_accept _ _ _ _ REGEX2) as [START2 ACCEPT2].
+    eapply delta_star_app with (q2 := qf1) (s1 := s1) (s2 := s2).
+    { change s1 with ([] ++ s1). eapply delta_star_app with (q2 := qi + 1).
+      - eapply EPS. eapply EPS_INCL. s!; tauto.
+      - rewrite <- START1. rewrite <- ACCEPT1.
+        eapply IH1 with (s := s1) (qi := qi + 1) (qf := qf1) (frag := frag1) (topfrag := topfrag); eauto.
+        + ii. eapply EPS_INCL. s!; tauto.
+        + ii. eapply CHAR_INCL. s!; tauto.
+    }
+    + rewrite <- app_nil_r with (l := s2). eapply delta_star_app with (q2 := qf2).
+      { change s2 with ([] ++ s2). eapply delta_star_app with (q2 := qf1 + 1).
+        - eapply EPS. eapply EPS_INCL. s!; tauto.
+        - rewrite <- START2. rewrite <- ACCEPT2.
+          eapply IH2 with (s := s2) (qi := qf1 + 1) (qf := qf2) (frag := frag2) (topfrag := topfrag); eauto.
+          + ii. eapply EPS_INCL. s!; tauto.
+          + ii. eapply CHAR_INCL. s!; tauto.
+      }
+      { eapply EPS. eapply EPS_INCL. s!; tauto. }
+  - destruct (regex2fragment e (qi + 1)) as [qf1 frag1] eqn: REGEX1.
+    inv REGEX2FRAGMENT.
+    pose proof (TaggedENFA_FRAGMENTS_delta_star_step frags rule topfrag FRAGMENTS) as [EPS _].
+    pose proof (regex2fragment_start_accept _ _ _ _ REGEX1) as [START1 ACCEPT1].
+    assert (claim1 : forall t, t \in star (eval_regex e) -> qf1 + 1 \in delta_star (eps_step_from_edges (fragment_eps_edges frags)) (char_step_from_edges (fragment_char_edges frags)) (qi + 1) t).
+    { intros t STAR_IN. induction STAR_IN as [ | s1 s2 IN1 IN2 IHSTAR].
+      - eapply EPS. eapply EPS_INCL. s!; tauto.
+      - replace (s1 ++ s2) with ((s1 ++ []) ++ s2) by now rewrite app_nil_r.
+        eapply delta_star_app with (q2 := qi + 1).
+        + eapply delta_star_app with (q2 := qf1).
+          * rewrite <- START1. rewrite <- ACCEPT1.
+            eapply (IH s1 IN1 frags rule (qi + 1) qf1 frag1 topfrag REGEX1 FRAGMENTS); done.
+          * eapply EPS. eapply EPS_INCL. s!; tauto.
+        + exact IHSTAR.
+    }
+    change s with ([] ++ s). eapply delta_star_app with (q2 := qi + 1); done.
+Qed.
+
+Theorem regex2fragment_complete frags rule qi qf frag s
+  (REGEX2FRAGMENT : regex2fragment rule.(Rule.regex) qi = (qf, frag))
+  (FRAGMENTS : TaggedENFA_FRAGMENTS frags rule frag)
+  (IN_REGEX : s \in eval_regex rule.(Rule.regex))
+  : frag.(frag_accept) \in fragments_delta_star frags frag.(frag_start) s.
+Proof.
+  eapply regex2fragment_complete'; eauto.
+Qed.
+
+Theorem TaggedENFA_FRAGMENTS_complete qmax frags rule qi qf frag s
+  (REGEX2FRAGMENT : regex2fragment rule.(Rule.regex) qi = (qf, frag))
+  (FRAGMENTS : TaggedENFA_FRAGMENTS frags rule frag)
+  (IN_REGEX : s \in eval_regex rule.(Rule.regex))
+  : accepts (fragments2TaggedENFA qmax frags) s rule.(Rule.token).
+Proof.
+  destruct FRAGMENTS as [START ACCEPT EPS CHAR]. exists frag.(frag_accept). split.
+  - change s with ([] ++ s). eapply delta_star_app with (q2 := frag.(frag_start)).
+    + eapply delta_star_eps with (q1 := frag.(frag_start)); done.
+    + eapply regex2fragment_complete; done.
+  - exact ACCEPT.
+Qed.
+
+Theorem rules2fragments_complete qi rules qmax frags rule
+  (FRAGS : rules2fragments qi rules = (qmax, frags))
+  (IN_RULE : rule ∈ rules)
+  : exists qi_rule, exists qf, exists frag, regex2fragment rule.(Rule.regex) qi_rule = (qf, frag) /\ (rule, frag) ∈ frags.
+Proof.
+  revert qi qmax frags FRAGS IN_RULE; induction rules as [ | rule' rules IH]; simpl in *; ii; try tauto.
+  destruct (regex2fragment rule'.(Rule.regex) qi) as [qf frag] eqn: REGEX2FRAGMENT.
+  destruct (rules2fragments (qf + 1) rules) as [qmax' frags'] eqn: FRAGS'.
+  s!; des; subst.
+  - exists qi, qf, frag. done.
+  - pose proof (IH (qf + 1) qmax frags' FRAGS' IN_RULE) as (qi_rule & qf_rule & frag_rule & REGEX & IN_FRAGS).
+    exists qi_rule, qf_rule, frag_rule. done.
+Qed.
+
+Lemma rules2fragments_sound qi rules qmax frags rule frag
+  (FRAGS : rules2fragments qi rules = (qmax, frags))
+  (IN_FRAG : (rule, frag) ∈ frags)
+  : rule ∈ rules.
+Proof.
+  revert qi qmax frags FRAGS IN_FRAG; induction rules as [ | rule' rules IH]; ii; simpl in FRAGS.
+  - now inv FRAGS.
+  - destruct (regex2fragment rule'.(Rule.regex) qi) as [qf frag'] eqn: REGEX.
+    destruct (rules2fragments (qf + 1) rules) as [qmax' frags'] eqn: FRAGS'.
+    s!; des; subst. simpl in IN_FRAG. des; done.
+Qed.
+
+Lemma rules2fragments_bounds qi rules qmax frags
+  (FRAGS : rules2fragments qi rules = (qmax, frags))
+  : qi <= qmax /\ ⟪ BOUND : forall rule, forall frag, (rule, frag) ∈ frags -> (exists qi_rule, exists qf, regex2fragment rule.(Rule.regex) qi_rule = (qf, frag) /\ FRAGMENT_BOUNDS qi_rule qf frag /\ qi <= qi_rule /\ qf < qmax) ⟫.
+Proof.
+  revert qi qmax frags FRAGS.
+  induction rules as [ | rule' rules IH]; intros qi qmax frags FRAGS; simpl in FRAGS.
+  - inv FRAGS. done.
+  - destruct (regex2fragment rule'.(Rule.regex) qi) as [qf frag] eqn: REGEX2FRAGMENT.
+    destruct (rules2fragments (qf + 1) rules) as [qmax' frags'] eqn: FRAGS'.
+    injection FRAGS as Hqmax Hfrags. subst qmax frags.
+    pose proof (regex2fragment_bounds _ _ _ _ REGEX2FRAGMENT) as BOUNDS.
+    assert (LT : qi < qf) by now destruct BOUNDS as [_ _ LT _ _].
+    pose proof (IH (qf + 1) qmax' frags' FRAGS') as [QMAX HH].
+    split; [lia | intros rule frag' IN]. destruct IN as [EQ | IN].
+    + inv EQ. exists qi, qf. done.
+    + pose proof (HH rule frag' IN) as (qi_rule & qf_rule & REGEX & BOUNDS' & LE_START & LT_END). exists qi_rule, qf_rule. done.
+Qed.
+
+Lemma rules2fragments_ranges_disjoint qi rules qmax frags rule1 frag1 qi1 qf1 rule2 frag2 qi2 qf2 q
+  (FRAGS : rules2fragments qi rules = (qmax, frags))
+  (IN1 : (rule1, frag1) ∈ frags)
+  (IN2 : (rule2, frag2) ∈ frags)
+  (REGEX1 : regex2fragment rule1.(Rule.regex) qi1 = (qf1, frag1))
+  (REGEX2 : regex2fragment rule2.(Rule.regex) qi2 = (qf2, frag2))
+  (RANGE1 : qi1 <= q <= qf1)
+  (RANGE2 : qi2 <= q <= qf2)
+  : (rule1, frag1) = (rule2, frag2).
+Proof.
+  s!. revert qi qmax frags FRAGS rule1 frag1 qi1 qf1 rule2 frag2 qi2 qf2 q IN1 IN2 REGEX1 REGEX2 RANGE1 RANGE2.
+  induction rules as [ | rule rules IH]; ii; simpl in FRAGS.
+  - now inv FRAGS.
+  - destruct (regex2fragment rule.(Rule.regex) qi) as [qf frag] eqn: REGEX.
+    destruct (rules2fragments (qf + 1) rules) as [qmax' frags'] eqn: FRAGS'.
+    s!; des; subst.
+    pose proof (rules2fragments_bounds _ _ _ _ FRAGS') as [_ BOUNDS].
+    simpl in *; des; s!; des; subst; eauto.
+    + pose proof (regex2fragment_same_fragment _ _ _ _ _ _ REGEX1 REGEX) as [EQ_QI EQ_QF]. subst qi1 qf1.
+      pose proof (BOUNDS _ _ IN2) as (qi2' & qf2' & REGEX2' & _ & LE2 & _).
+      pose proof (regex2fragment_same_fragment _ _ _ _ _ _ REGEX2 REGEX2') as [EQ_QI EQ_QF]. subst qi2 qf2.
+      lia.
+    + pose proof (regex2fragment_same_fragment _ _ _ _ _ _ REGEX2 REGEX) as [EQ_QI EQ_QF]. subst qi2 qf2.
+      pose proof (BOUNDS _ _ IN1) as (qi1' & qf1' & REGEX1' & _ & LE1 & _).
+      pose proof (regex2fragment_same_fragment _ _ _ _ _ _ REGEX1 REGEX1') as [EQ_QI EQ_QF]. subst qi1 qf1.
+      lia.
+Qed.
+
+Lemma fragment_eps_edges_owner qi rules qmax frags q q'
+  (FRAGS : rules2fragments qi rules = (qmax, frags))
+  (IN_EDGE : (q, q') ∈ fragment_eps_edges frags)
+  (SRC_NONZERO : q ≠ 0)
+  : exists rule, exists frag, exists qi_rule, exists qf, (rule, frag) ∈ frags /\ regex2fragment rule.(Rule.regex) qi_rule = (qf, frag) /\ FRAGMENT_BOUNDS qi_rule qf frag /\ qi <= qi_rule /\ qf < qmax /\ qi_rule <= q <= qf /\ (q, q') ∈ frag.(frag_eps_edges).
+Proof.
+  revert qi qmax frags FRAGS IN_EDGE; induction rules as [ | rule rules IH]; ii; simpl in FRAGS.
+  - now inv FRAGS.
+  - destruct (regex2fragment rule.(Rule.regex) qi) as [qf frag] eqn: REGEX.
+    destruct (rules2fragments (qf + 1) rules) as [qmax' frags'] eqn: FRAGS'.
+    pose proof (rules2fragments_bounds _ _ _ _ FRAGS') as [QMAX _].
+    s!; des; subst; simpl in *; des; subst; s!; des; subst.
+    + contradiction.
+    + pose proof (regex2fragment_bounds _ _ _ _ REGEX) as [_ _ LT EPS _].
+      exists rule, frag, qi, qf. pose proof (EPS _ _ IN_EDGE). simpl in *; splits; lia || eauto.
+      eapply regex2fragment_bounds; eauto.
+    + pose proof (regex2fragment_bounds _ _ _ _ REGEX) as [_ _ LT _ _].
+      pose proof (IH (qf + 1) qmax frags' FRAGS' IN_EDGE) as (rule' & frag' & qi_rule & qf' & IN_FRAG & REGEX' & BOUNDS & LE & LT' & RANGE & IN_EDGE').
+      exists rule', frag', qi_rule, qf'. simpl in *; splits; lia || eauto.
+Qed.
+
+Lemma fragment_eps_edges_start_sound qi rules qmax frags q'
+  (FRAGS : rules2fragments qi rules = (qmax, frags))
+  (qi_POS : 0 < qi)
+  (IN_EDGE : (0, q') ∈ fragment_eps_edges frags)
+  : exists rule, exists frag, exists qi_rule, exists qf, (rule, frag) ∈ frags /\ regex2fragment rule.(Rule.regex) qi_rule = (qf, frag) /\ q' = frag.(frag_start).
+Proof.
+  revert qi qmax frags q' FRAGS qi_POS IN_EDGE; induction rules as [ | rule rules IH]; ii; simpl in FRAGS.
+  - now inv FRAGS.
+  - destruct (regex2fragment rule.(Rule.regex) qi) as [qf frag] eqn: REGEX.
+    destruct (rules2fragments (qf + 1) rules) as [qmax' frags'] eqn: FRAGS'.
+    s!; des; subst. simpl in IN_EDGE. s!; des.
+    + exists rule, frag, qi, qf. splits; done.
+    + pose proof (regex2fragment_bounds _ _ _ _ REGEX) as [_ _ _ EPS _].
+      pose proof (EPS _ _ IN_EDGE). done.
+    + pose proof (regex2fragment_bounds _ _ _ _ REGEX) as [_ _ LT _ _].
+      assert (qi_POS' : 0 < qf + 1) by lia.
+      pose proof (IH (qf + 1) qmax frags' q' FRAGS' qi_POS' IN_EDGE) as (rule' & frag' & qi_rule & qf' & IN_FRAG & REGEX' & START).
+      exists rule', frag', qi_rule, qf'. done.
+Qed.
+
+Lemma fragment_char_edges_owner qi rules qmax frags edge
+  (FRAGS : rules2fragments qi rules = (qmax, frags))
+  (IN_EDGE : edge ∈ fragment_char_edges frags)
+  : exists rule, exists frag, exists qi_rule, exists qf, (rule, frag) ∈ frags /\ regex2fragment rule.(Rule.regex) qi_rule = (qf, frag) /\ FRAGMENT_BOUNDS qi_rule qf frag /\ qi <= qi_rule /\ qf < qmax /\ qi_rule <= edge.(char_edge_src) <= qf /\ edge ∈ frag.(frag_char_edges).
+Proof.
+  revert qi qmax frags FRAGS IN_EDGE.
+  induction rules as [ | rule rules IH]; ii; simpl in FRAGS.
+  - inv FRAGS. contradiction.
+  - destruct (regex2fragment rule.(Rule.regex) qi) as [qf frag] eqn: REGEX.
+    destruct (rules2fragments (qf + 1) rules) as [qmax' frags'] eqn: FRAGS'.
+    injection FRAGS as Hqmax Hfrags. subst qmax frags.
+    pose proof (rules2fragments_bounds _ _ _ _ FRAGS') as [QMAX _].
+    simpl in IN_EDGE. rewrite in_app_iff in IN_EDGE. destruct IN_EDGE as [IN_EDGE | IN_EDGE].
+    + pose proof (regex2fragment_bounds _ _ _ _ REGEX) as BOUNDS.
+      destruct BOUNDS as [_ _ LT _ CHAR].
+      pose proof (CHAR _ IN_EDGE). exists rule, frag, qi, qf. splits; simpl; lia || eauto.
+      eapply regex2fragment_bounds; eauto.
+    + pose proof (regex2fragment_bounds _ _ _ _ REGEX) as [_ _ LT _ _].
+      pose proof (IH (qf + 1) qmax' frags' FRAGS' IN_EDGE) as (rule' & frag' & qi_rule & qf' & IN_FRAG & REGEX' & BOUNDS & LE & LT' & RANGE & IN_EDGE').
+      exists rule', frag', qi_rule, qf'. splits; simpl; lia || eauto.
+Qed.
+
+Lemma fragments2TaggedENFA_okay rules qmax frags
+  (FRAGS : rules2fragments 1 rules = (qmax, frags))
+  : TaggedENFA.okay (fragments2TaggedENFA qmax frags).
+Proof.
+  split; simpl.
+  - rewrite in_seq. pose proof (rules2fragments_bounds _ _ _ _ FRAGS) as [LE _]. lia.
+  - intros q tag ACCEPT.
+    pose proof (fragment_accept_states_sound _ _ _ ACCEPT) as (rule & frag & IN_FRAG & ACCEPT_EQ & TOKEN_EQ). subst q tag.
+    pose proof (rules2fragments_bounds _ _ _ _ FRAGS) as [_ BOUND].
+    pose proof (BOUND _ _ IN_FRAG) as (qi_rule & qf & REGEX & [_ ACCEPT_EQ _ _ _] & LE_START & LT_END). subst qf.
+    rewrite in_seq. lia.
+  - intros q q' IN_STATES STEP.
+    pose proof (eps_step_from_edges_sound _ _ _ STEP) as IN_EDGE.
+    pose proof (eq_dec q 0) as [EQ | NE].
+    + subst q.
+      assert (QI_POS : 0 < 1) by lia.
+      pose proof (fragment_eps_edges_start_sound _ _ _ _ _ FRAGS QI_POS IN_EDGE) as (rule & frag & qi_rule & qf & IN_FRAG & REGEX & START_EQ). subst q'.
+      pose proof (rules2fragments_bounds _ _ _ _ FRAGS) as [_ BOUND].
+      pose proof (BOUND _ _ IN_FRAG) as (qi_rule' & qf' & REGEX' & [START_EQ _ LT _ _] & LE_START & LT_END).
+      pose proof (regex2fragment_same_fragment _ _ _ _ _ _ REGEX REGEX') as [EQ_QI EQ_QF]. subst.
+      rewrite in_seq. lia.
+    + pose proof (fragment_eps_edges_owner _ _ _ _ _ _ FRAGS IN_EDGE NE) as (rule & frag & qi_rule & qf & IN_FRAG & REGEX & [_ _ _ EPS _] & LE_START & LT_END & RANGE & IN_EDGE').
+      pose proof (EPS _ _ IN_EDGE') as RANGE'.
+      rewrite in_seq. lia.
+  - intros q q' c IN_STATES STEP.
+    pose proof (char_step_from_edges_sound _ _ _ _ STEP) as (edge & IN_EDGE & SRC & LABEL & DST). subst q q' c.
+    pose proof (fragment_char_edges_owner _ _ _ _ _ FRAGS IN_EDGE) as (rule & frag & qi_rule & qf & IN_FRAG & REGEX & [_ _ _ _ CHAR] & LE_START & LT_END & RANGE & IN_EDGE').
+    pose proof (CHAR _ IN_EDGE') as RANGE'.
+    rewrite in_seq. lia.
+Qed.
+
+Theorem mkUnitedTaggedENFA_okay rules
+  : TaggedENFA.okay (mkUnitedTaggedENFA rules).
+Proof.
+  unfold mkUnitedTaggedENFA. destruct (rules2fragments 1 rules) as [qmax frags] eqn: FRAGS.
+  eapply fragments2TaggedENFA_okay. exact FRAGS.
+Qed.
 
 End Thompson's_construction.
 
