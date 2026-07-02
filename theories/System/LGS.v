@@ -477,11 +477,11 @@ Proof.
   induction H1_delta_star as [q | q q1' q2' s STEP REST IH | q q1' q2' c s STEP REST IH]; simpl; eauto with *.
 Qed.
 
-Lemma delta_star_iff_eclosure (q : Q) (q' : Q)
+Lemma delta_star_nil_iff_eclosure (q : Q) (q' : Q)
   : q' \in delta_star q [] <-> q' \in eclosure q.
 Proof.
   split; [intros H_delta_star | intros H_eclosure].
-  - remember (@nil ascii) as s eqn: EQ; induction H_delta_star as [q | q q1' q2' s STEP REST IH | q q1' q2' c s STEP REST IH]; inv EQ; simpl; eauto with *.
+  - remember (@nil ascii) as s eqn: EQ; induction H_delta_star; inv EQ; simpl; eauto with *.
   - induction H_eclosure as [q | q q1' q2' STEP REST IH]; simpl; eauto with *.
 Qed.
 
@@ -511,13 +511,13 @@ Section BASICS.
 Variable M : TaggedENFA.t.
 
 #[local] Abbreviation Q := M.(TaggedENFA.state).
-#[local] Abbreviation M_eclosure := (eclosure M.(TaggedENFA.eps_step)).
-#[local] Abbreviation M_delta_star := (delta_star M.(TaggedENFA.eps_step) M.(TaggedENFA.char_step)).
+#[local] Abbreviation eclosure := (eclosure M.(TaggedENFA.eps_step)).
+#[local] Abbreviation delta_star := (delta_star M.(TaggedENFA.eps_step) M.(TaggedENFA.char_step)).
 
 Lemma eclosure_okay (q1 : Q) (q2 : Q)
   (OKAY : TaggedENFA.okay M)
   (IN : q1 ∈ M.(TaggedENFA.states))
-  (H_eclosure : q2 \in M_eclosure q1)
+  (H_eclosure : q2 \in eclosure q1)
   : q2 ∈ M.(TaggedENFA.states).
 Proof.
   destruct OKAY as [_ _ ? _]; induction H_eclosure as [q | q q1' q2' STEP REST IH]; simpl; eauto with *.
@@ -526,14 +526,14 @@ Qed.
 Lemma delta_star_okay (q1 : Q) (q2 : Q) (s : Input.t)
   (OKAY : TaggedENFA.okay M)
   (IN : q1 ∈ M.(TaggedENFA.states))
-  (H_delta_star : q2 \in M_delta_star q1 s)
+  (H_delta_star : q2 \in delta_star q1 s)
   : q2 ∈ M.(TaggedENFA.states).
 Proof.
   destruct OKAY as [_ _ ? ?]; induction H_delta_star as [q | q q1' q2' s STEP REST IH | q q1' q2' c s STEP REST IH]; simpl; eauto with *.
 Qed.
 
 Definition accepts (s : Input.t) (tag : Token.t) : Prop :=
-  exists qf, qf \in M_delta_star M.(TaggedENFA.start_state) s /\ (qf, tag) ∈ M.(TaggedENFA.accept_states).
+  exists qf, qf \in delta_star M.(TaggedENFA.start_state) s /\ (qf, tag) ∈ M.(TaggedENFA.accept_states).
 
 Definition accepted_tags (s : Input.t) : ensemble Token.t :=
   fun tag => accepts s tag.
