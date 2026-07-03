@@ -4,8 +4,8 @@ Require Import PnV.Prelude.X.
 #[local] Infix "=~=" := is_similar_to : type_scope.
 #[local] Infix "∈" := L.In.
 
-#[universes(polymorphic=yes), projections(primitive)]
-Record alist@{u v | } {K : Type@{u}} {V : Type@{v}} : Type@{max(u, v)} :=
+#[universes(template), projections(primitive)]
+Record alist {K : Type} {V : Type} : Type :=
   mk_alist { kvlist : list (K * V) } as al.
 
 #[global] Arguments alist : clear implicits.
