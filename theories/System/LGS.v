@@ -550,7 +550,7 @@ Record char_edge : Set :=
   ; char_edge_dst : nat
   } as edge.
 
-Lemma char_edge_eq_intro edge edge'
+Lemma char_edge_eq_intro (edge : char_edge) (edge' : char_edge)
   (src_eq : edge.(char_edge_src) = edge'.(char_edge_src))
   (label_eq : edge.(char_edge_label) = edge'.(char_edge_label))
   (dst_eq : edge.(char_edge_dst) = edge'.(char_edge_dst))
@@ -1005,15 +1005,15 @@ Proof.
         + ii. eapply EPS_INCL. s!; tauto.
         + ii. eapply CHAR_INCL. s!; tauto.
     }
-    + rewrite <- app_nil_r with (l := s2). eapply delta_star_app with (q2 := qf2).
-      { change s2 with ([] ++ s2). eapply delta_star_app with (q2 := qf1 + 1).
-        - eapply EPS. eapply EPS_INCL. s!; tauto.
-        - rewrite <- START2. rewrite <- ACCEPT2.
-          eapply IH2 with (s := s2) (qi := qf1 + 1) (qf := qf2) (frag := frag2) (topfrag := topfrag); eauto.
-          + ii. eapply EPS_INCL. s!; tauto.
-          + ii. eapply CHAR_INCL. s!; tauto.
-      }
-      { eapply EPS. eapply EPS_INCL. s!; tauto. }
+    rewrite <- app_nil_r with (l := s2). eapply delta_star_app with (q2 := qf2).
+    { change s2 with ([] ++ s2). eapply delta_star_app with (q2 := qf1 + 1).
+      - eapply EPS. eapply EPS_INCL. s!; tauto.
+      - rewrite <- START2. rewrite <- ACCEPT2.
+        eapply IH2 with (s := s2) (qi := qf1 + 1) (qf := qf2) (frag := frag2) (topfrag := topfrag); eauto.
+        + ii. eapply EPS_INCL. s!; tauto.
+        + ii. eapply CHAR_INCL. s!; tauto.
+    }
+    { eapply EPS. eapply EPS_INCL. s!; tauto. }
   - destruct (regex2fragment e (qi + 1)) as [qf1 frag1] eqn: REGEX1.
     inv REGEX2FRAGMENT.
     pose proof (TaggedENFA_FRAGMENTS_delta_star_step frags rule topfrag FRAGMENTS) as [EPS _].
@@ -1193,8 +1193,10 @@ Lemma fragments2TaggedENFA_okay rules qmax frags
   (FRAGS : rules2fragments 1 rules = (qmax, frags))
   : TaggedENFA.okay (fragments2TaggedENFA qmax frags).
 Proof.
+  assert (QI_POS : 0 < 1) by lia.
   split; simpl.
-  - rewrite in_seq. pose proof (rules2fragments_bounds _ _ _ _ FRAGS) as [LE _]. lia.
+  - pose proof (rules2fragments_bounds _ _ _ _ FRAGS) as [LE _].
+    rewrite in_seq. lia.
   - intros q tag ACCEPT.
     pose proof (fragment_accept_states_sound _ _ _ ACCEPT) as (rule & frag & IN_FRAG & ACCEPT_EQ & TOKEN_EQ). subst q tag.
     pose proof (rules2fragments_bounds _ _ _ _ FRAGS) as [_ BOUND].
@@ -1202,9 +1204,8 @@ Proof.
     rewrite in_seq. lia.
   - intros q q' IN_STATES STEP.
     pose proof (eps_step_from_edges_sound _ _ _ STEP) as IN_EDGE.
-    pose proof (eq_dec q 0) as [EQ | NE].
+    pose proof (Nat.eq_dec q 0) as [EQ | NE].
     + subst q.
-      assert (QI_POS : 0 < 1) by lia.
       pose proof (fragment_eps_edges_start_sound _ _ _ _ _ FRAGS QI_POS IN_EDGE) as (rule & frag & qi_rule & qf & IN_FRAG & REGEX & START_EQ). subst q'.
       pose proof (rules2fragments_bounds _ _ _ _ FRAGS) as [_ BOUND].
       pose proof (BOUND _ _ IN_FRAG) as (qi_rule' & qf' & REGEX' & [START_EQ _ LT _ _] & LE_START & LT_END).
