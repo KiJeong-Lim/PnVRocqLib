@@ -2041,115 +2041,96 @@ Qed.
 
 End NUMBER_STATES.
 
-(*
-
 Section SUBSET_CONSTRUCTION.
 
 Variable M : TaggedENFA.t.
 
-#[local] Notation Q := M.(TaggedENFA.state).
-#[local] Notation M_eclosure := (TaggedENFA.eclosure M.(TaggedENFA.eps_step)).
-#[local] Notation M_delta_star := (TaggedENFA.delta_star M.(TaggedENFA.eps_step) M.(TaggedENFA.char_step)).
+#[local] Abbreviation Q := M.(TaggedENFA.state).
+#[local] Abbreviation eclosure := (TaggedENFA.eclosure M.(TaggedENFA.eps_step)).
+#[local] Abbreviation delta_star := (TaggedENFA.delta_star M.(TaggedENFA.eps_step) M.(TaggedENFA.char_step)).
 
 Definition subset_state : Set :=
-  list Q.
+  fin_ensemble Q.
 
 Definition normalize (qs : subset_state) : subset_state :=
-  filter (fun q => mem q qs) M.(TaggedENFA.states).
+  filter (fun q => mem (EQ_DEC := M.(TaggedENFA.state_hasEqDec)) q qs) M.(TaggedENFA.states).
 
 Definition move (qs : subset_state) (c : ascii) : subset_state :=
-  qs >>= fun q => M.(TaggedENFA.char_step) q c.
+  bind (isMonad := B.list_isMonad) qs (fun q => M.(TaggedENFA.char_step) q c).
 
 Definition eps_move (qs : subset_state) : subset_state :=
-  qs >>= M.(TaggedENFA.eps_step).
+  bind (isMonad := B.list_isMonad) qs M.(TaggedENFA.eps_step).
 
 Definition eclose_step (qs : subset_state) : subset_state :=
-  normalize (union (eps_move qs) qs).
+  normalize (union (EQ_DEC := M.(TaggedENFA.state_hasEqDec)) (eps_move qs) qs).
 
 Definition eclose (qs : subset_state) : subset_state :=
   iter (length M.(TaggedENFA.states)) eclose_step (normalize qs).
 
-Lemma normalize_complete (qs : subset_state) (q : Q)
-  (STATES : q ∈ M.(TaggedENFA.states))
-  (IN : q ∈ qs)
-  : q ∈ normalize qs.
+Lemma in_normalize_iff (qs : subset_state)
+  : forall q, q ∈ normalize qs <-> (q ∈ qs /\ q ∈ M.(TaggedENFA.states)).
 Proof.
-  unfold normalize. rewrite filter_In. split; [exact STATES | ].
-  now rewrite mem_true_iff.
+  i; unfold normalize. done.
 Qed.
 
-Lemma normalize_sound (qs : subset_state) (q : Q)
-  (IN : q ∈ normalize qs)
-  : q ∈ qs /\ q ∈ M.(TaggedENFA.states).
+#[local] Hint Rewrite in_normalize_iff : simplication_hints.
+
+Lemma in_move_iff (qs : subset_state) (c : ascii)
+  : forall q', q' ∈ move qs c <-> (exists q, q ∈ qs /\ q' ∈ M.(TaggedENFA.char_step) q c).
 Proof.
-  unfold normalize in IN. rewrite filter_In in IN.
-  destruct IN as [STATES MEM]. split; [ | exact STATES].
-  now rewrite mem_true_iff in MEM.
+  i; unfold move. split; i; des.
+  - eapply in_list_bind_elim; eauto.
+  - eapply in_list_bind_intro; eauto.
 Qed.
 
-Lemma move_complete (qs : subset_state) (c : ascii) (q : Q) (q' : Q)
-  (IN : q ∈ qs)
-  (STEP : q' ∈ M.(TaggedENFA.char_step) q c)
-  : q' ∈ move qs c.
+#[local] Hint Rewrite in_move_iff : simplication_hints.
+
+Lemma in_eps_move_iff (qs : subset_state)
+  : forall q', q' ∈ eps_move qs <-> (exists q, q ∈ qs /\ q' ∈ M.(TaggedENFA.eps_step) q).
 Proof.
-  unfold move. eapply list_bind_complete; eauto.
+  i; unfold eps_move. split; i; des.
+  - eapply in_list_bind_elim; eauto.
+  - eapply in_list_bind_intro; eauto.
 Qed.
 
-Lemma move_sound (qs : subset_state) (c : ascii) (q' : Q)
-  (IN : q' ∈ move qs c)
-  : exists q, q ∈ qs /\ q' ∈ M.(TaggedENFA.char_step) q c.
-Proof.
-  unfold move in IN. eapply list_bind_sound. exact IN.
-Qed.
+#[local] Hint Rewrite in_eps_move_iff : simplication_hints.
 
-Lemma eps_move_complete (qs : subset_state) (q : Q) (q' : Q)
-  (IN : q ∈ qs)
-  (STEP : q' ∈ M.(TaggedENFA.eps_step) q)
-  : q' ∈ eps_move qs.
-Proof.
-  unfold eps_move. eapply list_bind_complete; eauto.
-Qed.
-
-Lemma eps_move_sound (qs : subset_state) (q' : Q)
-  (IN : q' ∈ eps_move qs)
-  : exists q, q ∈ qs /\ q' ∈ M.(TaggedENFA.eps_step) q.
-Proof.
-  unfold eps_move in IN. eapply list_bind_sound. exact IN.
-Qed.
+#[local] Hint Constructors TaggedENFA.eclosure : core.
+#[local] Hint Constructors TaggedENFA.delta_star : core.
 
 Lemma eclose_step_sound (qs : subset_state) (q' : Q)
   (IN : q' ∈ eclose_step qs)
-  : exists q, q ∈ qs /\ q' \in M_eclosure q.
+  : exists q, q ∈ qs /\ q' \in eclosure q.
 Proof.
   unfold eclose_step in IN.
-  pose proof (normalize_sound _ _ IN) as [IN_UNION _].
-  pose proof (union_sound _ _ _ IN_UNION) as [IN_EPS | IN_QS].
-  - pose proof (eps_move_sound _ _ IN_EPS) as (q & IN_QS & STEP).
-    exists q. split; [exact IN_QS | ].
-    eapply TaggedENFA.eclosure_step; [exact STEP | constructor].
-  - exists q'. split; [exact IN_QS | constructor].
+  rewrite in_normalize_iff in IN. destruct IN as [IN_UNION _].
+  rewrite in_union_iff in IN_UNION. destruct IN_UNION as [IN_EPS | IN_QS].
+  - rewrite in_eps_move_iff in IN_EPS. destruct IN_EPS as (q & IN_QS & STEP).
+    done.
+  - done.
 Qed.
+
+#[local] Hint Resolve TaggedENFA.eclosure_trans : core.
 
 Lemma iter_eclose_step_sound (fuel : nat) (qs : subset_state) (q' : Q)
   (IN : q' ∈ iter fuel eclose_step qs)
-  : exists q, q ∈ qs /\ q' \in M_eclosure q.
+  : exists q, q ∈ qs /\ q' \in eclosure q.
 Proof.
-  revert qs q' IN. induction fuel as [ | fuel IH]; intros qs q' IN; simpl in IN.
-  - exists q'. split; [exact IN | constructor].
+  revert qs q' IN; induction fuel as [ | fuel IH]; ii; simpl in IN.
+  - exists q'. done.
   - pose proof (IH _ _ IN) as (q1 & STEP & REST).
     pose proof (eclose_step_sound _ _ STEP) as (q0 & IN_QS & CLOS).
-    exists q0. split; [exact IN_QS | ].
-    eapply TaggedENFA.eclosure_trans; eauto.
+    exists q0. done.
 Qed.
 
 Lemma eclose_sound (qs : subset_state) (q' : Q)
   (IN : q' ∈ eclose qs)
-  : exists q, q ∈ qs /\ q' \in M_eclosure q.
+  : exists q, q ∈ qs /\ q' \in eclosure q.
 Proof.
   unfold eclose in IN.
   pose proof (iter_eclose_step_sound _ _ _ IN) as (q & IN_NORM & CLOS).
-  pose proof (normalize_sound _ _ IN_NORM) as [IN_QS _].
-  exists q. split; [exact IN_QS | exact CLOS].
+  rewrite in_normalize_iff in IN_NORM. destruct IN_NORM as [IN_QS _].
+  exists q; eauto.
 Qed.
 
 Definition eps_graph : GRAPH.t :=
@@ -2160,13 +2141,13 @@ Definition eps_graph : GRAPH.t :=
 
 #[local] Notation " src ~~~[ w ]~~> tgt " := (@walk eps_graph tgt src w) : type_scope.
 
+#[local] Hint Constructors walk : core.
+
 Lemma eclosure_walk (q : Q) (q' : Q)
-  (CLOS : q' \in M_eclosure q)
+  (CLOS : q' \in eclosure q)
   : exists w, q ~~~[ w ]~~> q'.
 Proof.
-  induction CLOS as [q | q q1 q2 STEP REST IH].
-  - exists []. constructor.
-  - destruct IH as [w WALK]. exists (q1 :: w). econstructor; eauto.
+  induction CLOS as [q | q q1 q2 STEP REST [w WALK]]; eauto.
 Qed.
 
 Lemma eps_walk_states (q : Q) (q' : Q) (w : list Q)
@@ -2176,10 +2157,9 @@ Lemma eps_walk_states (q : Q) (q' : Q) (w : list Q)
   : forall q0, q0 ∈ w -> q0 ∈ M.(TaggedENFA.states).
 Proof.
   destruct OKAY as [_ _ EPS_OKAY _].
-  induction WALK as [ | q q1 w STEP REST IH]; intros q0 IN; simpl in IN; [contradiction | ].
-  destruct IN as [EQ | IN].
-  - subst q0. eapply EPS_OKAY; eauto.
-  - eapply IH; [eapply EPS_OKAY; eauto | exact IN].
+  induction WALK as [ | q q1 w STEP REST IH]; intros q0 IN; simpl in IN.
+  - tauto.
+  - destruct IN as [EQ | IN]; done.
 Qed.
 
 Lemma eclose_step_complete_keep (qs : subset_state) (q : Q)
@@ -2187,9 +2167,7 @@ Lemma eclose_step_complete_keep (qs : subset_state) (q : Q)
   (IN : q ∈ qs)
   : q ∈ eclose_step qs.
 Proof.
-  unfold eclose_step.
-  eapply normalize_complete; [exact STATE | ].
-  eapply union_complete. right. exact IN.
+  unfold eclose_step. done.
 Qed.
 
 Lemma eclose_step_complete_edge (qs : subset_state) (q : Q) (q' : Q)
@@ -2198,103 +2176,95 @@ Lemma eclose_step_complete_edge (qs : subset_state) (q : Q) (q' : Q)
   (STEP : q' ∈ M.(TaggedENFA.eps_step) q)
   : q' ∈ eclose_step qs.
 Proof.
-  unfold eclose_step.
-  eapply normalize_complete; [exact STATE | ].
-  eapply union_complete. left.
-  eapply eps_move_complete; eauto.
+  unfold eclose_step. done.
 Qed.
+
+#[local] Hint Resolve eclose_step_complete_keep : core.
 
 Lemma iter_eclose_step_keeps (fuel : nat) (qs : subset_state) (q : Q)
   (STATE : q ∈ M.(TaggedENFA.states))
   (IN : q ∈ qs)
   : q ∈ iter fuel eclose_step qs.
 Proof.
-  revert qs IN. induction fuel as [ | fuel IH]; intros qs IN; simpl.
-  - exact IN.
-  - eapply IH. eapply eclose_step_complete_keep; eauto.
+  revert qs IN; induction fuel as [ | fuel IH]; ii; simpl; eauto.
 Qed.
 
 Lemma iter_eclose_step_walk_complete (fuel : nat) (qs : subset_state) (q : Q) (q' : Q) (w : list Q)
   (OKAY : TaggedENFA.okay M)
-  (QS_STATES : forall q0, q0 ∈ qs -> q0 ∈ M.(TaggedENFA.states))
+  (QS_STATES : forall q, q ∈ qs -> q ∈ M.(TaggedENFA.states))
   (IN : q ∈ qs)
   (WALK : q ~~~[ w ]~~> q')
   (LENGTH : length w <= fuel)
   : q' ∈ iter fuel eclose_step qs.
 Proof.
-  revert fuel qs IN QS_STATES LENGTH.
-  induction WALK as [ | q q1 w STEP REST IH]; intros fuel qs IN QS_STATES LENGTH.
+  revert fuel qs IN QS_STATES LENGTH; induction WALK as [ | q q1 w STEP REST IH]; ii.
   - eapply iter_eclose_step_keeps; eauto.
-  - destruct fuel as [ | fuel]; simpl in LENGTH; [lia | ].
-    simpl. eapply IH.
-    + eapply eclose_step_complete_edge; eauto.
-      destruct OKAY as [_ _ EPS_OKAY _]. eapply EPS_OKAY; eauto.
-    + intros q0 IN0. pose proof (normalize_sound _ _ IN0) as [_ STATE]. exact STATE.
+  - destruct fuel as [ | fuel]; simpl in *; try lia. eapply IH.
+    + eapply eclose_step_complete_edge; eauto. destruct OKAY as [_ _ EPS_OKAY _]; eauto.
+    + clear. intros q IN. unfold eclose_step in IN. now rewrite in_normalize_iff in IN.
     + lia.
 Qed.
 
 Lemma eclose_complete (qs : subset_state) (q : Q) (q' : Q)
   (OKAY : TaggedENFA.okay M)
-  (QS_STATES : forall q0, q0 ∈ qs -> q0 ∈ M.(TaggedENFA.states))
+  (QS_STATES : forall q, q ∈ qs -> q ∈ M.(TaggedENFA.states))
   (IN : q ∈ qs)
-  (CLOS : q' \in M_eclosure q)
+  (CLOS : q' \in eclosure q)
   : q' ∈ eclose qs.
 Proof.
   unfold eclose.
   pose proof (eclosure_walk _ _ CLOS) as [w WALK].
-  pose proof (@walk_finds_path eps_graph (fun q => fun qs => match L.in_dec (@eq_dec Q M.(TaggedENFA.state_hasEqDec)) q qs with left IN => or_introl IN | right NOT_IN => or_intror NOT_IN end) q q' w WALK) as [p PATH].
-  rewrite path_iff_no_dup_walk in PATH. destruct PATH as [WALK' NO_DUP].
+  exploit (@walk_finds_path eps_graph _ q q' w).
+  { clear; intros q qs. now pose proof (L.in_dec (@eq_dec Q M.(TaggedENFA.state_hasEqDec)) q qs) as [YES | NO]; [left | right]. }
+  { exact WALK. }
+  intros [p PATH]. rewrite path_iff_no_dup_walk in PATH. destruct PATH as [WALK' NO_DUP].
   eapply iter_eclose_step_walk_complete with (q := q) (w := p); eauto.
-  - intros q0 IN_NORM. pose proof (normalize_sound _ _ IN_NORM) as [_ STATE]. exact STATE.
-  - eapply normalize_complete; [eapply QS_STATES; exact IN | exact IN].
-  - eapply L.NoDup_incl_length; [exact NO_DUP | ].
-    intros q0 IN_P. eapply eps_walk_states; eauto.
+  - ii; ss!.
+  - ii; ss!.
+  - eapply L.NoDup_incl_length; eauto. ii; eapply eps_walk_states; eauto.
 Qed.
 
 Definition subset_state_okay (qs : subset_state) : Prop :=
-  (forall q, q ∈ qs -> q ∈ M.(TaggedENFA.states)) /\ (forall q, forall q', q ∈ qs -> q' \in M_eclosure q -> q' ∈ qs).
+  (forall q : Q, forall IN : q ∈ qs, q ∈ M.(TaggedENFA.states)) /\ (forall q : Q, forall q' : Q, forall IN : q ∈ qs, forall CLOS : q' \in eclosure q, q' ∈ qs).
 
 Lemma eclose_closed (qs : subset_state) (q : Q) (q' : Q)
   (OKAY : TaggedENFA.okay M)
-  (QS_STATES : forall q0, q0 ∈ qs -> q0 ∈ M.(TaggedENFA.states))
+  (QS_STATES : forall q, q ∈ qs -> q ∈ M.(TaggedENFA.states))
   (IN : q ∈ eclose qs)
-  (CLOS : q' \in M_eclosure q)
+  (CLOS : q' \in eclosure q)
   : q' ∈ eclose qs.
 Proof.
   pose proof (eclose_sound _ _ IN) as (q0 & IN0 & CLOS0).
   eapply eclose_complete with (q := q0); eauto.
-  eapply TaggedENFA.eclosure_trans; eauto.
 Qed.
 
-Definition subset_states : list subset_state :=
+Definition subset_states : fin_ensemble subset_state :=
   powerset M.(TaggedENFA.states).
 
 Lemma normalize_in_subset_states (qs : subset_state)
   : normalize qs ∈ subset_states.
 Proof.
-  unfold subset_states, normalize. eapply filter_in_powerset.
+  eapply filter_in_powerset.
 Qed.
 
 Lemma eclose_step_in_subset_states (qs : subset_state)
   : eclose_step qs ∈ subset_states.
 Proof.
-  unfold eclose_step. eapply normalize_in_subset_states.
+  eapply normalize_in_subset_states.
 Qed.
 
 Lemma iter_eclose_step_in_subset_states (fuel : nat) (qs : subset_state)
-  (QS : qs ∈ subset_states)
+  (IN : qs ∈ subset_states)
   : iter fuel eclose_step qs ∈ subset_states.
 Proof.
-  revert qs QS. induction fuel as [ | fuel IH]; intros qs QS; simpl.
-  - exact QS.
-  - eapply IH. eapply eclose_step_in_subset_states.
+  revert qs IN; induction fuel as [ | fuel IH]; ii; simpl; eauto.
+  eapply IH. eapply eclose_step_in_subset_states.
 Qed.
 
 Lemma eclose_in_subset_states (qs : subset_state)
   : eclose qs ∈ subset_states.
 Proof.
-  unfold eclose. eapply iter_eclose_step_in_subset_states.
-  eapply normalize_in_subset_states.
+  eapply iter_eclose_step_in_subset_states. eapply normalize_in_subset_states.
 Qed.
 
 Definition subset_start_state : subset_state :=
@@ -2307,20 +2277,14 @@ Lemma subset_start_state_complete
   (OKAY : TaggedENFA.okay M)
   : M.(TaggedENFA.start_state) ∈ subset_start_state.
 Proof.
-  unfold subset_start_state.
-  eapply eclose_complete with (q := M.(TaggedENFA.start_state)); eauto.
-  - intros q IN. destruct OKAY as [START_OKAY _ _ _]. destruct IN as [EQ | []]. now subst q.
-  - left. reflexivity.
-  - constructor.
+  destruct OKAY. eapply eclose_complete with (q := M.(TaggedENFA.start_state)); eauto; done.
 Qed.
 
 Lemma subset_start_state_sound (q : Q)
   (IN : q ∈ subset_start_state)
-  : q \in M_eclosure M.(TaggedENFA.start_state).
+  : q \in eclosure M.(TaggedENFA.start_state).
 Proof.
-  unfold subset_start_state in IN.
-  pose proof (eclose_sound _ _ IN) as (q0 & IN_START & CLOS).
-  destruct IN_START as [EQ | []]. subst q0. exact CLOS.
+  pose proof (eclose_sound _ _ IN) as (q0 & IN_START & CLOS). ss!.
 Qed.
 
 Lemma subset_start_state_okay
@@ -2329,36 +2293,33 @@ Lemma subset_start_state_okay
 Proof.
   split.
   - intros q IN. pose proof OKAY as [START_OKAY _ _ _].
-    eapply (TaggedENFA.eclosure_okay M M.(TaggedENFA.start_state) q); eauto.
-    eapply subset_start_state_sound. exact IN.
+    eapply TaggedENFA.eclosure_okay with (M := M) (q1 := M.(TaggedENFA.start_state)); eauto.
+    now eapply subset_start_state_sound.
   - intros q q' IN CLOS.
     eapply eclose_closed with (q := q); eauto.
-    intros q0 IN0. destruct OKAY as [START_OKAY _ _ _].
-    destruct IN0 as [EQ | []]. now subst q0.
+    destruct OKAY as [START_OKAY _ _ _]; done.
 Qed.
 
 Lemma subset_transition_sound (qs : subset_state) (c : ascii) (q' : Q)
   (IN : q' ∈ subset_transition qs c)
-  : exists q, exists q1, q ∈ qs /\ q1 ∈ M.(TaggedENFA.char_step) q c /\ q' \in M_eclosure q1.
+  : exists q, exists q1, q ∈ qs /\ q1 ∈ M.(TaggedENFA.char_step) q c /\ q' \in eclosure q1.
 Proof.
-  unfold subset_transition in IN.
   pose proof (eclose_sound _ _ IN) as (q1 & IN_MOVE & CLOS).
-  pose proof (move_sound _ _ _ IN_MOVE) as (q & IN_QS & STEP).
+  rewrite in_move_iff in IN_MOVE. destruct IN_MOVE as (q & IN_QS & STEP).
   exists q, q1. eauto.
 Qed.
 
 Lemma subset_transition_complete (qs : subset_state) (c : ascii) (q : Q) (q1 : Q) (q' : Q)
   (OKAY : TaggedENFA.okay M)
-  (QS_STATES : forall q0, q0 ∈ qs -> q0 ∈ M.(TaggedENFA.states))
+  (QS_STATES : forall q, q ∈ qs -> q ∈ M.(TaggedENFA.states))
   (IN : q ∈ qs)
   (STEP : q1 ∈ M.(TaggedENFA.char_step) q c)
-  (CLOS : q' \in M_eclosure q1)
+  (CLOS : q' \in eclosure q1)
   : q' ∈ subset_transition qs c.
 Proof.
-  unfold subset_transition. eapply eclose_complete with (q := q1); eauto.
-  - intros q0 IN_MOVE. pose proof (move_sound _ _ _ IN_MOVE) as (q2 & IN_QS & STEP2).
-    destruct OKAY as [_ _ _ CHAR_OKAY]. eapply CHAR_OKAY; eauto.
-  - eapply move_complete; eauto.
+  eapply eclose_complete with (q := q1); eauto.
+  - destruct OKAY as [_ _ _ CHAR_OKAY]. ii; done.
+  - done.
 Qed.
 
 Lemma subset_transition_okay (qs : subset_state) (c : ascii)
@@ -2369,73 +2330,60 @@ Proof.
   destruct QS_OKAY as [QS_STATES QS_CLOSED]. split.
   - intros q' IN.
     pose proof (subset_transition_sound _ _ _ IN) as (q & q1 & IN_QS & STEP & CLOS).
-    eapply (TaggedENFA.eclosure_okay M q1 q'); eauto.
+    eapply TaggedENFA.eclosure_okay with (M := M) (q1 := q1); eauto.
     pose proof OKAY as [_ _ _ CHAR_OKAY]. eapply CHAR_OKAY; eauto.
-  - intros q q' IN CLOS.
-    unfold subset_transition in *.
+  - intros q q' IN CLOS. unfold subset_transition in *.
     eapply eclose_closed with (q := q); eauto.
-    intros q0 IN_MOVE. pose proof (move_sound _ _ _ IN_MOVE) as (q2 & IN_QS & STEP).
-    destruct OKAY as [_ _ _ CHAR_OKAY]. eapply CHAR_OKAY; eauto.
+    destruct OKAY as [_ _ _ CHAR_OKAY]. done.
 Qed.
 
 Lemma subset_transition_in_subset_states (qs : subset_state) (c : ascii)
   : subset_transition qs c ∈ subset_states.
 Proof.
-  unfold subset_transition. eapply eclose_in_subset_states.
+  eapply eclose_in_subset_states.
 Qed.
 
 Definition subset_accept_states_of (qs : subset_state) : list (subset_state * Token.t) :=
-  M.(TaggedENFA.accept_states) >>= fun '(q, tag) =>
-    if mem q qs then
-      [(qs, tag)]
-    else
-      [].
+  bind (isMonad := B.list_isMonad) M.(TaggedENFA.accept_states).(kvlist) (fun '(q, tag) => if mem (EQ_DEC := M.(TaggedENFA.state_hasEqDec)) q qs then pure (isMonad := B.list_isMonad) (qs, tag) else []).
 
 Definition subset_accept_states : list (subset_state * Token.t) :=
-  subset_states >>= subset_accept_states_of.
+  bind (isMonad := B.list_isMonad) subset_states subset_accept_states_of.
 
 Lemma subset_accept_states_of_complete (qs : subset_state) (q : Q) (tag : Token.t)
-  (ACCEPT : (q, tag) ∈ M.(TaggedENFA.accept_states))
+  (ACCEPT : (q, tag) ∈ M.(TaggedENFA.accept_states).(kvlist))
   (IN : q ∈ qs)
   : (qs, tag) ∈ subset_accept_states_of qs.
 Proof.
-  unfold subset_accept_states_of.
-  eapply list_bind_complete with (x := (q, tag)); [exact ACCEPT | ].
-  assert (MEM : mem q qs = true) by (rewrite mem_true_iff; exact IN).
-  rewrite MEM. simpl. left. reflexivity.
+  eapply in_list_bind_intro with (x := (q, tag)); eauto. des_ifs; ss!.
 Qed.
 
-Lemma subset_accept_states_of_sound (qs : subset_state) (qs0 : subset_state) (tag : Token.t)
-  (ACCEPT : (qs0, tag) ∈ subset_accept_states_of qs)
-  : qs0 = qs /\ (exists q, (q, tag) ∈ M.(TaggedENFA.accept_states) /\ q ∈ qs).
+Lemma subset_accept_states_of_sound (qs : subset_state) (qs' : subset_state) (tag : Token.t)
+  (ACCEPT : (qs', tag) ∈ subset_accept_states_of qs)
+  : qs = qs' /\ (exists q : Q, (q, tag) ∈ M.(TaggedENFA.accept_states).(kvlist) /\ q ∈ qs).
 Proof.
   unfold subset_accept_states_of in ACCEPT.
-  pose proof (list_bind_sound _ _ _ ACCEPT) as ([q tag'] & ACCEPT' & IN).
-  destruct (mem q qs) eqn: MEM; simpl in IN; [ | contradiction].
-  destruct IN as [EQ | []]. inv EQ.
-  split; [reflexivity | ].
-  exists q. split; [exact ACCEPT' | now rewrite mem_true_iff in MEM].
+  pose proof (in_list_bind_elim _ _ _ ACCEPT) as ([q tag'] & ACCEPT' & IN).
+  des_ifs; ss!.
 Qed.
 
 Lemma subset_accept_states_complete (qs : subset_state) (q : Q) (tag : Token.t)
   (QS : qs ∈ subset_states)
-  (ACCEPT : (q, tag) ∈ M.(TaggedENFA.accept_states))
+  (ACCEPT : (q, tag) ∈ M.(TaggedENFA.accept_states).(kvlist))
   (IN : q ∈ qs)
   : (qs, tag) ∈ subset_accept_states.
 Proof.
-  unfold subset_accept_states.
-  eapply list_bind_complete with (x := qs); [exact QS | ].
+  eapply in_list_bind_intro with (x := qs); eauto.
   eapply subset_accept_states_of_complete; eauto.
 Qed.
 
 Lemma subset_accept_states_sound (qs : subset_state) (tag : Token.t)
   (ACCEPT : (qs, tag) ∈ subset_accept_states)
-  : qs ∈ subset_states /\ (exists q, (q, tag) ∈ M.(TaggedENFA.accept_states) /\ q ∈ qs).
+  : qs ∈ subset_states /\ (exists q, (q, tag) ∈ M.(TaggedENFA.accept_states).(kvlist) /\ q ∈ qs).
 Proof.
   unfold subset_accept_states in ACCEPT.
-  pose proof (list_bind_sound _ _ _ ACCEPT) as (qs' & QS & ACCEPT').
+  pose proof (in_list_bind_elim _ _ _ ACCEPT) as (qs' & QS & ACCEPT').
   pose proof (subset_accept_states_of_sound qs' qs tag ACCEPT') as (EQ & q & ACCEPT_Q & IN).
-  subst qs'. eauto.
+  subst qs'; eauto.
 Qed.
 
 Definition subset_state_ensemble (qs : subset_state) : ensemble Q :=
@@ -2451,54 +2399,48 @@ Definition eps_move_ensemble (qs : subset_state) : ensemble Q :=
   fun q' => exists q, q ∈ qs /\ q' ∈ M.(TaggedENFA.eps_step) q.
 
 Definition eclose_ensemble (qs : subset_state) : ensemble Q :=
-  fun q' => exists q, q ∈ qs /\ q' \in M_eclosure q.
+  fun q' => exists q, q ∈ qs /\ q' \in eclosure q.
 
 Definition subset_transition_ensemble (qs : subset_state) (c : ascii) : ensemble Q :=
-  fun q' => exists q, exists q1, q ∈ qs /\ q1 ∈ M.(TaggedENFA.char_step) q c /\ q' \in M_eclosure q1.
+  fun q' => exists q, exists q1, q ∈ qs /\ q1 ∈ M.(TaggedENFA.char_step) q c /\ q' \in eclosure q1.
 
 Definition subset_accept_state_ensemble : ensemble (subset_state * Token.t) :=
-  fun qstag => let '(qs, tag) := qstag in qs ∈ subset_states /\ (exists q, (q, tag) ∈ M.(TaggedENFA.accept_states) /\ q ∈ qs).
+  fun '(qs, tag) => qs ∈ subset_states /\ (exists q, (q, tag) ∈ M.(TaggedENFA.accept_states).(kvlist) /\ q ∈ qs).
 
-Lemma subset_membership_similarity (qs : subset_state) (q : Q)
-  : is_similar_to (Similarity := Similarity_bool_Prop) (mem q qs) (q ∈ qs).
+Corollary subset_membership_similarity (qs : subset_state) (q : Q)
+  : is_similar_to (Similarity := Similarity_bool_Prop) (mem (EQ_DEC := M.(TaggedENFA.state_hasEqDec)) q qs) (q ∈ qs).
 Proof.
-  change (if mem q qs then q ∈ qs else ~ q ∈ qs).
-  destruct (mem q qs) eqn: MEM.
-  - now rewrite mem_true_iff in MEM.
-  - now rewrite mem_false_iff in MEM.
+  do 2 red. des_ifs; ss!.
 Qed.
 
-Lemma normalize_similarity (qs : subset_state)
+Corollary normalize_similarity (qs : subset_state)
   : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (normalize qs) (normalize_ensemble qs).
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff. intros q. split.
-  - intros IN. pose proof (normalize_sound qs q IN) as [IN_QS STATES]. split; [exact STATES | exact IN_QS].
-  - intros [STATES IN_QS]. eapply normalize_complete; eauto.
+  - intros IN. done.
+  - intros [STATES IN_QS]. done.
 Qed.
 
-Lemma normalize_membership_similarity (qs : subset_state) (q : Q)
-  : is_similar_to (Similarity := Similarity_bool_Prop) (mem q (normalize qs)) (q ∈ M.(TaggedENFA.states) /\ q ∈ qs).
+Corollary normalize_membership_similarity (qs : subset_state) (q : Q)
+  : is_similar_to (Similarity := Similarity_bool_Prop) (mem (EQ_DEC := M.(TaggedENFA.state_hasEqDec)) q (normalize qs)) (q ∈ M.(TaggedENFA.states) /\ q ∈ qs).
 Proof.
-  change (if mem q (normalize qs) then q ∈ M.(TaggedENFA.states) /\ q ∈ qs else ~ (q ∈ M.(TaggedENFA.states) /\ q ∈ qs)).
-  destruct (mem q (normalize qs)) eqn: MEM.
-  - rewrite mem_true_iff in MEM. pose proof (normalize_sound qs q MEM) as [IN_QS STATES]. split; [exact STATES | exact IN_QS].
-  - rewrite mem_false_iff in MEM. intros [STATES IN_QS]. eapply MEM. eapply normalize_complete; eauto.
+  do 2 red. des_ifs; ss!.
 Qed.
 
-Lemma move_similarity (qs : subset_state) (c : ascii)
+Corollary move_similarity (qs : subset_state) (c : ascii)
   : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (move qs c) (move_ensemble qs c).
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff. intros q'. split.
-  - eapply move_sound.
-  - intros (q & IN_QS & STEP). eapply move_complete; eauto.
+  - done.
+  - intros (q & IN_QS & STEP). done.
 Qed.
 
 Lemma eps_move_similarity (qs : subset_state)
   : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (eps_move qs) (eps_move_ensemble qs).
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff. intros q'. split.
-  - eapply eps_move_sound.
-  - intros (q & IN_QS & STEP). eapply eps_move_complete; eauto.
+  - done.
+  - intros (q & IN_QS & STEP). done.
 Qed.
 
 Lemma eclose_similarity (qs : subset_state)
@@ -2525,41 +2467,8 @@ Lemma subset_accept_states_similarity
   : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) subset_accept_states subset_accept_state_ensemble.
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff. intros [qs tag]. split.
-  - intros ACCEPT. pose proof (subset_accept_states_sound qs tag ACCEPT) as [QS ACCEPT_Q]. split; [exact QS | exact ACCEPT_Q].
+  - intros ACCEPT. pose proof (subset_accept_states_sound qs tag ACCEPT) as [QS ACCEPT_Q]. split; eauto.
   - intros [QS (q & ACCEPT_Q & IN_QS)]. eapply subset_accept_states_complete; eauto.
-Qed.
-
-Variant SUBSET_CONSTRUCTION_COMPUTATION_SPEC : Prop :=
-  | subset_construction_computation_spec_intro
-    (subset_membership_sim : forall qs : subset_state, forall q : Q, is_similar_to (Similarity := Similarity_bool_Prop) (mem q qs) (q ∈ qs))
-    (normalize_sim : forall qs : subset_state, is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (normalize qs) (normalize_ensemble qs))
-    (normalize_membership_sim : forall qs : subset_state, forall q : Q, is_similar_to (Similarity := Similarity_bool_Prop) (mem q (normalize qs)) (q ∈ M.(TaggedENFA.states) /\ q ∈ qs))
-    (move_sim : forall qs : subset_state, forall c : ascii, is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (move qs c) (move_ensemble qs c))
-    (eps_move_sim : forall qs : subset_state, is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (eps_move qs) (eps_move_ensemble qs))
-    (eclose_sim : forall qs : subset_state, TaggedENFA.okay M -> (forall q : Q, q ∈ qs -> q ∈ M.(TaggedENFA.states)) -> is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (eclose qs) (eclose_ensemble qs))
-    (subset_states_sim : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) subset_states (fun qs : subset_state => qs ∈ subset_states))
-    (subset_start_state_sim : TaggedENFA.okay M -> is_similar_to (Similarity := list_corresponds_to_finite_ensemble) subset_start_state (fun q : Q => q \in M_eclosure M.(TaggedENFA.start_state)))
-    (subset_transition_sim : forall qs : subset_state, forall c : ascii, TaggedENFA.okay M -> (forall q : Q, q ∈ qs -> q ∈ M.(TaggedENFA.states)) -> is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (subset_transition qs c) (subset_transition_ensemble qs c))
-    (subset_accept_states_sim : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) subset_accept_states subset_accept_state_ensemble).
-
-Lemma subset_construction_computation_okay
-  : SUBSET_CONSTRUCTION_COMPUTATION_SPEC.
-Proof.
-  constructor.
-  - eapply subset_membership_similarity.
-  - eapply normalize_similarity.
-  - eapply normalize_membership_similarity.
-  - eapply move_similarity.
-  - eapply eps_move_similarity.
-  - intros qs OKAY QS_STATES. eapply eclose_similarity; eauto.
-  - rewrite list_corresponds_to_finite_ensemble_iff. intros qs. split; intros IN; exact IN.
-  - intros OKAY. rewrite list_corresponds_to_finite_ensemble_iff. intros q. split.
-    + eapply subset_start_state_sound.
-    + intros CLOS. unfold subset_start_state. eapply eclose_complete with (q := M.(TaggedENFA.start_state)); eauto.
-      * intros q0 IN. destruct OKAY as [START_OKAY _ _ _]. destruct IN as [EQ | []]. now subst q0.
-      * left. reflexivity.
-  - intros qs c OKAY QS_STATES. eapply subset_transition_similarity; eauto.
-  - eapply subset_accept_states_similarity.
 Qed.
 
 Definition subset_construct : TaggedDFA.t :=
@@ -2568,7 +2477,7 @@ Definition subset_construct : TaggedDFA.t :=
     state_hasEqDec := list_hasEqDec M.(TaggedENFA.state_hasEqDec);
     states := subset_states;
     start_state := subset_start_state;
-    accept_states := subset_accept_states;
+    accept_states := {| kvlist := subset_accept_states |};
     transition := subset_transition;
   |}.
 
@@ -2576,24 +2485,22 @@ Lemma subset_delta_in_subset_states (qs : subset_state) (s : Input.t)
   (QS : qs ∈ subset_states)
   : TaggedDFA.delta subset_construct qs s ∈ subset_states.
 Proof.
-  revert qs QS. induction s as [ | c s IH]; intros qs QS; simpl.
-  - exact QS.
-  - eapply IH. eapply subset_transition_in_subset_states.
+  revert qs QS; induction s as [ | c s IH]; ii; simpl; eauto.
+  eapply IH. eapply subset_transition_in_subset_states.
 Qed.
 
-Lemma subset_delta_sound_aux (qs : subset_state) (s : Input.t) (q' : Q)
+Lemma subset_delta_sound' (qs : subset_state) (s : Input.t) (q' : Q)
   (IN : q' ∈ TaggedDFA.delta subset_construct qs s)
-  : exists q, q ∈ qs /\ q' \in M_delta_star q s.
+  : exists q, q ∈ qs /\ q' \in delta_star q s.
 Proof.
-  revert qs q' IN. induction s as [ | c s IH]; intros qs q' IN; simpl in IN.
-  - exists q'. split; [exact IN | constructor].
+  revert qs q' IN; induction s as [ | c s IH]; ii; simpl in IN.
+  - exists q'. done.
   - pose proof (IH _ _ IN) as (q1 & IN_TRANS & REST).
     pose proof (subset_transition_sound _ _ _ IN_TRANS) as (q0 & qchar & IN_QS & STEP & CLOS).
-    exists q0. split; [exact IN_QS | ].
-    eapply TaggedENFA.delta_star_char; [exact STEP | ].
-    eapply (TaggedENFA.delta_star_app qchar q1 q' [] s).
-    + rewrite -> TaggedENFA.delta_star_iff_eclosure with (q := qchar) (q' := q1). exact CLOS.
-    + exact REST.
+    exists q0. split; eauto.
+    eapply TaggedENFA.delta_star_char; eauto.
+    eapply TaggedENFA.delta_star_app with (eps_step := M.(TaggedENFA.eps_step)) (char_step := M.(TaggedENFA.char_step)) (q1 := qchar) (q2 := q1) (s1 := []) (s2 := s); eauto.
+    now rewrite -> TaggedENFA.delta_star_nil_iff_eclosure with (q := qchar) (q' := q1).
 Qed.
 
 Theorem subset_construct_sound (s : Input.t) (tag : Token.t)
@@ -2601,51 +2508,49 @@ Theorem subset_construct_sound (s : Input.t) (tag : Token.t)
   : TaggedENFA.accepts M s tag.
 Proof.
   unfold TaggedDFA.accepts in ACCEPT.
-  pose proof subset_construction_computation_okay as SUBSET_SPEC.
-  destruct SUBSET_SPEC as [_ _ _ _ _ _ _ _ _ ACCEPT_STATES_SIM].
-  rewrite list_corresponds_to_finite_ensemble_iff in ACCEPT_STATES_SIM.
-  rewrite ACCEPT_STATES_SIM in ACCEPT. simpl in ACCEPT.
-  destruct ACCEPT as (_ & qf & ACCEPT_Q & IN_QS).
-  unfold TaggedENFA.accepts. exists qf. split; [ | exact ACCEPT_Q].
-  pose proof (subset_delta_sound_aux _ _ _ IN_QS) as (q0 & IN_START & REST).
+  assert ((delta subset_construct (start_state subset_construct) s, tag) \in subset_accept_state_ensemble) as (_ & qf & ACCEPT_Q & IN_QS).
+  { pose proof (subset_accept_states_similarity) as HH.
+    rewrite list_corresponds_to_finite_ensemble_iff in HH.
+    done.
+  }
+  unfold TaggedENFA.accepts. exists qf. split; eauto.
+  pose proof (subset_delta_sound' _ _ _ IN_QS) as (q0 & IN_START & REST).
   pose proof (subset_start_state_sound _ IN_START) as CLOS.
-  eapply (TaggedENFA.delta_star_app M.(TaggedENFA.start_state) q0 qf [] s).
-  - rewrite -> TaggedENFA.delta_star_iff_eclosure with (q := M.(TaggedENFA.start_state)) (q' := q0). exact CLOS.
-  - exact REST.
+  eapply TaggedENFA.delta_star_app with (q1 := M.(TaggedENFA.start_state)) (q2 := q0) (q3 := qf) (s1 := []) (s2 := s); eauto.
+  now rewrite -> TaggedENFA.delta_star_nil_iff_eclosure with (q := M.(TaggedENFA.start_state)) (q' := q0).
 Qed.
 
-Lemma subset_delta_complete_aux (s : Input.t) (q : Q) (q' : Q)
+Lemma subset_delta_complete' (s : Input.t) (q : Q) (q' : Q)
   (OKAY : TaggedENFA.okay M)
-  (DELTA : q' \in M_delta_star q s)
+  (DELTA : q' \in delta_star q s)
   : forall qs, subset_state_okay qs -> q ∈ qs -> q' ∈ TaggedDFA.delta subset_construct qs s.
 Proof.
   induction DELTA as [q | q q1 q2 s STEP REST IH | q q1 q2 c s STEP REST IH]; intros qs QS_OKAY IN; simpl.
   - exact IN.
-  - eapply IH; [exact QS_OKAY | ].
-    destruct QS_OKAY as [_ QS_CLOSED].
-    eapply QS_CLOSED; [exact IN | ].
-    eapply TaggedENFA.eclosure_step; [exact STEP | constructor].
+  - eapply IH with (qs := qs); auto.
+    destruct QS_OKAY as [_ QS_CLOSED]. eapply QS_CLOSED with (q := q); eauto.
   - eapply IH.
     + eapply subset_transition_okay; eauto.
     + eapply subset_transition_complete with (q := q) (q1 := q1); eauto.
-      * destruct QS_OKAY as [QS_STATES _]. exact QS_STATES.
-      * constructor.
+      now destruct QS_OKAY as [QS_STATES _].
 Qed.
 
-Theorem subset_construct_complete
-  (OKAY : TaggedENFA.okay M) (s : Input.t) (tag : Token.t)
+Theorem subset_construct_complete (s : Input.t) (tag : Token.t)
+  (OKAY : TaggedENFA.okay M)
   (ACCEPT : TaggedENFA.accepts M s tag)
   : TaggedDFA.accepts subset_construct s tag.
 Proof.
-  unfold TaggedENFA.accepts in ACCEPT. destruct ACCEPT as [qf [DELTA ACCEPT_Q]].
-  unfold TaggedDFA.accepts. simpl.
-  pose proof subset_construction_computation_okay as SUBSET_SPEC.
-  destruct SUBSET_SPEC as [_ _ _ _ _ _ _ _ _ ACCEPT_STATES_SIM].
-  rewrite list_corresponds_to_finite_ensemble_iff in ACCEPT_STATES_SIM.
-  rewrite ACCEPT_STATES_SIM. simpl. split.
+  unfold TaggedENFA.accepts in ACCEPT. destruct ACCEPT as (qf & DELTA & ACCEPT_Q).
+  enough (WTS : (delta subset_construct subset_start_state s, tag) \in subset_accept_state_ensemble).
+  { unfold TaggedDFA.accepts. simpl.
+    pose proof subset_accept_states_similarity as HH.
+    rewrite list_corresponds_to_finite_ensemble_iff in HH.
+    now rewrite -> HH.
+  }
+  simpl. split.
   - eapply subset_delta_in_subset_states. eapply eclose_in_subset_states.
-  - exists qf. split; [exact ACCEPT_Q | ].
-    eapply subset_delta_complete_aux with (q := M.(TaggedENFA.start_state)); eauto.
+  - exists qf. split; auto.
+    eapply subset_delta_complete' with (q := M.(TaggedENFA.start_state)); eauto.
     + eapply subset_start_state_okay; eauto.
     + eapply subset_start_state_complete; eauto.
 Qed.
@@ -2654,12 +2559,11 @@ Theorem subset_construct_okay
   (OKAY : TaggedENFA.okay M)
   : okay subset_construct.
 Proof.
-  constructor; simpl.
+  split; simpl.
   - eapply eclose_in_subset_states.
   - intros qs tag ACCEPT.
-    pose proof (subset_accept_states_sound qs tag ACCEPT) as [QS _].
-    exact QS.
-  - intros qs c QS. eapply subset_transition_in_subset_states.
+    now pose proof (subset_accept_states_sound qs tag ACCEPT) as [? _].
+  - ii. eapply subset_transition_in_subset_states.
 Qed.
 
 End SUBSET_CONSTRUCTION.
@@ -2694,7 +2598,7 @@ Lemma accepting_tags_from_complete (q : Q) (tag : Token.t)
   : tag ∈ accepting_tags_from q.
 Proof.
   unfold accepting_tags_from.
-  eapply list_bind_complete with (x := (q, tag)); [exact ACCEPT | ].
+  eapply in_list_bind_intro with (x := (q, tag)); [exact ACCEPT | ].
   destruct (eq_dec q q) as [_ | NE]; [simpl; left; reflexivity | contradiction NE; reflexivity].
 Qed.
 
@@ -2703,7 +2607,7 @@ Lemma accepting_tags_from_sound (q : Q) (tag : Token.t)
   : (q, tag) ∈ M.(TaggedDFA.accept_states).
 Proof.
   unfold accepting_tags_from in ACCEPT.
-  pose proof (list_bind_sound _ _ _ ACCEPT) as ([q' tag'] & ACCEPT' & IN).
+  pose proof (in_list_bind_elim _ _ _ ACCEPT) as ([q' tag'] & ACCEPT' & IN).
   destruct (eq_dec q q') as [EQ | NE]; simpl in IN; [ | contradiction].
   subst q'. destruct IN as [EQ_TAG | []]. inv EQ_TAG. exact ACCEPT'.
 Qed.
@@ -2829,9 +2733,7 @@ Proof.
 Qed.
 
 Definition transition_alist : alist (Q * ascii) Q :=
-  {|
-    kvlist := M.(TaggedDFA.states) >>= fun q => all_asciis >>= fun c => [((q, c), M.(TaggedDFA.transition) q c)];
-  |}.
+  {| kvlist := M.(TaggedDFA.states) >>= fun q => all_asciis >>= fun c => [((q, c), M.(TaggedDFA.transition) q c)] |}.
 
 Definition transition_partial_map (qc : Q * ascii) : option Q :=
   if mem (fst qc) M.(TaggedDFA.states) then
@@ -2845,15 +2747,15 @@ Proof.
   rewrite alist_corresponds_to_finite_partial_map_iff.
   intros [q c] q'. split.
   - intros IN. change (((q, c), q') ∈ (M.(TaggedDFA.states) >>= fun q0 => all_asciis >>= fun c0 => [((q0, c0), M.(TaggedDFA.transition) q0 c0)])) in IN.
-    pose proof (list_bind_sound _ _ _ IN) as (q0 & IN_Q0 & IN_C).
-    pose proof (list_bind_sound _ _ _ IN_C) as (c0 & _ & IN_ENTRY).
+    pose proof (in_list_bind_elim _ _ _ IN) as (q0 & IN_Q0 & IN_C).
+    pose proof (in_list_bind_elim _ _ _ IN_C) as (c0 & _ & IN_ENTRY).
     simpl in IN_ENTRY. destruct IN_ENTRY as [EQ | []]. inv EQ.
     unfold transition_partial_map. simpl. assert (MEM : mem q M.(TaggedDFA.states) = true) by (rewrite mem_true_iff; exact IN_Q0). rewrite MEM. reflexivity.
   - intros FIND. unfold transition_partial_map in FIND. simpl in FIND.
     destruct (mem q M.(TaggedDFA.states)) eqn: MEM; inv FIND.
     change (((q, c), M.(TaggedDFA.transition) q c) ∈ (M.(TaggedDFA.states) >>= fun q0 => all_asciis >>= fun c0 => [((q0, c0), M.(TaggedDFA.transition) q0 c0)])).
-    eapply list_bind_complete with (x := q); [now rewrite <- mem_true_iff | ].
-    eapply list_bind_complete with (x := c); [eapply all_asciis_complete | ].
+    eapply in_list_bind_intro with (x := q); [now rewrite <- mem_true_iff | ].
+    eapply in_list_bind_intro with (x := c); [eapply all_asciis_complete | ].
     simpl. left. reflexivity.
 Qed.
 
@@ -2955,8 +2857,8 @@ Lemma hopcroft_all_splitters_valid (partition : hopcroft_partition)
   : hopcroft_worklist_valid partition (hopcroft_all_splitters partition).
 Proof.
   intros block c IN. unfold hopcroft_all_splitters in IN.
-  pose proof (list_bind_sound _ _ _ IN) as (block0 & BLOCK & IN_C).
-  pose proof (list_bind_sound _ _ _ IN_C) as (c0 & C & IN_PAIR).
+  pose proof (in_list_bind_elim _ _ _ IN) as (block0 & BLOCK & IN_C).
+  pose proof (in_list_bind_elim _ _ _ IN_C) as (c0 & C & IN_PAIR).
   simpl in IN_PAIR. destruct IN_PAIR as [EQ | []]. inv EQ.
   split; eauto.
 Qed.
@@ -2966,8 +2868,8 @@ Lemma hopcroft_all_splitters_complete (partition : hopcroft_partition) (block : 
   : (block, c) ∈ hopcroft_all_splitters partition.
 Proof.
   unfold hopcroft_all_splitters.
-  eapply list_bind_complete with (x := block); [exact BLOCK | ].
-  eapply list_bind_complete with (x := c); [eapply all_asciis_complete | ].
+  eapply in_list_bind_intro with (x := block); [exact BLOCK | ].
+  eapply in_list_bind_intro with (x := c); [eapply all_asciis_complete | ].
   simpl. left. reflexivity.
 Qed.
 
@@ -3013,7 +2915,7 @@ Proof.
   intros block c IN.
   unfold hopcroft_update_worklist in IN.
   destruct (hopcroft_worklist_mentions old_block worklist) eqn: MENTIONS.
-  - pose proof (list_bind_sound _ _ _ IN) as ([block0 c0] & IN_WORKLIST & IN_UPDATE).
+  - pose proof (in_list_bind_elim _ _ _ IN) as ([block0 c0] & IN_WORKLIST & IN_UPDATE).
     unfold hopcroft_update_splitter in IN_UPDATE.
     destruct (@eq_dec (list Q) (list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block0 old_block) as [EQ | NE].
     + subst block0. simpl in IN_UPDATE.
@@ -3032,7 +2934,7 @@ Proof.
       * subst block. contradiction.
       * right. right. right. exact IN_PARTITION.
   - rewrite in_app_iff in IN. destruct IN as [IN | IN].
-    + pose proof (list_bind_sound _ _ _ IN) as ([block0 c0] & IN_WORKLIST & IN_UPDATE).
+    + pose proof (in_list_bind_elim _ _ _ IN) as ([block0 c0] & IN_WORKLIST & IN_UPDATE).
       unfold hopcroft_update_splitter in IN_UPDATE.
       destruct (@eq_dec (list Q) (list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block0 old_block) as [EQ | NE].
       * subst block0. simpl in IN_UPDATE.
@@ -4620,7 +4522,7 @@ Lemma hopcroft_certified_minimised_accept_states_of_sound (block : hopcroft_bloc
   : block0 = block /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).
 Proof.
   unfold hopcroft_certified_minimised_accept_states_of in ACCEPT.
-  pose proof (list_bind_sound _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
+  pose proof (in_list_bind_elim _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
   simpl in IN. destruct IN as [EQ | []]. inv EQ.
   split; [reflexivity | ].
   eapply accepting_tags_from_sound. exact ACCEPT'.
@@ -4631,7 +4533,7 @@ Lemma hopcroft_certified_minimised_accept_states_sound (block : hopcroft_block) 
   : block ∈ hopcroft_certified_final_partition /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).
 Proof.
   unfold hopcroft_certified_minimised_accept_states in ACCEPT.
-  pose proof (list_bind_sound _ _ _ ACCEPT) as (block' & BLOCK & ACCEPT').
+  pose proof (in_list_bind_elim _ _ _ ACCEPT) as (block' & BLOCK & ACCEPT').
   pose proof (hopcroft_certified_minimised_accept_states_of_sound block' block tag ACCEPT') as (EQ & ACCEPT_Q).
   subst block'. eauto.
 Qed.
@@ -4651,7 +4553,7 @@ Lemma hopcroft_certified_minimised_accept_states_of_complete (block : hopcroft_b
   : (block, tag) ∈ hopcroft_certified_minimised_accept_states_of block.
 Proof.
   unfold hopcroft_certified_minimised_accept_states_of.
-  eapply list_bind_complete with (x := tag); [ | simpl; left; reflexivity].
+  eapply in_list_bind_intro with (x := tag); [ | simpl; left; reflexivity].
   eapply accepting_tags_from_complete. exact ACCEPT.
 Qed.
 
@@ -4661,7 +4563,7 @@ Lemma hopcroft_certified_minimised_accept_states_complete (block : hopcroft_bloc
   : (block, tag) ∈ hopcroft_certified_minimised_accept_states.
 Proof.
   unfold hopcroft_certified_minimised_accept_states.
-  eapply list_bind_complete with (x := block); [exact BLOCK | ].
+  eapply in_list_bind_intro with (x := block); [exact BLOCK | ].
   eapply hopcroft_certified_minimised_accept_states_of_complete. exact ACCEPT.
 Qed.
 
@@ -4872,7 +4774,7 @@ Lemma hopcroft_minimised_accept_states_of_sound (block : hopcroft_block) (block0
   : block0 = block /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).
 Proof.
   unfold hopcroft_minimised_accept_states_of in ACCEPT.
-  pose proof (list_bind_sound _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
+  pose proof (in_list_bind_elim _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
   simpl in IN. destruct IN as [EQ | []]. inv EQ.
   split; [reflexivity | ].
   eapply accepting_tags_from_sound. exact ACCEPT'.
@@ -4883,7 +4785,7 @@ Lemma hopcroft_minimised_accept_states_sound (block : hopcroft_block) (tag : Tok
   : block ∈ hopcroft_final_partition /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).
 Proof.
   unfold hopcroft_minimised_accept_states in ACCEPT.
-  pose proof (list_bind_sound _ _ _ ACCEPT) as (block' & BLOCK & ACCEPT').
+  pose proof (in_list_bind_elim _ _ _ ACCEPT) as (block' & BLOCK & ACCEPT').
   pose proof (hopcroft_minimised_accept_states_of_sound block' block tag ACCEPT') as (EQ & ACCEPT_Q).
   subst block'. eauto.
 Qed.
@@ -4903,7 +4805,7 @@ Lemma hopcroft_minimised_accept_states_of_complete (block : hopcroft_block) (tag
   : (block, tag) ∈ hopcroft_minimised_accept_states_of block.
 Proof.
   unfold hopcroft_minimised_accept_states_of.
-  eapply list_bind_complete with (x := tag); [ | simpl; left; reflexivity].
+  eapply in_list_bind_intro with (x := tag); [ | simpl; left; reflexivity].
   eapply accepting_tags_from_complete. exact ACCEPT.
 Qed.
 
@@ -4913,7 +4815,7 @@ Lemma hopcroft_minimised_accept_states_complete (block : hopcroft_block) (tag : 
   : (block, tag) ∈ hopcroft_minimised_accept_states.
 Proof.
   unfold hopcroft_minimised_accept_states.
-  eapply list_bind_complete with (x := block); [exact BLOCK | ].
+  eapply in_list_bind_intro with (x := block); [exact BLOCK | ].
   eapply hopcroft_minimised_accept_states_of_complete. exact ACCEPT.
 Qed.
 
@@ -5379,7 +5281,7 @@ Lemma minimisation_pair_states_complete (q1 : Q) (q2 : Q)
   : (q1, q2) ∈ minimisation_pair_states.
 Proof.
   unfold minimisation_pair_states.
-  eapply list_bind_complete with (x := q1); [exact IN1 | ].
+  eapply in_list_bind_intro with (x := q1); [exact IN1 | ].
   rewrite in_map_iff. exists q2. split; [reflexivity | exact IN2].
 Qed.
 
@@ -5658,7 +5560,7 @@ Lemma minimised_accept_states_of_complete (qs : minimised_state) (tag : Token.t)
   : (qs, tag) ∈ minimised_accept_states_of qs.
 Proof.
   unfold minimised_accept_states_of.
-  eapply list_bind_complete with (x := tag); [ | simpl; left; reflexivity].
+  eapply in_list_bind_intro with (x := tag); [ | simpl; left; reflexivity].
   eapply accepting_tags_from_complete. exact ACCEPT.
 Qed.
 
@@ -5667,7 +5569,7 @@ Lemma minimised_accept_states_of_sound (qs : minimised_state) (qs0 : minimised_s
   : qs0 = qs /\ (representative qs, tag) ∈ M.(TaggedDFA.accept_states).
 Proof.
   unfold minimised_accept_states_of in ACCEPT.
-  pose proof (list_bind_sound _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
+  pose proof (in_list_bind_elim _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
   simpl in IN. destruct IN as [EQ | []]. inv EQ.
   split; [reflexivity | ].
   eapply accepting_tags_from_sound. exact ACCEPT'.
@@ -5679,7 +5581,7 @@ Lemma minimised_accept_states_complete (qs : minimised_state) (tag : Token.t)
   : (qs, tag) ∈ minimised_accept_states.
 Proof.
   unfold minimised_accept_states.
-  eapply list_bind_complete with (x := qs); [exact QS | ].
+  eapply in_list_bind_intro with (x := qs); [exact QS | ].
   eapply minimised_accept_states_of_complete. exact ACCEPT.
 Qed.
 
@@ -5688,7 +5590,7 @@ Lemma minimised_accept_states_sound (qs : minimised_state) (tag : Token.t)
   : qs ∈ minimised_states /\ (representative qs, tag) ∈ M.(TaggedDFA.accept_states).
 Proof.
   unfold minimised_accept_states in ACCEPT.
-  pose proof (list_bind_sound _ _ _ ACCEPT) as (qs' & QS & ACCEPT').
+  pose proof (in_list_bind_elim _ _ _ ACCEPT) as (qs' & QS & ACCEPT').
   pose proof (minimised_accept_states_of_sound qs' qs tag ACCEPT') as (EQ & ACCEPT_Q).
   subst qs'. eauto.
 Qed.
@@ -5997,8 +5899,8 @@ Lemma delete_reachable_move_similarity (qs : delete_state_set)
   : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (delete_reachable_move qs) (delete_reachable_move_ensemble qs).
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff. intros q'. split.
-  - intros IN. unfold delete_reachable_move in IN. pose proof (list_bind_sound _ _ _ IN) as (q & IN_QS & IN_SUCC). pose proof (delete_successors_similarity q) as SUCC_SIM. rewrite list_corresponds_to_finite_ensemble_iff in SUCC_SIM. pose proof (proj1 (SUCC_SIM q') IN_SUCC) as (c & CHAR & EQ). exists q. split; [exact IN_QS | exists c; split; [exact CHAR | exact EQ]].
-  - intros (q & IN_QS & c & CHAR & EQ). unfold delete_reachable_move. eapply list_bind_complete with (x := q); [exact IN_QS | ]. pose proof (delete_successors_similarity q) as SUCC_SIM. rewrite list_corresponds_to_finite_ensemble_iff in SUCC_SIM. rewrite -> SUCC_SIM with (x := q'). exists c. split; [exact CHAR | exact EQ].
+  - intros IN. unfold delete_reachable_move in IN. pose proof (in_list_bind_elim _ _ _ IN) as (q & IN_QS & IN_SUCC). pose proof (delete_successors_similarity q) as SUCC_SIM. rewrite list_corresponds_to_finite_ensemble_iff in SUCC_SIM. pose proof (proj1 (SUCC_SIM q') IN_SUCC) as (c & CHAR & EQ). exists q. split; [exact IN_QS | exists c; split; [exact CHAR | exact EQ]].
+  - intros (q & IN_QS & c & CHAR & EQ). unfold delete_reachable_move. eapply in_list_bind_intro with (x := q); [exact IN_QS | ]. pose proof (delete_successors_similarity q) as SUCC_SIM. rewrite list_corresponds_to_finite_ensemble_iff in SUCC_SIM. rewrite -> SUCC_SIM with (x := q'). exists c. split; [exact CHAR | exact EQ].
 Qed.
 
 Lemma accepting_stateb_similarity (q : Q)
@@ -6041,8 +5943,8 @@ Lemma live_move_similarity (qs : delete_state_set)
   : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (live_move qs) (live_move_ensemble qs).
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff. intros p. split.
-  - intros IN. unfold live_move in IN. pose proof (list_bind_sound _ _ _ IN) as (q & IN_QS & IN_PRED). pose proof (predecessors_similarity q) as PRED_SIM. rewrite list_corresponds_to_finite_ensemble_iff in PRED_SIM. pose proof (proj1 (PRED_SIM p) IN_PRED) as [STATE (c & CHAR & EQ)]. split; [exact STATE | exists q; split; [exact IN_QS | exists c; split; [exact CHAR | exact EQ]]].
-  - intros [STATE (q & IN_QS & c & CHAR & EQ)]. unfold live_move. eapply list_bind_complete with (x := q); [exact IN_QS | ]. pose proof (predecessors_similarity q) as PRED_SIM. rewrite list_corresponds_to_finite_ensemble_iff in PRED_SIM. rewrite -> PRED_SIM with (x := p). split; [exact STATE | exists c; split; [exact CHAR | exact EQ]].
+  - intros IN. unfold live_move in IN. pose proof (in_list_bind_elim _ _ _ IN) as (q & IN_QS & IN_PRED). pose proof (predecessors_similarity q) as PRED_SIM. rewrite list_corresponds_to_finite_ensemble_iff in PRED_SIM. pose proof (proj1 (PRED_SIM p) IN_PRED) as [STATE (c & CHAR & EQ)]. split; [exact STATE | exists q; split; [exact IN_QS | exists c; split; [exact CHAR | exact EQ]]].
+  - intros [STATE (q & IN_QS & c & CHAR & EQ)]. unfold live_move. eapply in_list_bind_intro with (x := q); [exact IN_QS | ]. pose proof (predecessors_similarity q) as PRED_SIM. rewrite list_corresponds_to_finite_ensemble_iff in PRED_SIM. rewrite -> PRED_SIM with (x := p). split; [exact STATE | exists c; split; [exact CHAR | exact EQ]].
 Qed.
 
 Lemma dead_states_similarity
@@ -6633,32 +6535,6 @@ Qed.
 Notation delete_dead_state_computation_spec := delete_dead_state_computation_okay.
 
 End DeleteDead.
-
-Module API.
-
-Notation t := TaggedDFA.t.
-
-Notation accepts := Abs.accepts.
-
-Notation accepted_tags := Abs.accepted_tags.
-
-Notation okay := Abs.okay.
-
-Notation language_equiv := Abs.language_equiv.
-
-Notation number_states := Numbering.number_states.
-
-Notation subset_construct := Subset.subset_construct.
-
-Notation minimise := Minimise.minimise.
-
-Notation minimise_numbered := Minimise.minimise_numbered.
-
-Notation delete_dead_state := DeleteDead.delete_dead_state.
-
-End API.
-
-*)
 
 End TaggedDFA.
 
