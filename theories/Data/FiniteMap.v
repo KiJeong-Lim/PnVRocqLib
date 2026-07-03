@@ -19,6 +19,7 @@ Instance alist_isSetoid {K : Type} {V : Type} (K_hasEqDec : hasEqDec K) (V_isSet
 Definition Similarity_alist_finite_partial_map {KEY : Type} {VAL : Type} {VAL' : Type} (VAL_sim : Similarity VAL VAL') : Similarity (alist KEY VAL) (KEY -> option VAL') :=
   fun al : alist KEY VAL => fun m' : KEY -> option VAL' => forall key, ⟪ SUBMAP1 : forall val, (key, val) ∈ al.(kvlist) -> (exists val', val =~= val' /\ m' key = Some val') ⟫ /\ ⟪ SUBMAP2 : forall val', m' key = Some val' -> (exists val, val =~= val' /\ (key, val) ∈ al.(kvlist)) ⟫.
 
+#[global]
 Instance alist_corresponds_to_finite_partial_map {KEY : Type} {VAL : Type} : Similarity (alist KEY VAL) (KEY -> option VAL) :=
   Similarity_alist_finite_partial_map eq.
 

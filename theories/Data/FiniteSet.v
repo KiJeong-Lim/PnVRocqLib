@@ -27,6 +27,7 @@ Instance fin_ensemble_isSetoid (Elem : Type) : isSetoid (fin_ensemble Elem) :=
 Definition Similarity_list_finite_ensemble {ELEM : Type} {ELEM' : Type} (ELEM_sim : Similarity ELEM ELEM') : Similarity (list ELEM) (ensemble ELEM') :=
   fun xs : list ELEM => fun X' : ensemble ELEM' => ⟪ SUBSET1 : forall x, x ∈ xs -> (exists x', x =~= x' /\ x' \in X') ⟫ /\ ⟪ SUBSET2 : forall x', x' \in X' -> (exists x, x =~= x' /\ x ∈ xs) ⟫.
 
+#[global]
 Instance list_corresponds_to_finite_ensemble {ELEM : Type} : Similarity (list ELEM) (ensemble ELEM) :=
   Similarity_list_finite_ensemble eq.
 
@@ -106,7 +107,6 @@ Fixpoint union@{u} {A : Type@{u}} `{EQ_DEC : hasEqDec@{u} A} (xs : list A) (ys :
   | x :: xs' => union xs' (add@{u} x ys)
   end.
 
-#[universes(polymorphic=yes)]
 Theorem in_union_iff (A : Type) `(EQ_DEC : hasEqDec A) (xs : list A) (ys : list A)
   : forall z, z ∈ union xs ys <-> (z ∈ xs \/ z ∈ ys).
 Proof.
