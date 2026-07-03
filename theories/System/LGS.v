@@ -2003,9 +2003,7 @@ Theorem number_states_sound (s : Input.t) (tag : Token.t)
   (ACCEPT : accepts number_states s tag)
   : accepts M s tag.
 Proof.
-  unfold accepts in ACCEPT |- *. simpl in ACCEPT.
-  destruct OKAY as [START_OKAY ACCEPT_OKAY TRANS_OKAY].
-  unfold numbered_start_state in ACCEPT.
+  cbv [accepts] in *. simpl in ACCEPT. destruct OKAY as [START_OKAY ACCEPT_OKAY TRANS_OKAY]. unfold numbered_start_state in *.
   assert (NUMBERED_DELTA : delta number_states (state_number M.(TaggedDFA.start_state)) s = state_number (delta M M.(TaggedDFA.start_state) s)).
   { eapply numbered_delta; [econs; eauto | exact START_OKAY]. }
   rewrite NUMBERED_DELTA in ACCEPT.
@@ -2032,8 +2030,8 @@ Theorem number_states_okay
   (OKAY : okay M)
   : okay number_states.
 Proof.
-  destruct OKAY as [START_OKAY ACCEPT_OKAY TRANS_OKAY]. constructor; simpl.
-  - eapply index_of_in_seq. exact START_OKAY.
+  destruct OKAY as [START_OKAY ACCEPT_OKAY TRANS_OKAY]. split; simpl.
+  - now eapply index_of_in_seq.
   - intros n tag ACCEPT.
     pose proof (numbered_accept_states_sound n tag ACCEPT) as (q & ACCEPT_Q & EQ).
     subst n. eapply index_of_in_seq. done.
