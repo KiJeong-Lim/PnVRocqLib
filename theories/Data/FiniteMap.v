@@ -5,10 +5,20 @@ Require Import PnV.Prelude.X.
 #[local] Infix "∈" := L.In.
 
 #[universes(polymorphic=yes), projections(primitive)]
-Record alist@{u v} {K : Type@{u}} {V : Type@{v}} : Type@{max(u, v)} :=
+Record alist@{u v | } {K : Type@{u}} {V : Type@{v}} : Type@{max(u, v)} :=
   mk_alist { kvlist : list (K * V) } as al.
 
 #[global] Arguments alist : clear implicits.
+
+#[global]
+Instance alist_isSetoid {K : Type} {V : Type}
+  (K_eq_dec : hasEqDec K)
+  (V_setoid : isSetoid V)
+  : isSetoid (alist K V).
+Proof.
+  refine {| eqProp lhs rhs := forall k : K, eqProp (isSetoid := @option_isSetoid V V_setoid) (L.lookup (EQ_DEC := K_eq_dec) k lhs.(kvlist)) (L.lookup (EQ_DEC := K_eq_dec) k rhs.(kvlist)); eqProp_Equivalence := _ |}.
+  exact (relation_on_image_liftsEquivalence (pi_isSetoid (fun _ => @option_isSetoid V V_setoid)).(eqProp_Equivalence) (fun THIS : alist K V => fun k : K => L.lookup (EQ_DEC := K_eq_dec) k THIS.(kvlist))).
+Defined.
 
 Definition Similarity_alist_finite_partial_map {KEY : Type} {VAL : Type} {VAL' : Type} (VAL_sim : Similarity VAL VAL') : Similarity (alist KEY VAL) (KEY -> option VAL') :=
   fun al : alist KEY VAL => fun m' : KEY -> option VAL' => forall key, ⟪ SUBMAP1 : forall val, (key, val) ∈ al.(kvlist) -> (exists val', val =~= val' /\ m' key = Some val') ⟫ /\ ⟪ SUBMAP2 : forall val', m' key = Some val' -> (exists val, val =~= val' /\ (key, val) ∈ al.(kvlist)) ⟫.
