@@ -3691,7 +3691,7 @@ Proof.
         subst splitter. rewrite hopcroft_predecessors_iff in NOT_IN_SPLITTER2. exfalso. eapply NOT_IN_SPLITTER2. split; eauto.
     + assert (BLOCK_TAIL : block' ∈ fst (hopcroft_refine_partition (hopcroft_predecessors active c) partition worklist)).
       { change (block' ∈ fst (hopcroft_refine_partition splitter partition worklist)). rewrite REFINE. simpl. exact BLOCK'. }
-      eapply (IH worklist BLOCKS_TAIL); [exact BLOCK_TAIL | exact IN1 | exact IN2].
+      eapply IH with (worklist := worklist); [exact BLOCKS_TAIL | exact BLOCK_TAIL | exact IN1 | exact IN2].
   - destruct BLOCK' as [EQ | BLOCK'].
     + subst block'. split; intros IN_ACTIVE.
       * destruct (mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q2 splitter) eqn: MEM2.
@@ -3714,7 +3714,7 @@ Proof.
         { destruct block2 as [ | q0 qs] eqn: BLOCK2; simpl in IN_BLOCK2; [contradiction | inv EMPTY]. }
     + assert (BLOCK_TAIL : block' ∈ fst (hopcroft_refine_partition (hopcroft_predecessors active c) partition worklist)).
       { change (block' ∈ fst (hopcroft_refine_partition splitter partition worklist)). rewrite REFINE. simpl. exact BLOCK'. }
-      eapply (IH worklist BLOCKS_TAIL); [exact BLOCK_TAIL | exact IN1 | exact IN2].
+      eapply IH with (worklist := worklist); [exact BLOCKS_TAIL | exact BLOCK_TAIL | exact IN1 | exact IN2].
 Qed.
 
 Lemma hopcroft_refine_partition_preserves_stable_for_splitter (splitter : hopcroft_block) (partition : hopcroft_partition) (worklist : hopcroft_worklist) (active : hopcroft_block) (c : ascii)
@@ -4512,7 +4512,7 @@ Proof.
   pose proof (hopcroft_partition_relates_same_accepting_tags_early hopcroft_certified_final_partition (delta M (hopcroft_representative hopcroft_certified_minimised_start_state) s) (hopcroft_representative (TaggedDFA.delta hopcroft_certified_minimise hopcroft_certified_minimised_start_state s)) hopcroft_certified_final_partition_surface_okay REL) as SAME.
   eapply hopcroft_certified_minimised_accept_states_complete.
   - pose proof (hopcroft_certified_minimise_okay OKAY) as OKAY_H.
-    eapply (delta_okay hopcroft_certified_minimise); [exact OKAY_H | exact START_BLOCK].
+    eapply delta_okay with (M := hopcroft_certified_minimise); [exact OKAY_H | exact START_BLOCK].
   - unfold same_accepting_tags in SAME. rewrite <- SAME with (tag := tag). exact ACCEPT_REP_START.
 Qed.
 
@@ -4824,7 +4824,7 @@ Proof.
   pose proof (hopcroft_partition_relates_same_accepting_tags_aux hopcroft_final_partition (delta M (hopcroft_representative hopcroft_minimised_start_state) s) (hopcroft_representative (TaggedDFA.delta hopcroft_minimise hopcroft_minimised_start_state s)) hopcroft_final_partition_surface_okay_aux REL) as SAME.
   eapply hopcroft_minimised_accept_states_complete.
   - pose proof (hopcroft_minimise_okay OKAY) as OKAY_H.
-    eapply (delta_okay hopcroft_minimise); [exact OKAY_H | exact START_BLOCK].
+    eapply delta_okay with (M := hopcroft_minimise); [exact OKAY_H | exact START_BLOCK].
   - unfold same_accepting_tags in SAME. rewrite <- SAME with (tag := tag). exact ACCEPT_REP_START.
 Qed.
 
@@ -5074,7 +5074,7 @@ Proof.
   - destruct fuel as [ | fuel]; simpl in LENGTH; [lia | ].
     cbn [minimisation_equivb] in EQUIV. rewrite andb_true_iff in EQUIV. destruct EQUIV as [_ EQUIV].
     simpl in ACCEPT |- *.
-    eapply (IH fuel (M.(TaggedDFA.transition) q1 c) (M.(TaggedDFA.transition) q2 c)); [lia | | exact ACCEPT].
+    eapply IH with (fuel := fuel) (q1 := M.(TaggedDFA.transition) q1 c) (q2 := M.(TaggedDFA.transition) q2 c); [lia | | exact ACCEPT].
     rewrite forallb_forall in EQUIV. eapply EQUIV. eapply in_all_asciis_intro.
 Qed.
 
@@ -5091,7 +5091,7 @@ Proof.
   - destruct fuel as [ | fuel]; simpl in LENGTH; [lia | ].
     cbn [minimisation_equivb] in EQUIV. rewrite andb_true_iff in EQUIV. destruct EQUIV as [_ EQUIV].
     simpl in ACCEPT |- *.
-    eapply (IH fuel (M.(TaggedDFA.transition) q1 c) (M.(TaggedDFA.transition) q2 c)); [lia | | exact ACCEPT].
+    eapply IH with (fuel := fuel) (q1 := M.(TaggedDFA.transition) q1 c) (q2 := M.(TaggedDFA.transition) q2 c); [lia | | exact ACCEPT].
     rewrite forallb_forall in EQUIV. eapply EQUIV. eapply in_all_asciis_intro.
 Qed.
 
@@ -5199,7 +5199,7 @@ Proof.
   - destruct fuel as [ | fuel]; simpl in LENGTH; [lia | ].
     destruct qq as [q1 q2], qq1 as [q1' q2']; cbn [fst snd] in *.
     destruct EDGE as [c EQ]. inv EQ.
-    eapply (IH fuel); [lia | ].
+    eapply IH with (fuel := fuel); [lia | ].
     eapply minimisation_equivb_step. exact EQUIV.
 Qed.
 
@@ -5214,7 +5214,7 @@ Proof.
   rewrite minimisation_pair_delta_spec in WALK.
   pose proof (@walk_finds_path minimisation_pair_graph (fun qq => fun qs => match L.in_dec (@eq_dec (Q * Q) _) qq qs with left IN => or_introl IN | right NOT_IN => or_intror NOT_IN end) (q1, q2) (delta M q1 s, delta M q2 s) _ WALK) as [p PATH].
   rewrite path_iff_no_dup_walk in PATH. destruct PATH as [WALK' NO_DUP].
-  eapply (minimisation_equivb_walk_same_accepting_tagsb minimisation_fuel (q1, q2) (delta M q1 s, delta M q2 s) p); eauto.
+  eapply minimisation_equivb_walk_same_accepting_tagsb with (fuel := minimisation_fuel) (qq := (q1, q2)) (qq' := (delta M q1 s, delta M q2 s)) (w := p); eauto.
   eapply L.NoDup_incl_length; [exact NO_DUP | intros qq IN].
   pose proof (minimisation_pair_walk_states (q1, q2) (delta M q1 s, delta M q2 s) p OKAY STATE1 STATE2 WALK' qq IN) as [IN1 IN2].
   destruct qq as [qq1 qq2]; simpl in *.
@@ -6293,11 +6293,11 @@ Proof.
   induction s as [ | c s IH]; intros q best rest tag n BEST_LE INPUT_LE SCAN; simpl in SCAN.
   - eapply BEST_LE. exact SCAN.
   - destruct (first_accepting_token M (M.(TaggedDFA.Partial.transition) q c)) as [tag' | ] eqn: FIND; cbn in SCAN.
-    + eapply (IH (M.(TaggedDFA.Partial.transition) q c) (Some (s, tag')) rest tag n).
+    + eapply IH with (q := M.(TaggedDFA.Partial.transition) q c) (best := Some (s, tag')) (rest := rest) (tag := tag) (n := n).
       * intros rest0 tag0 BEST. injection BEST as EQ_REST EQ_TAG. subst rest0. simpl in INPUT_LE. lia.
       * simpl in INPUT_LE. lia.
       * exact SCAN.
-    + eapply (IH (M.(TaggedDFA.Partial.transition) q c) best rest tag n).
+    + eapply IH with (q := M.(TaggedDFA.Partial.transition) q c) (best := best) (rest := rest) (tag := tag) (n := n).
       * intros rest0 tag0 BEST. pose proof (BEST_LE rest0 tag0 BEST). lia.
       * simpl in INPUT_LE. lia.
       * exact SCAN.
@@ -6316,7 +6316,7 @@ Proof.
   destruct consumed as [ | c' consumed'].
   - simpl in ACCEPT.
     destruct (first_accepting_token M q') as [tag0 | ] eqn: FIND; cbn in SCAN.
-    + eapply (maximal_munch_length_le M q' rest (Some (rest, tag0)) rest' tag' (length rest)); [ | lia | exact SCAN].
+    + eapply maximal_munch_length_le with (M := M) (q := q') (s := rest) (best := Some (rest, tag0)) (rest := rest') (tag := tag') (n := length rest); [ | lia | exact SCAN].
       intros rest0 tag1 BEST. inv BEST. lia.
     + pose proof (first_accepting_token_complete_some M q' tag ACCEPT) as (tag0 & FIND').
       rewrite FIND in FIND'. inv FIND'.

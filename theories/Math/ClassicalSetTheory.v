@@ -7512,7 +7512,7 @@ Proof.
     + eapply H_inaccessible. exact IH.
   - eapply rLe_rLt_rLt with (y := Ord_join base1 (Ord.sup X (fun x : X => next (Ord.orec base1 next (@fromWf (tree X) (@tree_lt X) (tree_lt_well_founded X) (trs x)))))).
     + transitivity (Ord.orec base1 next (mkNode X (fun x : X => @fromWf (tree X) (@tree_lt X) (tree_lt_well_founded X) (trs x)))).
-      * eapply (Ord_orec_rEq_r base1 next (@fromWf (tree X) (@tree_lt X) (tree_lt_well_founded X) (tree_join trs)) (mkNode X (fun x : X => @fromWf (tree X) (@tree_lt X) (tree_lt_well_founded X) (trs x))) H_next_le H_next_mon (tree_join_rEq X trs)).
+      * eapply Ord_orec_rEq_r with (base := base1) (next := next) (alpha := @fromWf (tree X) (@tree_lt X) (tree_lt_well_founded X) (tree_join trs)) (beta := mkNode X (fun x : X => @fromWf (tree X) (@tree_lt X) (tree_lt_well_founded X) (trs x))); [exact H_next_le | exact H_next_mon | exact (tree_join_rEq X trs)].
       * rewrite Ord_orec_unfold. reflexivity.
     + eapply H_inaccessible.
       * exact H_base1.

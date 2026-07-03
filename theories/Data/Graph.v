@@ -792,7 +792,7 @@ Lemma path_implies_trail (v : V) (v' : V) (p : list V)
   (PATH : v ---[ p ]-->*( GRAPH ) v')
   : v ===[ p ]==>*( GRAPH ) v'.
 Proof.
-  eapply (Graph.path_implies_trail v v' p PATH).
+  eapply Graph.path_implies_trail with (p := p). exact PATH.
 Qed.
 
 Definition reachable (v : V) : ensemble V :=
