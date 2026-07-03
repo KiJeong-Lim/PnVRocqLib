@@ -4,6 +4,8 @@ Require Import PnV.Data.FiniteMap.
 Require Import PnV.Data.FiniteSet.
 Require Import PnV.Data.Graph.
 Require Import PnV.System.Regex.
+Require Import PnV.Prelude.ConstructiveFacts.
+Require Import PnV.Prelude.X.
 
 Import DoNotations.
 Import DigraphFixedpoint.
@@ -11,6 +13,47 @@ Import DigraphFixedpoint.
 #[local] Infix "\in" := E.In : type_scope.
 #[local] Infix "=~=" := (is_similar_to (Similarity := Re.in_regex eq)) : type_scope.
 #[local] Infix "∈" := L.In.
+
+Lemma list_bind_sound {A : Type} {B : Type} (xs : list A) (k : A -> list B) (y : B)
+  (IN : y ∈ (xs >>= k))
+  : exists x, x ∈ xs /\ y ∈ k x.
+Proof.
+  eapply in_list_bind_elim. exact IN.
+Qed.
+
+Lemma list_bind_complete {A : Type} {B : Type} (xs : list A) (k : A -> list B) (x : A) (y : B)
+  (IN_X : x ∈ xs)
+  (IN_Y : y ∈ k x)
+  : y ∈ (xs >>= k).
+Proof.
+  eapply in_list_bind_intro; eauto.
+Qed.
+
+Lemma mem_true_iff {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A)
+  : mem (EQ_DEC := EQ_DEC) x xs = true <-> x ∈ xs.
+Proof.
+  eapply mem_spec.
+Qed.
+
+Lemma mem_false_iff {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A)
+  : mem (EQ_DEC := EQ_DEC) x xs = false <-> ~ x ∈ xs.
+Proof.
+  eapply mem_spec.
+Qed.
+
+Lemma digraph_closure_trace {X : Type} {A : Type} (seed : X -> list A) (deps : X -> list X) (x : X) (a : A)
+  (CLOS : digraph_closure seed deps a x)
+  : exists tr, tr \in digraph_trace seed deps a x.
+Proof.
+  eapply digraph_closure_iff_trace. exact CLOS.
+Qed.
+
+Lemma digraph_value_sound {X : Type} {A : Type} `{EQ_DEC : hasEqDec A} fuel (seed : X -> list A) (deps : X -> list X) (x : X) (a : A)
+  (IN : a ∈ digraph_value fuel seed deps x)
+  : digraph_closure seed deps a x.
+Proof.
+  eapply digraph_value_elim. exact IN.
+Qed.
 
 Module Type GRAMMAR_SPEC.
 
@@ -943,7 +986,7 @@ Qed.
 
 Definition gen_symbol_in (known : list N') (X : V') : bool :=
   match X with
-  | inl A => mem A known
+  | inl A => mem (EQ_DEC := N'_hasEqDec) A known
   | inr _ => true
   end.
 
@@ -957,7 +1000,8 @@ Definition gen_prod_in (known : list N') (p : prod') : list N' :=
     [].
 
 Definition gen_step (known : list N') : list N' :=
-  L.nodup eq_dec (known ++ (P' >>= fun p => gen_prod_in known p)).
+  L.nodup (@eq_dec N' N'_hasEqDec)
+    (known ++ (P' >>= fun p => gen_prod_in known p)).
 
 Definition gen_fuel : nat :=
   length N'_FinEnum.all.
@@ -966,7 +1010,7 @@ Definition gen_set : list N' :=
   iter gen_fuel gen_step [].
 
 Definition genb (A : N') : bool :=
-  mem A gen_set.
+  mem (EQ_DEC := N'_hasEqDec) A gen_set.
 
 Definition gen_symbolb (X : V') : bool :=
   match X with
@@ -1132,7 +1176,7 @@ Proof.
 Qed.
 
 Definition gen_list_subsetb (xs : list N') (ys : list N') : bool :=
-  forallb (fun x => mem x ys) xs.
+  forallb (fun x => mem (EQ_DEC := N'_hasEqDec) x ys) xs.
 
 Lemma gen_list_subsetb_sound xs ys
   (SUBSET : gen_list_subsetb xs ys = true)
@@ -1166,8 +1210,10 @@ Lemma gen_NoDup_incl_remove_length_lt (xs : list N') (ys : list N') (x : N')
   (INCL : forall y, y ∈ ys -> y ∈ xs)
   : length ys < length xs.
 Proof.
-  enough (LE : length ys <= length (remove eq_dec x xs)).
-  { pose proof (remove_length_lt x xs IN_XS) as LT. lia. }
+  enough (LE : length ys <= length (remove (@eq_dec N' N'_hasEqDec) x xs)).
+  { pose proof (@remove_length_lt N' N'_hasEqDec x xs IN_XS) as LT.
+    eapply Nat.le_lt_trans; [exact LE | exact LT].
+  }
   eapply L.NoDup_incl_length.
   - exact NO_DUP_YS.
   - intros y IN_Y. rewrite L.in_remove_iff. split.
@@ -2230,6 +2276,10 @@ Defined.
 
 Definition state : Set := list item.
 
+#[global]
+Instance state_hasEqDec : hasEqDec@{Set} state :=
+  list_hasEqDec item_hasEqDec.
+
 Definition item_prod (it : item) : prod' :=
   {| p_lhs := it.(i_lhs); p_rhs := it.(i_left) ++ it.(i_right) |}.
 
@@ -2558,12 +2608,12 @@ Qed.
 
 Lemma item_trace_iter q root it trace fuel
   (ROOT : root ∈ q)
-  (TRACE : digraph_trace item_seed item_deps root it trace)
+  (TRACE : digraph_trace item_seed item_deps it root trace)
   (LE : length trace <= fuel)
   : it ∈ iter fuel closure_step q.
 Proof.
-  revert q fuel ROOT LE. induction TRACE as [root it IN | root child it trace EDGE TRACE IH]; intros q fuel ROOT LE.
-  - unfold item_seed in IN. simpl in IN. destruct IN as [EQ | []]. subst it.
+  revert q fuel ROOT LE. induction TRACE as [node IN | node child trace0 EDGE TRACE IH]; intros q fuel ROOT LE.
+  - unfold item_seed in IN. simpl in IN. destruct IN as [EQ | []]. subst node.
     eapply closure_iter_contains. exact ROOT.
   - destruct fuel as [ | fuel]; simpl in LE; [lia | ].
     simpl. eapply IH; [ | lia].
@@ -2578,7 +2628,7 @@ Qed.
 
 Lemma item_digraph_closure_edge parent child
   (EDGE : child ∈ closure_step_items parent)
-  : digraph_closure item_seed item_deps parent child.
+  : digraph_closure item_seed item_deps child parent.
 Proof.
   eapply digraph_closure_step with (y := child).
   - exact EDGE.
@@ -2586,18 +2636,18 @@ Proof.
 Qed.
 
 Lemma item_digraph_closure_trans root mid target
-  (CLOS1 : digraph_closure item_seed item_deps root mid)
-  (CLOS2 : digraph_closure item_seed item_deps mid target)
-  : digraph_closure item_seed item_deps root target.
+  (CLOS1 : digraph_closure item_seed item_deps mid root)
+  (CLOS2 : digraph_closure item_seed item_deps target mid)
+  : digraph_closure item_seed item_deps target root.
 Proof.
-  revert target CLOS2. induction CLOS1 as [root mid IN | root next mid EDGE CLOS IH]; intros target CLOS2.
+  revert target CLOS2. induction CLOS1 as [node IN | node next EDGE CLOS IH]; intros target CLOS2.
   - unfold item_seed in IN. simpl in IN. destruct IN as [EQ | []]. subst mid. exact CLOS2.
   - eapply digraph_closure_step; [exact EDGE | ]. eapply IH. exact CLOS2.
 Qed.
 
 Lemma closure_rel_item_digraph q it
   (REL : closure_rel q it)
-  : exists root, root ∈ q /\ digraph_closure item_seed item_deps root it.
+  : exists root, root ∈ q /\ digraph_closure item_seed item_deps it root.
 Proof.
   induction REL as [it IN | A omega B beta gamma PROD PARENT IH].
   - exists it. split; [exact IN | eapply item_digraph_closure_refl].
@@ -3407,7 +3457,7 @@ Proof.
 Qed.
 
 Definition state_list_subsetb (xs : list state) (ys : list state) : bool :=
-  forallb (fun q => mem q ys) xs.
+  forallb (fun q => mem (EQ_DEC := Item.state_hasEqDec) q ys) xs.
 
 Lemma state_list_subsetb_sound xs ys
   (SUBSET : state_list_subsetb xs ys = true)
@@ -3442,8 +3492,10 @@ Lemma state_NoDup_incl_remove_length_lt (xs : list state) (ys : list state) (q :
   (INCL : forall r, r ∈ ys -> r ∈ xs)
   : length ys < length xs.
 Proof.
-  enough (LE : length ys <= length (remove eq_dec q xs)).
-  { pose proof (remove_length_lt q xs IN_XS) as LT. lia. }
+  enough (LE : length ys <= length (remove (@eq_dec state Item.state_hasEqDec) q xs)).
+  { pose proof (@remove_length_lt state Item.state_hasEqDec q xs IN_XS) as LT.
+    eapply Nat.le_lt_trans; [exact LE | exact LT].
+  }
   eapply L.NoDup_incl_length.
   - exact NO_DUP_YS.
   - intros r IN_R. rewrite L.in_remove_iff. split.
@@ -4347,7 +4399,7 @@ Definition reduce (q : state) : list prod' :=
   q >>= fun it =>
   match completed_prod_of_item it with
   | None => []
-  | Some p => if mem p P' then [p] else []
+  | Some p => if mem (EQ_DEC := prod'_hasEqDec) p P' then [p] else []
   end.
 
 Lemma reduce_sound q pr
@@ -4356,7 +4408,7 @@ Lemma reduce_sound q pr
 Proof.
   unfold reduce in IN. pose proof (list_bind_sound _ _ _ IN) as (it & IN_IT & IN_PR).
   destruct it as [A beta right]. destruct right as [ | X gamma]; simpl in IN_PR; [ | contradiction].
-  destruct (mem {| p_lhs := A; p_rhs := beta |} P') eqn: MEM; [ | contradiction].
+  destruct (mem (EQ_DEC := prod'_hasEqDec) {| p_lhs := A; p_rhs := beta |} P') eqn: MEM; [ | contradiction].
   destruct IN_PR as [EQ | []]. subst pr. exists {| i_lhs := A; i_left := beta; i_right := [] |}.
   splits; eauto with *. rewrite mem_true_iff in MEM. exact MEM.
 Qed.
@@ -4371,7 +4423,7 @@ Proof.
   destruct it as [A beta right]. simpl in *. subst right. simpl.
   unfold valid_item, item_prod in VALID. simpl in VALID.
   rewrite app_nil_r in VALID.
-  destruct (mem {| p_lhs := A; p_rhs := beta |} P') eqn: MEM; simpl.
+  destruct (mem (EQ_DEC := prod'_hasEqDec) {| p_lhs := A; p_rhs := beta |} P') eqn: MEM; simpl.
   - left. reflexivity.
   - rewrite mem_false_iff in MEM. contradiction.
 Qed.
@@ -6824,10 +6876,10 @@ Definition num_states : nat :=
   length Q.
 
 Definition state_index_nat (q : state) : nat :=
-  index_of q Q.
+  index_of (EQ_DEC := Item.state_hasEqDec) q Q.
 
 Definition index_of (q : state) : option nat :=
-  if mem q Q then
+  if mem (EQ_DEC := Item.state_hasEqDec) q Q then
     Some (state_index_nat q)
   else
     None.
@@ -6868,10 +6920,10 @@ Proof.
   unfold Q. eapply NoDup_filter. exact PT_no_dup.
 Qed.
 
-Lemma state_index_nat_lookup_no_dup_aux xs default n
+Lemma state_index_nat_lookup_no_dup_aux (xs : list state) (default : state) n
   (NO_DUP : NoDup xs)
   (LT : n < length xs)
-  : FiniteSet.index_of (lookup default n xs) xs = n.
+  : FiniteSet.index_of (EQ_DEC := Item.state_hasEqDec) (lookup default n xs) xs = n.
 Proof.
   revert n NO_DUP LT. induction xs as [ | x xs IH]; intros n NO_DUP LT; simpl in LT; [lia | ].
   inversion NO_DUP as [ | x0 xs0 NOTIN NO_DUP_TAIL]; subst.
@@ -6896,9 +6948,9 @@ Theorem state_of_state_index_nat q
   : state_of (state_index_nat q) = Some q.
 Proof.
   unfold state_of, state_index_nat, num_states.
-  pose proof (index_of_lt q Q IN) as LT.
-  destruct (Nat.ltb (FiniteSet.index_of q Q) (length Q)) eqn: LTB.
-  - pose proof (lookup_index_of q Q q0 IN) as LOOKUP. rewrite LOOKUP. reflexivity.
+  pose proof (@index_of_lt state Item.state_hasEqDec q Q IN) as LT.
+  destruct (Nat.ltb (FiniteSet.index_of (EQ_DEC := Item.state_hasEqDec) q Q) (length Q)) eqn: LTB.
+  - pose proof (@lookup_index_of state Item.state_hasEqDec q Q q0 IN) as LOOKUP. rewrite LOOKUP. reflexivity.
   - rewrite Nat.ltb_ge in LTB. lia.
 Qed.
 
@@ -7924,7 +7976,7 @@ with NullStr : list V' -> Prop :=
 
 Definition nullable_symbol_in (known : list N') (X : V') : bool :=
   match X with
-  | inl A => mem A known
+  | inl A => mem (EQ_DEC := N'_hasEqDec) A known
   | inr _ => false
   end.
 
@@ -7938,7 +7990,8 @@ Definition nullable_prod_in (known : list N') (p : prod') : list N' :=
     [].
 
 Definition nullable_step (known : list N') : list N' :=
-  L.nodup eq_dec (known ++ (P' >>= fun p => nullable_prod_in known p)).
+  L.nodup (@eq_dec N' N'_hasEqDec)
+    (known ++ (P' >>= fun p => nullable_prod_in known p)).
 
 Definition nullable_fuel : nat :=
   length N'_FinEnum.all.
@@ -7947,7 +8000,7 @@ Definition nullable_set : list N' :=
   iter nullable_fuel nullable_step [].
 
 Definition nullableb (A : N') : bool :=
-  mem A nullable_set.
+  mem (EQ_DEC := N'_hasEqDec) A nullable_set.
 
 Definition nullable_symbolb (X : V') : bool :=
   match X with
@@ -8114,7 +8167,7 @@ Proof.
 Qed.
 
 Definition list_subsetb (xs : list N') (ys : list N') : bool :=
-  forallb (fun x => mem x ys) xs.
+  forallb (fun x => mem (EQ_DEC := N'_hasEqDec) x ys) xs.
 
 Lemma list_subsetb_sound xs ys
   (SUBSET : list_subsetb xs ys = true)
@@ -8148,8 +8201,10 @@ Lemma NoDup_incl_remove_length_lt (xs : list N') (ys : list N') (x : N')
   (INCL : forall y, y ∈ ys -> y ∈ xs)
   : length ys < length xs.
 Proof.
-  enough (LE : length ys <= length (remove eq_dec x xs)).
-  { pose proof (remove_length_lt x xs IN_XS) as LT. lia. }
+  enough (LE : length ys <= length (remove (@eq_dec N' N'_hasEqDec) x xs)).
+  { pose proof (@remove_length_lt N' N'_hasEqDec x xs IN_XS) as LT.
+    eapply Nat.le_lt_trans; [exact LE | exact LT].
+  }
   eapply L.NoDup_incl_length.
   - exact NO_DUP_YS.
   - intros y IN_Y. rewrite L.in_remove_iff. split.
@@ -8739,7 +8794,7 @@ Definition Read_bang (node : read_node) : list T' :=
   @digraph_value read_node T' read_terminal_hasEqDec (length D) DR reads_deps node.
 
 Definition Read_closure (node : read_node) (t : T') : Prop :=
-  digraph_closure DR reads_deps node t.
+  digraph_closure DR reads_deps t node.
 
 Definition Read (node : read_node) (t : T') : Prop :=
   let '(p, A) := node in
@@ -8792,7 +8847,7 @@ Theorem Read_closure_to_semantic node t
   : Read node t.
 Proof.
   unfold Read_closure in IN.
-  induction IN as [node t IN | node dep t EDGE _ IH].
+  induction IN as [node IN | node dep EDGE _ IH].
   - destruct node as [p A].
     pose proof (DR_sound p A t IN) as (r & s & STEP_N & STEP_T).
     unfold Read. exists r. exists []. exists s. splits.
@@ -9164,7 +9219,7 @@ Definition Follow_bang (node : read_node) : list T' :=
   @digraph_value read_node T' follow_terminal_hasEqDec (length D) Read_bang incl_deps node.
 
 Definition Follow_closure (node : read_node) (t : T') : Prop :=
-  digraph_closure Read_bang incl_deps node t.
+  digraph_closure Read_bang incl_deps t node.
 
 Definition Follow_sem (node : read_node) (t : T') : Prop :=
   let '(p, A) := node in
@@ -10029,7 +10084,7 @@ Theorem Follow_closure_to_sem_by_viable node t
   : Follow_sem node t.
 Proof.
   unfold Follow_closure in IN.
-  induction IN as [node t IN_READ | node dep t EDGE _ IH].
+  induction IN as [node IN_READ | node dep EDGE _ IH].
   - destruct node as [p A].
     eapply Follow_read_seed_path_to_sem.
     + eapply Follow_read_seed_path. eapply Read_impl_to_abs. exact IN_READ.
@@ -10053,7 +10108,7 @@ Theorem Follow_closure_to_sem_by_lr0_viable node t
   : Follow_sem node t.
 Proof.
   unfold Follow_closure in IN.
-  induction IN as [node t IN_READ | node dep t EDGE _ IH].
+  induction IN as [node IN_READ | node dep EDGE _ IH].
   - destruct node as [p A].
     eapply Follow_read_seed_lr0_context_to_sem.
     + eapply Follow_read_seed_lr0_context. eapply Read_impl_to_abs. exact IN_READ.
@@ -12554,7 +12609,7 @@ Defined.
 Definition reduce_LA_item (q : nat) (t : T') (it : item) : list prod' :=
   match completed_prod_of_item it with
   | Some pr =>
-    if mem pr P' && mem t (LA_impl q it) then
+    if mem (EQ_DEC := prod'_hasEqDec) pr P' && mem (EQ_DEC := T'_hasEqDec) t (LA_impl q it) then
       [pr]
     else
       []
@@ -12646,7 +12701,7 @@ Lemma reduce_LA_item_sound q t it pr
 Proof.
   unfold reduce_LA_item in IN. destruct it as [A beta right]. simpl in IN.
   destruct right as [ | X gamma]; [ | contradiction].
-  simpl in IN. destruct (mem {| p_lhs := A; p_rhs := beta |} P' && mem t (LA_impl q {| i_lhs := A; i_left := beta; i_right := [] |})) eqn: GUARD; [ | contradiction].
+  simpl in IN. destruct (mem (EQ_DEC := prod'_hasEqDec) {| p_lhs := A; p_rhs := beta |} P' && mem (EQ_DEC := T'_hasEqDec) t (LA_impl q {| i_lhs := A; i_left := beta; i_right := [] |})) eqn: GUARD; [ | contradiction].
   rewrite andb_true_iff in GUARD. destruct GUARD as (PROD & IN_LA).
   destruct IN as [EQ | []]. subst pr. splits; [reflexivity | reflexivity | | ].
   - rewrite mem_true_iff in PROD. exact PROD.
@@ -12660,7 +12715,7 @@ Lemma reduce_LA_item_complete q t it
   : {| p_lhs := it.(i_lhs); p_rhs := it.(i_left) |} ∈ reduce_LA_item q t it.
 Proof.
   unfold reduce_LA_item. destruct it as [A beta right]. simpl in DONE. subst right. simpl.
-  assert (GUARD : mem {| p_lhs := A; p_rhs := beta |} P' && mem t (LA_impl q {| i_lhs := A; i_left := beta; i_right := [] |}) = true).
+  assert (GUARD : mem (EQ_DEC := prod'_hasEqDec) {| p_lhs := A; p_rhs := beta |} P' && mem (EQ_DEC := T'_hasEqDec) t (LA_impl q {| i_lhs := A; i_left := beta; i_right := [] |}) = true).
   { rewrite andb_true_iff. split; rewrite mem_true_iff; assumption. }
   rewrite GUARD. simpl. left. reflexivity.
 Qed.
@@ -13782,7 +13837,7 @@ Proof.
   - inversion NO_DUP_ST as [ | it0 st0 NOTIN NO_DUP_TAIL]; subst.
     destruct it as [A beta right]. simpl.
     destruct right as [ | X gamma].
-    + destruct (mem {| p_lhs := A; p_rhs := beta |} P' && mem t (LA_impl q {| i_lhs := A; i_left := beta; i_right := [] |})) eqn: GUARD; simpl.
+    + destruct (mem (EQ_DEC := prod'_hasEqDec) {| p_lhs := A; p_rhs := beta |} P' && mem (EQ_DEC := T'_hasEqDec) t (LA_impl q {| i_lhs := A; i_left := beta; i_right := [] |})) eqn: GUARD; simpl.
       * constructor.
         { intros IN_TAIL. pose proof (list_bind_sound _ _ _ IN_TAIL) as (it_tail & IN_ST & IN_ITEM). pose proof (reduce_LA_item_sound q t it_tail {| p_lhs := A; p_rhs := beta |} IN_ITEM) as (DONE & EQ_PR & _ & _). destruct it_tail as [A_tail beta_tail right_tail]. simpl in DONE. subst right_tail. simpl in EQ_PR. inv EQ_PR. contradiction. }
         { eapply IH. exact NO_DUP_TAIL. }
@@ -17323,7 +17378,7 @@ Lemma old_nt_live_pirrel A
   (LIVE2 : gen_ntb A = true)
   : LIVE1 = LIVE2.
 Proof.
-  eapply UIP_dec. decide equality.
+  eapply eq_pirrel_fromEqDec.
 Qed.
 
 #[local]
@@ -17977,7 +18032,7 @@ Proof.
 Qed.
 
 Definition erase_state_inclb (st : Pruned.Item.state) (st_orig : Orig.Item.state) : bool :=
-  forallb (fun it => mem (erase_item it) st_orig) st.
+  forallb (fun it => mem (EQ_DEC := Orig.Item.item_hasEqDec) (erase_item it) st_orig) st.
 
 Lemma erase_state_inclb_sound st st_orig
   (CHECK : erase_state_inclb st st_orig = true)
