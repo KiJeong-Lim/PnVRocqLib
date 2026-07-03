@@ -2,6 +2,8 @@ Require Import PnV.Prelude.Prelude.
 Require Import PnV.Prelude.X.
 Require Export PnV.Math.ThN.
 
+Universe u_1.
+
 #[universes(polymorphic=yes)]
 Definition fin_ensemble@{u | } (Elem : Type@{u}) : Type@{u} :=
   list Elem.
@@ -76,9 +78,8 @@ Proof.
   eapply L.forallb_forall.
 Qed.
 
-#[universes(polymorphic=yes)]
-Definition mem@{u} {A : Type@{u}} `{EQ_DEC : hasEqDec@{u} A} (x : A) (xs : list A) : bool :=
-  if in_dec eq_dec@{u} x xs then true else false.
+Definition mem {A : Type@{u_1}} `{EQ_DEC : hasEqDec@{u_1} A} (x : A) (xs : list A) : bool :=
+  if in_dec eq_dec@{u_1} x xs then true else false.
 
 Theorem mem_spec (A : Type) `(EQ_DEC : hasEqDec A) (x : A) (xs : list A)
   : forall b, mem x xs = b <-> (if b then x ∈ xs else ~ x ∈ xs).
@@ -88,9 +89,8 @@ Qed.
 
 #[global] Hint Rewrite mem_spec : simplication_hints.
 
-#[universes(polymorphic=yes)]
-Definition add@{u} {A : Type@{u}} `{EQ_DEC : hasEqDec@{u} A} (x : A) (xs : list A) : list A :=
-  if mem@{u} x xs then xs else x :: xs.
+Definition add {A : Type@{u_1}} `{EQ_DEC : hasEqDec@{u_1} A} (x : A) (xs : list A) : list A :=
+  if mem x xs then xs else x :: xs.
 
 Theorem in_add_iff (A : Type) `(EQ_DEC : hasEqDec A) (x : A) (xs : list A)
   : forall y, y ∈ add x xs <-> (x = y \/ y ∈ xs).
@@ -100,11 +100,10 @@ Qed.
 
 #[global] Hint Rewrite in_add_iff : simplication_hints.
 
-#[universes(polymorphic=yes)]
-Fixpoint union@{u} {A : Type@{u}} `{EQ_DEC : hasEqDec@{u} A} (xs : list A) (ys : list A) {struct xs} : list A :=
+Fixpoint union {A : Type@{u_1}} `{EQ_DEC : hasEqDec@{u_1} A} (xs : list A) (ys : list A) {struct xs} : list A :=
   match xs with
   | [] => ys
-  | x :: xs' => union xs' (add@{u} x ys)
+  | x :: xs' => union xs' (add x ys)
   end.
 
 Theorem in_union_iff (A : Type) `(EQ_DEC : hasEqDec A) (xs : list A) (ys : list A)
@@ -117,11 +116,10 @@ Qed.
 
 #[global] Hint Rewrite in_union_iff : simplication_hints.
 
-#[universes(polymorphic=yes)]
-Fixpoint normalize@{u} {A : Type@{u}} `{EQ_DEC : hasEqDec@{u} A} (xs : list A) {struct xs} : list A :=
+Fixpoint normalize {A : Type@{u_1}} `{EQ_DEC : hasEqDec@{u_1} A} (xs : list A) {struct xs} : list A :=
   match xs with
   | [] => []
-  | x :: xs' => add@{u} x (normalize xs')
+  | x :: xs' => add x (normalize xs')
   end.
 
 Theorem in_normalize_iff (A : Type) `(EQ_DEC : hasEqDec A) (xs : list A)
@@ -132,11 +130,10 @@ Qed.
 
 #[global] Hint Rewrite in_normalize_iff : simplication_hints.
 
-#[universes(polymorphic=yes)]
-Fixpoint unions@{u} {A : Type@{u}} `{EQ_DEC : hasEqDec@{u} A} (xss : list (list A)) {struct xss} : list A :=
+Fixpoint unions {A : Type@{u_1}} `{EQ_DEC : hasEqDec@{u_1} A} (xss : list (list A)) {struct xss} : list A :=
   match xss with
   | [] => []
-  | xs :: xss' => union@{u} xs (unions xss')
+  | xs :: xss' => union xs (unions xss')
   end.
 
 Lemma in_unions_iff (A : Type) `(EQ_DEC : hasEqDec A) (xss : list (list A))
@@ -160,7 +157,7 @@ Proof.
     + destruct IN as [EQ | IN]; done.
 Qed.
 
-Fixpoint powerset {A : Type} (xs : list A) : list (list A) :=
+Fixpoint powerset {A : Type@{u_1}} (xs : list A) : list (list A) :=
   match xs with
   | [] => [[]]
   | x :: xs' =>
@@ -180,14 +177,13 @@ Proof.
   induction xs as [ | x xs IH]; simpl; ss!.
 Qed.
 
-#[universes(polymorphic=yes)]
-Fixpoint index_of@{u} {A : Type@{u}} `{EQ_DEC : hasEqDec@{u} A} (x : A) (xs : list A) {struct xs} : nat :=
+Fixpoint index_of {A : Type@{u_1}} `{EQ_DEC : hasEqDec@{u_1} A} (x : A) (xs : list A) {struct xs} : nat :=
   match xs with
   | [] => O
-  | x' :: xs' => if eq_dec@{u} x x' then O else S (index_of x xs')
+  | x' :: xs' => if eq_dec@{u_1} x x' then O else S (index_of x xs')
   end.
 
-Definition lookup {A : Type} (default : A) (n : nat) (xs : list A) : A :=
+Definition lookup {A : Type@{u_1}} (default : A) (n : nat) (xs : list A) : A :=
   nth n xs default.
 
 Lemma lookup_index_of {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) (default : A)
