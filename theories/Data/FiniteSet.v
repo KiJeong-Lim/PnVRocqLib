@@ -2,12 +2,17 @@ Require Import PnV.Prelude.Prelude.
 Require Import PnV.Prelude.X.
 Require Export PnV.Math.ThN.
 
-Lemma S_lt_S_intro (n : nat) (m : nat)
-  (H_lt : n < m)
-  : S n < S m.
-Proof.
-  lia.
-Qed.
+#[universes(polymorphic=yes)]
+Definition fin_ensemble@{u | } (Elem : Type@{u}) : Type@{u} :=
+  list Elem.
+
+#[global] Typeclasses Opaque fin_ensemble.
+
+#[global]
+Instance fin_ensemble_isSetoid (Elem : Type) : isSetoid (fin_ensemble Elem) :=
+  { eqProp (lhs : list Elem) (rhs : list Elem) := forall e : Elem, L.In e lhs <-> L.In e rhs
+  ; eqProp_Equivalence := relation_on_image_liftsEquivalence (pi_isSetoid (fun _ => Prop_isSetoid)).(eqProp_Equivalence) (fun X : list Elem => fun x : Elem => L.In x X)
+  }.
 
 #[local] Hint Resolve S_lt_S_intro : core.
 #[global] Hint Rewrite L.in_concat : simplication_hints.

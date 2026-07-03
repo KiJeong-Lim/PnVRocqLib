@@ -2,6 +2,13 @@ Require Import PnV.Prelude.Prelude.
 
 Notation "lhs ≠ rhs" := (~ (lhs = rhs)) : type_scope.
 
+Lemma S_lt_S_intro (n : nat) (m : nat)
+  (H_lt : n < m)
+  : S n < S m.
+Proof.
+  lia.
+Qed.
+
 Ltac done :=
   des; subst; done!.
 

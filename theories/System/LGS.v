@@ -413,11 +413,11 @@ Record t : Type :=
   mk
   { state : Set
   ; state_hasEqDec : hasEqDec@{Set} state
-  ; states : list state
+  ; states : fin_ensemble state
   ; start_state : state
-  ; accept_states : list (state * Token.t)
-  ; eps_step (q : state) : list state
-  ; char_step (q : state) (c : ascii) : list state
+  ; accept_states : alist state Token.t
+  ; eps_step (q : state) : fin_ensemble state
+  ; char_step (q : state) (c : ascii) : fin_ensemble state
   } as M.
 
 #[global] Existing Instance state_hasEqDec.
@@ -425,7 +425,7 @@ Record t : Type :=
 Variant okay (M : TaggedENFA.t) : Prop :=
   | okay_intro
     (start_okay : M.(TaggedENFA.start_state) ∈ M.(TaggedENFA.states))
-    (accept_states_okay : forall q, forall tag, (q, tag) ∈ M.(TaggedENFA.accept_states) -> q ∈ M.(TaggedENFA.states))
+    (accept_states_okay : forall q, forall tag, (q, tag) ∈ M.(TaggedENFA.accept_states).(kvlist) -> q ∈ M.(TaggedENFA.states))
     (eps_step_okay : forall q, forall q', q ∈ M.(TaggedENFA.states) -> q' ∈ M.(TaggedENFA.eps_step) q -> q' ∈ M.(TaggedENFA.states))
     (char_step_okay : forall q, forall q', forall c, q ∈ M.(TaggedENFA.states) -> q' ∈ M.(TaggedENFA.char_step) q c -> q' ∈ M.(TaggedENFA.states)).
 
@@ -533,7 +533,7 @@ Proof.
 Qed.
 
 Definition accepts (s : Input.t) (tag : Token.t) : Prop :=
-  exists qf, qf \in delta_star M.(TaggedENFA.start_state) s /\ (qf, tag) ∈ M.(TaggedENFA.accept_states).
+  exists qf, qf \in delta_star M.(TaggedENFA.start_state) s /\ (qf, tag) ∈ M.(TaggedENFA.accept_states).(kvlist).
 
 Definition accepted_tags (s : Input.t) : ensemble Token.t :=
   fun tag => accepts s tag.
@@ -652,7 +652,7 @@ Definition fragments2TaggedENFA (qmax : nat) (frags : list (Rule.t * fragment)) 
     state_hasEqDec := nat_hasEqDec;
     states := seq 0 qmax;
     start_state := 0;
-    accept_states := map (fun '(rule, frag) => (frag.(frag_accept), rule.(Rule.token))) frags;
+    accept_states := {| kvlist := map (fun '(rule, frag) => (frag.(frag_accept), rule.(Rule.token))) frags |};
     eps_step := eps_step_from_edges (fragment_eps_edges frags);
     char_step := char_step_from_edges (fragment_char_edges frags);
   |}.
@@ -1624,10 +1624,12 @@ Proof.
   eapply delta_star_stuck; eauto.
   - intros q IN. pose proof (eps_step_from_edges_sound _ _ _ IN) as IN_EDGE.
     pose proof (regex2fragment_edge_src_lt _ _ _ _ REGEX) as [EPS _].
-    pose proof (EPS _ _ IN_EDGE). lia.
+    pose proof (EPS _ _ IN_EDGE).
+    lia.
   - intros c q IN. pose proof (char_step_from_edges_sound _ _ _ _ IN) as (edge & IN_EDGE & SRC & LABEL & DST).
     pose proof (regex2fragment_edge_src_lt _ _ _ _ REGEX) as [_ CHAR].
-    pose proof (CHAR _ IN_EDGE). lia.
+    pose proof (CHAR _ IN_EDGE).
+    lia.
 Qed.
 
 Lemma regex2fragment_Star_delta_star_sound' e
@@ -1721,9 +1723,8 @@ Proof.
     assert (RANGE1 : qi + 1 <= qi + 1 <= qf1) by lia.
     pose proof (regex2fragment_Union_left_delta_star_split qi qf frag e1 e2 qf1 frag1 qf2 frag2 (qi + 1) frag.(frag_accept) s H REGEX1 REGEX2 RANGE1 DELTA1 eq_refl) as (s1 & s2 & EQ & DELTA1' & DELTA2').
     rewrite ACCEPT in DELTA2'.
-    pose proof (regex2fragment_accept_delta_star_stuck (Re.Union e1 e2) qi qf frag qf s2 H DELTA2') as [EQ2 _].
-    subst s2. rewrite app_nil_r in EQ. subst s.
-    simpl. rewrite E.in_union_iff. left. eapply SOUND1; eauto.
+    pose proof (regex2fragment_accept_delta_star_stuck (Re.Union e1 e2) qi qf frag qf s2 H DELTA2') as [EQ2 _]. subst s2.
+    rewrite app_nil_r in EQ. subst s. simpl. rewrite E.in_union_iff. left. eapply SOUND1; eauto.
     rewrite START1. rewrite ACCEPT1. exact DELTA1'.
   - pose proof (regex2fragment_bounds _ _ _ _ REGEX2) as [START2 ACCEPT2 LT2 _ _].
     assert (RANGE2 : qf1 + 1 <= qf1 + 1 <= qf2) by lia.
@@ -1749,9 +1750,8 @@ Proof.
   pose proof (regex2fragment_Append_left_delta_star_split qi qf frag e1 e2 qf1 frag1 qf2 frag2 (qi + 1) frag.(frag_accept) s H REGEX1 REGEX2 RANGE1 DELTA eq_refl) as (s1 & s2 & EQ & DELTA1 & DELTA2).
   pose proof (regex2fragment_Append_right_delta_star_split qi qf frag e1 e2 qf1 frag1 qf2 frag2 (qf1 + 1) frag.(frag_accept) s2 H REGEX1 REGEX2 RANGE2 DELTA2 eq_refl) as (s2' & s3 & EQ' & DELTA2' & DELTA3).
   rewrite ACCEPT in DELTA3.
-  pose proof (regex2fragment_accept_delta_star_stuck (Re.Append e1 e2) qi qf frag qf s3 H DELTA3) as [EQ3 _].
-  subst s3. rewrite app_nil_r in EQ'. subst s2. subst s.
-  simpl. exists s1. split.
+  pose proof (regex2fragment_accept_delta_star_stuck (Re.Append e1 e2) qi qf frag qf s3 H DELTA3) as [EQ3 _]. subst s3.
+  rewrite app_nil_r in EQ'. subst s2. subst s. simpl. exists s1. split.
   - eapply SOUND1; eauto. rewrite START1. rewrite ACCEPT1. exact DELTA1.
   - exists s2'. split.
     + eapply SOUND2; eauto. rewrite START2. rewrite ACCEPT2. exact DELTA2'.
@@ -1799,8 +1799,7 @@ Proof.
     lia.
   - destruct EPS as (q1 & STEP & REST).
     pose proof (eps_step_from_edges_sound _ _ _ STEP) as IN_EDGE.
-    pose proof (fragment_eps_edges_start_sound _ _ _ _ _ FRAGS qi_POS IN_EDGE) as (rule' & frag' & qi_rule' & qf' & IN_FRAG' & REGEX' & START_EDGE).
-    subst q1.
+    pose proof (fragment_eps_edges_start_sound _ _ _ _ _ FRAGS qi_POS IN_EDGE) as (rule' & frag' & qi_rule' & qf' & IN_FRAG' & REGEX' & START_EDGE). subst q1.
     pose proof (regex2fragment_bounds _ _ _ _ REGEX') as [START' ACCEPT' LT' _ _].
     assert (RANGE : qi_rule <= frag.(frag_accept) <= qf) by lia.
     assert (RANGE' : qi_rule' <= frag.(frag_accept) <= qf').
@@ -1825,17 +1824,14 @@ Proof.
   pose proof (BOUND _ _ IN_FRAG) as (qi_rule & qf & REGEX & _ & _ & _).
   exists rule. split.
   - eapply rules2fragments_sound; eauto.
-  - split; eauto.
-    eapply regex2fragment_sound; eauto.
-    eapply fragments_delta_star_start_to_fragment; eauto.
+  - split; eauto. eapply regex2fragment_sound; eauto. eapply fragments_delta_star_start_to_fragment; eauto.
 Qed.
 
 Theorem mkUnitedTaggedENFA_sound (M : TaggedENFA.t)
   (COMPILE : fmap mkUnitedTaggedENFA Rule.compileds = inr M)
   : exists rules, Rule.compileds = inr rules /\ ⟪ ACCEPT : forall s, forall tag, accepts M s tag -> (exists rule, rule ∈ rules /\ rule.(Rule.token) = tag /\ s \in eval_regex rule.(Rule.regex)) ⟫.
 Proof.
-  pose proof (mkUnitedTaggedENFA_spec M COMPILE) as (rules & qmax & frags & COMPILED & FRAGMENTS_OF).
-  destruct COMPILED as [COMPILED_RULES COMPILED_ENFA COMPILED_FRAGS].
+  pose proof (mkUnitedTaggedENFA_spec M COMPILE) as (rules & qmax & frags & [COMPILED_RULES COMPILED_ENFA COMPILED_FRAGS] & FRAGMENTS_OF).
   exists rules. split; [exact COMPILED_RULES | unnw]. intros s tag ACCEPTS.
   assert (ENFA_EQ : M = fragments2TaggedENFA qmax frags).
   { unfold mkUnitedTaggedENFA in COMPILED_ENFA. now rewrite COMPILED_FRAGS in COMPILED_ENFA. }
@@ -1846,8 +1842,7 @@ Theorem mkUnitedTaggedENFA_complete (M : TaggedENFA.t)
   (COMPILE : fmap mkUnitedTaggedENFA Rule.compileds = inr M)
   : exists rules, Rule.compileds = inr rules /\ ⟪ ACCEPT : forall s, forall tag, (exists rule, rule ∈ rules /\ rule.(Rule.token) = tag /\ s \in eval_regex rule.(Rule.regex)) -> accepts M s tag ⟫.
 Proof.
-  pose proof (mkUnitedTaggedENFA_spec M COMPILE) as (rules & qmax & frags & COMPILED & FRAGMENTS_OF).
-  destruct COMPILED as [COMPILED_RULES COMPILED_ENFA COMPILED_FRAGS].
+  pose proof (mkUnitedTaggedENFA_spec M COMPILE) as (rules & qmax & frags & [COMPILED_RULES COMPILED_ENFA COMPILED_FRAGS] & FRAGMENTS_OF).
   exists rules. split; [exact COMPILED_RULES | unnw]. intros s tag (rule & IN_RULE & TOKEN & IN_REGEX); subst tag.
   pose proof (rules2fragments_complete 1 rules qmax frags rule COMPILED_FRAGS IN_RULE) as (qi & qf & frag & REGEX2FRAGMENT & IN_FRAGS).
   pose proof (FRAGMENTS_OF rule frag IN_FRAGS) as FRAGMENTS.
@@ -1858,5 +1853,22 @@ Qed.
 End Thompson's_construction.
 
 End TaggedENFA.
+
+Module TaggedDFA.
+
+#[projections(primitive)]
+Record t : Type :=
+  mk
+  { state : Set
+  ; state_hasEqDec : hasEqDec@{Set} state
+  ; states : fin_ensemble state
+  ; start_state : state
+  ; accept_states : alist state Token.t
+  ; transition (q : state) (c : ascii) : state
+  } as M.
+
+#[global] Existing Instance state_hasEqDec.
+
+End TaggedDFA.
 
 End MkLGS.
