@@ -10,6 +10,12 @@ Require Import PnV.Prelude.X.
 
 Import DoNotations.
 
+#[local] Hint Rewrite andb_true_iff : simplication_hints.
+#[local] Hint Rewrite @eqb_spec@{Set} : simplication_hints.
+#[local] Hint Rewrite @L.nodup_In : simplication_hints.
+#[local] Hint Rewrite @L.in_map_iff : simplication_hints.
+#[local] Hint Rewrite @L.in_app_iff : simplication_hints.
+
 #[local] Infix "\in" := E.In : type_scope.
 #[local] Infix "=~=" := (is_similar_to (Similarity := Re.in_regex eq)) : type_scope.
 #[local] Infix "∈" := L.In.
@@ -1025,7 +1031,7 @@ Proof.
         eapply delta_star_app with (q2 := qi + 1).
         + eapply delta_star_app with (q2 := qf1).
           * rewrite <- START1. rewrite <- ACCEPT1.
-            eapply (IH s1 IN1 frags rule (qi + 1) qf1 frag1 topfrag REGEX1 FRAGMENTS); done.
+            eapply IH with (s := s1) (frags := frags) (qi := qi + 1) (qf := qf1) (frag := frag1) (topfrag := topfrag); done.
           * eapply EPS. eapply EPS_INCL. s!; tauto.
         + exact IHSTAR.
     }
@@ -2572,10 +2578,10 @@ Section MINIMISATION.
 
 Variable M : TaggedDFA.t.
 
-#[local] Notation Q := M.(TaggedDFA.state).
+#[local] Abbreviation Q := M.(TaggedDFA.state).
 
 Definition accepts_from (q : Q) (s : Input.t) (tag : Token.t) : Prop :=
-  (delta M q s, tag) ∈ M.(TaggedDFA.accept_states).
+  (delta M q s, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 
 Definition right_language_equiv (q1 : Q) (q2 : Q) : Prop :=
   forall s, forall tag, accepts_from q1 s tag <-> accepts_from q2 s tag.
@@ -2584,159 +2590,107 @@ Definition state_ensemble : ensemble Q :=
   fun q => q ∈ M.(TaggedDFA.states).
 
 Definition accept_state_ensemble : ensemble (Q * Token.t) :=
-  fun qtag => qtag ∈ M.(TaggedDFA.accept_states).
+  fun qtag => qtag ∈ M.(TaggedDFA.accept_states).(kvlist).
 
 Definition accepting_tags_from (q : Q) : list Token.t :=
-  M.(TaggedDFA.accept_states) >>= fun '(q', tag) =>
-    if eq_dec q q' then
-      [tag]
-    else
-      [].
+  bind (isMonad := B.list_isMonad) M.(TaggedDFA.accept_states).(kvlist) (fun '(q', tag) => if eq_dec (hasEqDec := M.(TaggedDFA.state_hasEqDec)) q q' then pure (isMonad := B.list_isMonad) tag else []).
 
 Lemma accepting_tags_from_complete (q : Q) (tag : Token.t)
-  (ACCEPT : (q, tag) ∈ M.(TaggedDFA.accept_states))
+  (ACCEPT : (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
   : tag ∈ accepting_tags_from q.
 Proof.
-  unfold accepting_tags_from.
-  eapply in_list_bind_intro with (x := (q, tag)); [exact ACCEPT | ].
-  destruct (eq_dec q q) as [_ | NE]; [simpl; left; reflexivity | contradiction NE; reflexivity].
+  eapply in_list_bind_intro with (x := (q, tag)); eauto.
+  des_ifs; ss!.
 Qed.
 
 Lemma accepting_tags_from_sound (q : Q) (tag : Token.t)
   (ACCEPT : tag ∈ accepting_tags_from q)
-  : (q, tag) ∈ M.(TaggedDFA.accept_states).
+  : (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
-  unfold accepting_tags_from in ACCEPT.
   pose proof (in_list_bind_elim _ _ _ ACCEPT) as ([q' tag'] & ACCEPT' & IN).
-  destruct (eq_dec q q') as [EQ | NE]; simpl in IN; [ | contradiction].
-  subst q'. destruct IN as [EQ_TAG | []]. inv EQ_TAG. exact ACCEPT'.
+  des_ifs; ss!.
 Qed.
 
 Definition accepting_tag_ensemble (q : Q) : ensemble Token.t :=
-  fun tag => (q, tag) ∈ M.(TaggedDFA.accept_states).
+  fun tag => (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 
 Lemma accepting_tags_from_similarity (q : Q)
   : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (accepting_tags_from q) (accepting_tag_ensemble q).
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff.
-  intros tag. split.
-  - eapply accepting_tags_from_sound.
-  - eapply accepting_tags_from_complete.
+  intros tag; split; i.
+  - now eapply accepting_tags_from_sound.
+  - now eapply accepting_tags_from_complete.
 Qed.
 
 Definition same_accepting_tagsb (q1 : Q) (q2 : Q) : bool :=
-  forallb (fun '(_, tag) => eqb (mem (q1, tag) M.(TaggedDFA.accept_states)) (mem (q2, tag) M.(TaggedDFA.accept_states))) M.(TaggedDFA.accept_states).
+  forallb (fun '(_, tag) => eqb (mem (q1, tag) M.(TaggedDFA.accept_states).(kvlist)) (mem (q2, tag) M.(TaggedDFA.accept_states).(kvlist))) M.(TaggedDFA.accept_states).(kvlist).
 
 Definition same_accepting_tags (q1 : Q) (q2 : Q) : Prop :=
-  forall tag, (q1, tag) ∈ M.(TaggedDFA.accept_states) <-> (q2, tag) ∈ M.(TaggedDFA.accept_states).
-
-Lemma right_language_equiv_refl (q : Q)
-  : right_language_equiv q q.
-Proof.
-  intros s tag. split; intros ACCEPT; exact ACCEPT.
-Qed.
-
-Lemma right_language_equiv_sym (q1 : Q) (q2 : Q)
-  (SAME : right_language_equiv q1 q2)
-  : right_language_equiv q2 q1.
-Proof.
-  intros s tag. split; intros ACCEPT.
-  - unfold right_language_equiv in SAME. rewrite -> SAME with (s := s) (tag := tag). exact ACCEPT.
-  - unfold right_language_equiv in SAME. rewrite <- SAME with (s := s) (tag := tag). exact ACCEPT.
-Qed.
-
-Lemma right_language_equiv_trans (q1 : Q) (q2 : Q) (q3 : Q)
-  (SAME12 : right_language_equiv q1 q2)
-  (SAME23 : right_language_equiv q2 q3)
-  : right_language_equiv q1 q3.
-Proof.
-  intros s tag. split; intros ACCEPT.
-  - unfold right_language_equiv in SAME12, SAME23. rewrite <- SAME23 with (s := s) (tag := tag). rewrite <- SAME12 with (s := s) (tag := tag). exact ACCEPT.
-  - unfold right_language_equiv in SAME12, SAME23. rewrite -> SAME12 with (s := s) (tag := tag). rewrite -> SAME23 with (s := s) (tag := tag). exact ACCEPT.
-Qed.
+  forall tag, (q1, tag) ∈ M.(TaggedDFA.accept_states).(kvlist) <-> (q2, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 
 Lemma right_language_equiv_step (q1 : Q) (q2 : Q) (c : ascii)
   (SAME : right_language_equiv q1 q2)
   : right_language_equiv (M.(TaggedDFA.transition) q1 c) (M.(TaggedDFA.transition) q2 c).
 Proof.
-  intros s tag. pose proof (SAME (c :: s) tag) as STEP. simpl in STEP. exact STEP.
+  intros s tag. now pose proof (SAME (c :: s) tag).
 Qed.
 
 Lemma right_language_equiv_same_accepting_tags (q1 : Q) (q2 : Q)
   (SAME : right_language_equiv q1 q2)
   : same_accepting_tags q1 q2.
 Proof.
-  intros tag. pose proof (SAME [] tag) as ACCEPTS. simpl in ACCEPTS. exact ACCEPTS.
-Qed.
-
-Lemma same_accepting_tagsb_refl (q : Q)
-  : same_accepting_tagsb q q = true.
-Proof.
-  unfold same_accepting_tagsb. rewrite forallb_forall.
-  intros [q' tag] IN. simpl. now rewrite eqb_eq.
+  intros tag. now pose proof (SAME [] tag).
 Qed.
 
 Lemma same_accepting_tagsb_sound (q1 : Q) (q2 : Q) (tag : Token.t)
   (SAME : same_accepting_tagsb q1 q2 = true)
-  (ACCEPT : (q1, tag) ∈ M.(TaggedDFA.accept_states))
-  : (q2, tag) ∈ M.(TaggedDFA.accept_states).
+  (ACCEPT : (q1, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
+  : (q2, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold same_accepting_tagsb in SAME. rewrite forallb_forall in SAME.
   pose proof (SAME (q1, tag) ACCEPT) as EQB. simpl in EQB.
-  assert (MEM1 : mem (q1, tag) M.(TaggedDFA.accept_states) = true) by (now rewrite mem_true_iff).
-  rewrite MEM1 in EQB. rewrite eqb_eq in EQB.
-  rewrite <- mem_true_iff. now symmetry.
+  assert (MEM1 : mem (q1, tag) M.(TaggedDFA.accept_states).(kvlist) = true) by done.
+  rewrite -> MEM1, -> eqb_eq in EQB. symmetry in EQB. ss!.
 Qed.
 
 Lemma same_accepting_tagsb_complete (q1 : Q) (q2 : Q) (tag : Token.t)
   (SAME : same_accepting_tagsb q1 q2 = true)
-  (ACCEPT : (q2, tag) ∈ M.(TaggedDFA.accept_states))
-  : (q1, tag) ∈ M.(TaggedDFA.accept_states).
+  (ACCEPT : (q2, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
+  : (q1, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold same_accepting_tagsb in SAME. rewrite forallb_forall in SAME.
   pose proof (SAME (q2, tag) ACCEPT) as EQB. simpl in EQB.
-  assert (MEM2 : mem (q2, tag) M.(TaggedDFA.accept_states) = true) by (now rewrite mem_true_iff).
-  rewrite MEM2 in EQB. rewrite eqb_eq in EQB.
-  rewrite <- mem_true_iff. exact EQB.
+  assert (MEM2 : mem (q2, tag) M.(TaggedDFA.accept_states).(kvlist) = true) by done.
+  rewrite MEM2 in EQB. rewrite eqb_eq in EQB. ss!.
 Qed.
 
 Lemma same_accepting_tagsb_false_distinguish (q1 : Q) (q2 : Q)
   (SAME : same_accepting_tagsb q1 q2 = false)
   : exists tag, (accepts_from q1 [] tag /\ ~ accepts_from q2 [] tag) \/ (accepts_from q2 [] tag /\ ~ accepts_from q1 [] tag).
 Proof.
-  unfold same_accepting_tagsb in SAME.
-  pose proof (forallb_false_exists _ _ SAME) as ([q tag] & _ & EQB).
-  simpl in EQB.
-  destruct (mem (q1, tag) M.(TaggedDFA.accept_states)) eqn: MEM1, (mem (q2, tag) M.(TaggedDFA.accept_states)) eqn: MEM2; simpl in EQB; inv EQB.
-  - exists tag. left. split.
-    + unfold accepts_from. simpl. rewrite <- mem_true_iff. exact MEM1.
-    + unfold accepts_from. simpl. rewrite <- mem_false_iff. exact MEM2.
-  - exists tag. right. split.
-    + unfold accepts_from. simpl. rewrite <- mem_true_iff. exact MEM2.
-    + unfold accepts_from. simpl. rewrite <- mem_false_iff. exact MEM1.
+  pose proof (forallb_false_exists _ _ SAME) as ([q tag] & _ & EQB). simpl in EQB.
+  destruct (mem (q1, tag) M.(TaggedDFA.accept_states).(kvlist)) eqn: MEM1, (mem (q2, tag) M.(TaggedDFA.accept_states).(kvlist)) eqn: MEM2; simpl in EQB; inv EQB.
+  - exists tag. left. split; unfold accepts_from; ss!.
+  - exists tag. right. split; unfold accepts_from; ss!.
 Qed.
 
 Lemma same_accepting_tagsb_similarity (q1 : Q) (q2 : Q)
   : is_similar_to (Similarity := Similarity_bool_Prop) (same_accepting_tagsb q1 q2) (same_accepting_tags q1 q2).
 Proof.
-  change (if same_accepting_tagsb q1 q2 then same_accepting_tags q1 q2 else ~ same_accepting_tags q1 q2).
-  destruct (same_accepting_tagsb q1 q2) eqn: SAME.
+  do 2 red; des_ifs.
   - intros tag. split.
-    + eapply same_accepting_tagsb_sound. exact SAME.
-    + eapply same_accepting_tagsb_complete. exact SAME.
+    + now eapply same_accepting_tagsb_sound.
+    + now eapply same_accepting_tagsb_complete.
   - intros SAME_PROP.
-    pose proof (same_accepting_tagsb_false_distinguish q1 q2 SAME) as (tag & [(ACCEPT & NOT_ACCEPT) | (ACCEPT & NOT_ACCEPT)]).
-    + unfold accepts_from in ACCEPT, NOT_ACCEPT. simpl in ACCEPT, NOT_ACCEPT.
-      pose proof (proj1 (SAME_PROP tag) ACCEPT) as ACCEPT'. contradiction.
-    + unfold accepts_from in ACCEPT, NOT_ACCEPT. simpl in ACCEPT, NOT_ACCEPT.
-      pose proof (proj2 (SAME_PROP tag) ACCEPT) as ACCEPT'. contradiction.
+    pose proof (same_accepting_tagsb_false_distinguish q1 q2 Heq) as (tag & [(ACCEPT & NOT_ACCEPT) | (ACCEPT & NOT_ACCEPT)]); unfold accepts_from in *; ss!.
 Qed.
 
 Definition transition_alist : alist (Q * ascii) Q :=
-  {| kvlist := M.(TaggedDFA.states) >>= fun q => all_asciis >>= fun c => [((q, c), M.(TaggedDFA.transition) q c)] |}.
+  {| kvlist := bind (isMonad := B.list_isMonad) M.(TaggedDFA.states) (fun q => bind (isMonad := B.list_isMonad) all_asciis (fun c => pure (isMonad := B.list_isMonad) ((q, c), M.(TaggedDFA.transition) q c))) |}.
 
 Definition transition_partial_map (qc : Q * ascii) : option Q :=
-  if mem (fst qc) M.(TaggedDFA.states) then
+  if mem (EQ_DEC := M.(state_hasEqDec)) (fst qc) M.(TaggedDFA.states) then
     Some (M.(TaggedDFA.transition) (fst qc) (snd qc))
   else
     None.
@@ -2744,33 +2698,33 @@ Definition transition_partial_map (qc : Q * ascii) : option Q :=
 Lemma transition_alist_similarity
   : is_similar_to (Similarity := alist_corresponds_to_finite_partial_map) transition_alist transition_partial_map.
 Proof.
-  rewrite alist_corresponds_to_finite_partial_map_iff.
-  intros [q c] q'. split.
-  - intros IN. change (((q, c), q') ∈ (M.(TaggedDFA.states) >>= fun q0 => all_asciis >>= fun c0 => [((q0, c0), M.(TaggedDFA.transition) q0 c0)])) in IN.
+  rewrite alist_corresponds_to_finite_partial_map_iff. intros [q c] q'. split.
+  - intros IN. cbv [transition_alist] in IN. cbn [kvlist] in IN.
     pose proof (in_list_bind_elim _ _ _ IN) as (q0 & IN_Q0 & IN_C).
     pose proof (in_list_bind_elim _ _ _ IN_C) as (c0 & _ & IN_ENTRY).
     simpl in IN_ENTRY. destruct IN_ENTRY as [EQ | []]. inv EQ.
-    unfold transition_partial_map. simpl. assert (MEM : mem q M.(TaggedDFA.states) = true) by (rewrite mem_true_iff; exact IN_Q0). rewrite MEM. reflexivity.
+    assert (MEM : mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q M.(TaggedDFA.states) = true) by now rewrite mem_spec. 
+    now unfold transition_partial_map; simpl; rewrite MEM.
   - intros FIND. unfold transition_partial_map in FIND. simpl in FIND.
     destruct (mem q M.(TaggedDFA.states)) eqn: MEM; inv FIND.
-    change (((q, c), M.(TaggedDFA.transition) q c) ∈ (M.(TaggedDFA.states) >>= fun q0 => all_asciis >>= fun c0 => [((q0, c0), M.(TaggedDFA.transition) q0 c0)])).
-    eapply in_list_bind_intro with (x := q); [now rewrite <- mem_true_iff | ].
-    eapply in_list_bind_intro with (x := c); [eapply all_asciis_complete | ].
-    simpl. left. reflexivity.
+    cbv [transition_alist]. cbn [kvlist].
+    eapply in_list_bind_intro with (x := q); [now rewrite mem_spec in MEM | ].
+    eapply in_list_bind_intro with (x := c); [eapply in_all_asciis_intro | ].
+    s!; tauto.
 Qed.
 
 Variant DFA_ACCEPTANCE_COMPUTATION_SPEC : Prop :=
   | dfa_acceptance_computation_spec_intro
     (states_sim : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) M.(TaggedDFA.states) state_ensemble)
-    (accept_states_sim : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) M.(TaggedDFA.accept_states) accept_state_ensemble)
+    (accept_states_sim : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) M.(TaggedDFA.accept_states).(kvlist) accept_state_ensemble)
     (accepting_tags_sim : forall q, is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (accepting_tags_from q) (accepting_tag_ensemble q))
     (same_accepting_tags_sim : forall q1, forall q2, is_similar_to (Similarity := Similarity_bool_Prop) (same_accepting_tagsb q1 q2) (same_accepting_tags q1 q2))
     (transition_sim : is_similar_to (Similarity := alist_corresponds_to_finite_partial_map) transition_alist transition_partial_map).
 
-Lemma dfa_acceptance_computation_okay
+Theorem dfa_acceptance_computation_okay
   : DFA_ACCEPTANCE_COMPUTATION_SPEC.
 Proof.
-  constructor.
+  split.
   - rewrite list_corresponds_to_finite_ensemble_iff. intros q. split; intros IN; exact IN.
   - rewrite list_corresponds_to_finite_ensemble_iff. intros qtag. split; intros IN; exact IN.
   - eapply accepting_tags_from_similarity.
@@ -2794,7 +2748,7 @@ Definition hopcroft_block_ensemble (block : hopcroft_block) : ensemble Q :=
   fun q => q ∈ block.
 
 Definition hopcroft_predecessors (block : hopcroft_block) (c : ascii) : hopcroft_block :=
-  filter (fun q => mem (M.(TaggedDFA.transition) q c) block) M.(TaggedDFA.states).
+  filter (fun q => mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) (M.(TaggedDFA.transition) q c) block) M.(TaggedDFA.states).
 
 Definition hopcroft_predecessor_ensemble (block : hopcroft_block) (c : ascii) : ensemble Q :=
   fun q => q ∈ M.(TaggedDFA.states) /\ M.(TaggedDFA.transition) q c ∈ block.
@@ -2802,24 +2756,23 @@ Definition hopcroft_predecessor_ensemble (block : hopcroft_block) (c : ascii) : 
 Lemma hopcroft_predecessors_similarity (block : hopcroft_block) (c : ascii)
   : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (hopcroft_predecessors block c) (hopcroft_predecessor_ensemble block c).
 Proof.
-  rewrite list_corresponds_to_finite_ensemble_iff.
-  intros q. split.
-  - intros IN. unfold hopcroft_predecessors in IN. rewrite filter_In in IN.
-    destruct IN as [STATE MEM]. unfold hopcroft_predecessor_ensemble. split; [exact STATE | now rewrite <- mem_true_iff].
-  - intros [STATE IN]. unfold hopcroft_predecessors. rewrite filter_In. split; [exact STATE | now rewrite mem_true_iff].
+  rewrite list_corresponds_to_finite_ensemble_iff. intros q. split; [intros IN | intros [STATE IN]].
+  - unfold hopcroft_predecessors in IN. s!. destruct IN as [STATE MEM].
+    unfold hopcroft_predecessor_ensemble. done.
+  - unfold hopcroft_predecessors. done.
 Qed.
 
-Lemma hopcroft_predecessors_iff (block : hopcroft_block) (c : ascii) (q : Q)
-  : q ∈ hopcroft_predecessors block c <-> q ∈ M.(TaggedDFA.states) /\ M.(TaggedDFA.transition) q c ∈ block.
+Lemma hopcroft_predecessors_iff (block : hopcroft_block) (c : ascii)
+  : forall q, q ∈ hopcroft_predecessors block c <-> (q ∈ M.(TaggedDFA.states) /\ M.(TaggedDFA.transition) q c ∈ block).
 Proof.
-  unfold hopcroft_predecessors. rewrite filter_In. rewrite mem_true_iff. tauto.
+  unfold hopcroft_predecessors. done.
 Qed.
 
 Definition hopcroft_block_intersection (block : hopcroft_block) (splitter : hopcroft_block) : hopcroft_block :=
-  filter (fun q => mem q splitter) block.
+  filter (fun q => mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q splitter) block.
 
 Definition hopcroft_block_difference (block : hopcroft_block) (splitter : hopcroft_block) : hopcroft_block :=
-  filter (fun q => negb (mem q splitter)) block.
+  filter (fun q => negb (mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q splitter)) block.
 
 Definition hopcroft_block_intersection_ensemble (block : hopcroft_block) (splitter : hopcroft_block) : ensemble Q :=
   fun q => q ∈ block /\ q ∈ splitter.
@@ -2830,25 +2783,23 @@ Definition hopcroft_block_difference_ensemble (block : hopcroft_block) (splitter
 Lemma hopcroft_block_intersection_similarity (block : hopcroft_block) (splitter : hopcroft_block)
   : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (hopcroft_block_intersection block splitter) (hopcroft_block_intersection_ensemble block splitter).
 Proof.
-  rewrite list_corresponds_to_finite_ensemble_iff.
-  intros q. split.
-  - intros IN. unfold hopcroft_block_intersection in IN. rewrite filter_In in IN.
-    destruct IN as [IN_BLOCK MEM]. unfold hopcroft_block_intersection_ensemble. split; [exact IN_BLOCK | now rewrite <- mem_true_iff].
-  - intros [IN_BLOCK IN_SPLITTER]. unfold hopcroft_block_intersection. rewrite filter_In. split; [exact IN_BLOCK | now rewrite mem_true_iff].
+  rewrite list_corresponds_to_finite_ensemble_iff. intros q. split; [intros IN | intros [IN_BLOCK IN_SPLITTER]].
+  - unfold hopcroft_block_intersection in IN. s!. destruct IN as [IN_BLOCK MEM].
+    unfold hopcroft_block_intersection_ensemble. done.
+  - unfold hopcroft_block_intersection. done.
 Qed.
 
 Lemma hopcroft_block_difference_similarity (block : hopcroft_block) (splitter : hopcroft_block)
   : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (hopcroft_block_difference block splitter) (hopcroft_block_difference_ensemble block splitter).
 Proof.
-  rewrite list_corresponds_to_finite_ensemble_iff.
-  intros q. split.
-  - intros IN. unfold hopcroft_block_difference in IN. rewrite filter_In in IN.
-    destruct IN as [IN_BLOCK MEM]. unfold hopcroft_block_difference_ensemble. split; [exact IN_BLOCK | rewrite negb_true_iff in MEM; now rewrite <- mem_false_iff].
-  - intros [IN_BLOCK NOT_IN]. unfold hopcroft_block_difference. rewrite filter_In. split; [exact IN_BLOCK | rewrite negb_true_iff; now rewrite mem_false_iff].
-Qed.
+  rewrite list_corresponds_to_finite_ensemble_iff. intros q. split; [intros IN | intros [IN_BLOCK NOT_IN]].
+  - unfold hopcroft_block_difference in IN. s!. destruct IN as [IN_BLOCK MEM].
+    unfold hopcroft_block_difference_ensemble. done.
+  - unfold hopcroft_block_difference. done.
+Qed.  
 
 Definition hopcroft_all_splitters (partition : hopcroft_partition) : hopcroft_worklist :=
-  partition >>= fun block => all_asciis >>= fun c => [(block, c)].
+  partition >>= fun block => all_asciis >>= fun c => pure (block, c).
 
 Definition hopcroft_worklist_valid (partition : hopcroft_partition) (worklist : hopcroft_worklist) : Prop :=
   forall block, forall c, (block, c) ∈ worklist -> block ∈ partition /\ c ∈ all_asciis.
@@ -2859,8 +2810,7 @@ Proof.
   intros block c IN. unfold hopcroft_all_splitters in IN.
   pose proof (in_list_bind_elim _ _ _ IN) as (block0 & BLOCK & IN_C).
   pose proof (in_list_bind_elim _ _ _ IN_C) as (c0 & C & IN_PAIR).
-  simpl in IN_PAIR. destruct IN_PAIR as [EQ | []]. inv EQ.
-  split; eauto.
+  simpl in IN_PAIR. destruct IN_PAIR as [EQ | []]. inv EQ. split; eauto.
 Qed.
 
 Lemma hopcroft_all_splitters_complete (partition : hopcroft_partition) (block : hopcroft_block) (c : ascii)
@@ -2868,16 +2818,14 @@ Lemma hopcroft_all_splitters_complete (partition : hopcroft_partition) (block : 
   : (block, c) ∈ hopcroft_all_splitters partition.
 Proof.
   unfold hopcroft_all_splitters.
-  eapply in_list_bind_intro with (x := block); [exact BLOCK | ].
-  eapply in_list_bind_intro with (x := c); [eapply all_asciis_complete | ].
-  simpl. left. reflexivity.
+  eapply in_list_bind_intro with (x := block); auto.
+  eapply in_list_bind_intro with (x := c).
+  - eapply in_all_asciis_intro.
+  - s!; tauto.
 Qed.
 
 Definition hopcroft_smaller_block (block1 : hopcroft_block) (block2 : hopcroft_block) : hopcroft_block :=
-  if Nat.leb (length block1) (length block2) then
-    block1
-  else
-    block2.
+  if Nat.leb (length block1) (length block2) then block1 else block2.
 
 Lemma hopcroft_smaller_block_in_pieces (block1 : hopcroft_block) (block2 : hopcroft_block)
   : hopcroft_smaller_block block1 block2 = block1 \/ hopcroft_smaller_block block1 block2 = block2.
@@ -2886,23 +2834,17 @@ Proof.
 Qed.
 
 Definition hopcroft_worklist_mentions (block : hopcroft_block) (worklist : hopcroft_worklist) : bool :=
-  existsb
-    (fun '(block0, _) =>
-       if @eq_dec (list Q) (list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block0 block then
-         true
-       else
-         false)
-    worklist.
+  existsb (fun '(block', _) => @eqb (list Q) (list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block' block) worklist.
 
 Definition hopcroft_update_splitter (old_block : hopcroft_block) (block1 : hopcroft_block) (block2 : hopcroft_block) (splitter : hopcroft_splitter) : hopcroft_worklist :=
-  let '(block0, c) := splitter in
-  if @eq_dec (list Q) (list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block0 old_block then
+  let '(block', c) := splitter in
+  if @eq_dec (list Q) (list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block' old_block then
     [(block1, c); (block2, c)]
   else
     [splitter].
 
 Definition hopcroft_update_worklist (worklist : hopcroft_worklist) (old_block : hopcroft_block) (block1 : hopcroft_block) (block2 : hopcroft_block) : hopcroft_worklist :=
-  let worklist' := worklist >>= hopcroft_update_splitter old_block block1 block2 in
+  let worklist' : hopcroft_worklist := worklist >>= hopcroft_update_splitter old_block block1 block2 in
   if hopcroft_worklist_mentions old_block worklist then
     worklist'
   else
@@ -2912,58 +2854,41 @@ Lemma hopcroft_update_worklist_valid_prefix (prefix : hopcroft_partition) (parti
   (VALID : hopcroft_worklist_valid (prefix ++ old_block :: partition) worklist)
   : hopcroft_worklist_valid (prefix ++ block1 :: block2 :: partition) (hopcroft_update_worklist worklist old_block block1 block2).
 Proof.
-  intros block c IN.
-  unfold hopcroft_update_worklist in IN.
+  intros block c IN. unfold hopcroft_update_worklist in IN.
   destruct (hopcroft_worklist_mentions old_block worklist) eqn: MENTIONS.
   - pose proof (in_list_bind_elim _ _ _ IN) as ([block0 c0] & IN_WORKLIST & IN_UPDATE).
     unfold hopcroft_update_splitter in IN_UPDATE.
-    destruct (@eq_dec (list Q) (list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block0 old_block) as [EQ | NE].
+    destruct (eq_dec _ _) as [EQ | NE].
     + subst block0. simpl in IN_UPDATE.
       pose proof (VALID old_block c0 IN_WORKLIST) as [_ CHAR].
-      destruct IN_UPDATE as [EQ | [EQ | []]]; inv EQ; split.
-      * rewrite in_app_iff. right. left. reflexivity.
-      * exact CHAR.
-      * rewrite in_app_iff. right. right. left. reflexivity.
-      * exact CHAR.
+      destruct IN_UPDATE as [EQ | [EQ | []]]; inv EQ; split; ss!.
     + simpl in IN_UPDATE. destruct IN_UPDATE as [EQ | []]. inv EQ.
       pose proof (VALID block c IN_WORKLIST) as [BLOCK CHAR].
-      split; [ | exact CHAR].
-      rewrite in_app_iff in BLOCK |- *.
-      destruct BLOCK as [IN_PREFIX | [EQ | IN_PARTITION]].
-      * left. exact IN_PREFIX.
-      * subst block. contradiction.
-      * right. right. right. exact IN_PARTITION.
+      split; auto. rewrite in_app_iff in BLOCK |- *.
+      destruct BLOCK as [IN_PREFIX | [EQ | IN_PARTITION]]; done.
   - rewrite in_app_iff in IN. destruct IN as [IN | IN].
     + pose proof (in_list_bind_elim _ _ _ IN) as ([block0 c0] & IN_WORKLIST & IN_UPDATE).
       unfold hopcroft_update_splitter in IN_UPDATE.
       destruct (@eq_dec (list Q) (list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block0 old_block) as [EQ | NE].
       * subst block0. simpl in IN_UPDATE.
         pose proof (VALID old_block c0 IN_WORKLIST) as [_ CHAR].
-        destruct IN_UPDATE as [EQ | [EQ | []]]; inv EQ; split.
-        { rewrite in_app_iff. right. left. reflexivity. }
-        { exact CHAR. }
-        { rewrite in_app_iff. right. right. left. reflexivity. }
-        { exact CHAR. }
+        destruct IN_UPDATE as [EQ | [EQ | []]]; inv EQ; split; ss!.
       * simpl in IN_UPDATE. destruct IN_UPDATE as [EQ | []]. inv EQ.
         pose proof (VALID block c IN_WORKLIST) as [BLOCK CHAR].
-        split; [ | exact CHAR].
-        rewrite in_app_iff in BLOCK |- *.
-        destruct BLOCK as [IN_PREFIX | [EQ | IN_PARTITION]].
-        { left. exact IN_PREFIX. }
-        { subst block. contradiction. }
-        { right. right. right. exact IN_PARTITION. }
+        split; auto. rewrite in_app_iff in BLOCK |- *.
+        destruct BLOCK as [IN_PREFIX | [EQ | IN_PARTITION]]; done.
     + pose proof (hopcroft_all_splitters_valid [hopcroft_smaller_block block1 block2] block c IN) as [BLOCK CHAR].
       simpl in BLOCK. destruct BLOCK as [EQ | []]. subst block.
       pose proof (hopcroft_smaller_block_in_pieces block1 block2) as [EQ | EQ]; rewrite EQ; split.
-      * rewrite in_app_iff. right. left. reflexivity.
+      * rewrite in_app_iff. simpl. tauto.
       * exact CHAR.
-      * rewrite in_app_iff. right. right. left. reflexivity.
+      * rewrite in_app_iff. simpl. tauto.
       * exact CHAR.
 Qed.
 
 Definition hopcroft_split_block (splitter : hopcroft_block) (block : hopcroft_block) : list hopcroft_block :=
-  let block1 := hopcroft_block_intersection block splitter in
-  let block2 := hopcroft_block_difference block splitter in
+  let block1 : hopcroft_block := hopcroft_block_intersection block splitter in
+  let block2 : hopcroft_block := hopcroft_block_difference block splitter in
   if nonempty block1 && nonempty block2 then
     [block1; block2]
   else
@@ -2993,16 +2918,14 @@ Proof.
     assert (VALID_TAIL : hopcroft_worklist_valid ((prefix ++ [old_block]) ++ partition) worklist).
     { intros block c IN.
       pose proof (VALID block c IN) as [BLOCK CHAR].
-      split; [ | exact CHAR].
-      rewrite !in_app_iff in BLOCK |- *.
+      split; auto. rewrite !in_app_iff in BLOCK |- *.
       destruct BLOCK as [IN_PREFIX | [EQ | IN_PARTITION]].
-      - left. rewrite in_app_iff. left. exact IN_PREFIX.
-      - left. rewrite in_app_iff. right. left. exact EQ.
-      - right. exact IN_PARTITION.
+      - left. rewrite in_app_iff; simpl; tauto.
+      - left. rewrite in_app_iff; simpl; tauto.
+      - right. tauto.
     }
     pose proof (IH worklist (prefix ++ [old_block]) VALID_TAIL) as VALID_REFINED_TAIL.
-    destruct (hopcroft_refine_partition splitter partition worklist) as [partition' worklist'] eqn: REFINE.
-    simpl in VALID_REFINED_TAIL.
+    destruct (hopcroft_refine_partition splitter partition worklist) as [partition' worklist'] eqn: REFINE. simpl in VALID_REFINED_TAIL.
     replace ((prefix ++ [old_block]) ++ partition') with (prefix ++ old_block :: partition') in VALID_REFINED_TAIL by (rewrite <- app_assoc; reflexivity).
     destruct (nonempty block1 && nonempty block2) eqn: SPLIT; simpl.
     + eapply hopcroft_update_worklist_valid_prefix. exact VALID_REFINED_TAIL.
@@ -3013,8 +2936,7 @@ Lemma hopcroft_refine_partition_worklist_valid (splitter : hopcroft_block) (part
   (VALID : hopcroft_worklist_valid partition worklist)
   : hopcroft_worklist_valid (fst (hopcroft_refine_partition splitter partition worklist)) (snd (hopcroft_refine_partition splitter partition worklist)).
 Proof.
-  pose proof (hopcroft_refine_partition_worklist_valid_prefix splitter partition worklist [] VALID) as VALID'.
-  simpl in VALID'. exact VALID'.
+  now pose proof (hopcroft_refine_partition_worklist_valid_prefix splitter partition worklist [] VALID) as VALID'.
 Qed.
 
 Definition hopcroft_accepting_class (q : Q) : hopcroft_block :=
@@ -3094,11 +3016,10 @@ Definition hopcroft_partition_stable_for_splitter (partition : hopcroft_partitio
   forall block, forall q1, forall q2, block ∈ partition -> q1 ∈ block -> q2 ∈ block -> (M.(TaggedDFA.transition) q1 c ∈ active <-> M.(TaggedDFA.transition) q2 c ∈ active).
 
 Definition hopcroft_partition_preserves_right_language (partition : hopcroft_partition) : Prop :=
-  forall block, forall q1, forall q2,
-  block ∈ partition -> q1 ∈ block -> q2 ∈ M.(TaggedDFA.states) -> right_language_equiv q1 q2 -> q2 ∈ block.
+  forall block, forall q1, forall q2, block ∈ partition -> q1 ∈ block -> q2 ∈ M.(TaggedDFA.states) -> right_language_equiv q1 q2 -> q2 ∈ block.
 
 Definition hopcroft_same_blockb (partition : hopcroft_partition) (q1 : Q) (q2 : Q) : bool :=
-  existsb (fun block => mem q1 block && mem q2 block) partition.
+  existsb (fun block => mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q1 block && mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q2 block) partition.
 
 Definition hopcroft_block_stableb (partition : hopcroft_partition) (block : hopcroft_block) (c : ascii) : bool :=
   forallb (fun q1 => forallb (fun q2 => hopcroft_same_blockb partition (M.(TaggedDFA.transition) q1 c) (M.(TaggedDFA.transition) q2 c)) block) block.
@@ -3114,31 +3035,6 @@ Variant HOPCROFT_PARTITION_BASIC_SPEC (partition : hopcroft_partition) : Prop :=
     (covers_states : hopcroft_partition_covers_states partition)
     (disjoint : hopcroft_partition_disjoint partition)
     (respects_accepting_tags : hopcroft_partition_respects_accepting_tags partition).
-
-Lemma same_accepting_tags_refl (q : Q)
-  : same_accepting_tags q q.
-Proof.
-  intros tag. split; intros ACCEPT; exact ACCEPT.
-Qed.
-
-Lemma same_accepting_tags_sym (q1 : Q) (q2 : Q)
-  (SAME : same_accepting_tags q1 q2)
-  : same_accepting_tags q2 q1.
-Proof.
-  intros tag. split; intros ACCEPT.
-  - unfold same_accepting_tags in SAME. rewrite -> SAME with (tag := tag). exact ACCEPT.
-  - unfold same_accepting_tags in SAME. rewrite <- SAME with (tag := tag). exact ACCEPT.
-Qed.
-
-Lemma same_accepting_tags_trans (q1 : Q) (q2 : Q) (q3 : Q)
-  (SAME12 : same_accepting_tags q1 q2)
-  (SAME23 : same_accepting_tags q2 q3)
-  : same_accepting_tags q1 q3.
-Proof.
-  intros tag. split; intros ACCEPT.
-  - unfold same_accepting_tags in SAME12, SAME23. rewrite <- SAME23 with (tag := tag). rewrite <- SAME12 with (tag := tag). exact ACCEPT.
-  - unfold same_accepting_tags in SAME12, SAME23. rewrite -> SAME12 with (tag := tag). rewrite -> SAME23 with (tag := tag). exact ACCEPT.
-Qed.
 
 Lemma same_accepting_tagsb_same_accepting_tags (q1 : Q) (q2 : Q)
   (SAME : same_accepting_tagsb q1 q2 = true)
@@ -3156,29 +3052,26 @@ Proof.
   destruct (same_accepting_tagsb q1 q2) eqn: SAMEB; [reflexivity | ].
   pose proof (same_accepting_tagsb_similarity q1 q2) as SIM.
   change (if same_accepting_tagsb q1 q2 then same_accepting_tags q1 q2 else ~ same_accepting_tags q1 q2) in SIM.
-  rewrite SAMEB in SIM. contradiction.
+  now rewrite SAMEB in SIM.
 Qed.
 
 Lemma hopcroft_same_blockb_sound (partition : hopcroft_partition) (q1 : Q) (q2 : Q)
   (SAME : hopcroft_same_blockb partition q1 q2 = true)
   : hopcroft_partition_relates partition q1 q2.
 Proof.
-  unfold hopcroft_same_blockb in SAME. rewrite existsb_exists in SAME.
-  destruct SAME as (block & BLOCK & SAME).
-  rewrite andb_true_iff in SAME. destruct SAME as [IN1 IN2].
-  rewrite mem_true_iff in IN1. rewrite mem_true_iff in IN2.
-  exists block. eauto.
+  unfold hopcroft_same_blockb in SAME. red. done.
 Qed.
 
 Lemma hopcroft_partition_stableb_sound (partition : hopcroft_partition)
   (STABLE : hopcroft_partition_stableb partition = true)
   : hopcroft_partition_stable partition.
 Proof.
-  unfold hopcroft_partition_stableb in STABLE. rewrite forallb_forall in STABLE.
+  unfold hopcroft_partition_stableb in STABLE.
+  rewrite forallb_forall in STABLE.
   intros block q1 q2 c BLOCK IN1 IN2.
   pose proof (STABLE block BLOCK) as BLOCK_STABLE.
   rewrite forallb_forall in BLOCK_STABLE.
-  pose proof (BLOCK_STABLE c (all_asciis_complete c)) as CHAR_STABLE.
+  pose proof (BLOCK_STABLE c (in_all_asciis_intro c)) as CHAR_STABLE.
   unfold hopcroft_block_stableb in CHAR_STABLE.
   rewrite forallb_forall in CHAR_STABLE.
   pose proof (CHAR_STABLE q1 IN1) as Q1_STABLE.
@@ -3191,22 +3084,23 @@ Lemma hopcroft_accepting_class_contains (q : Q)
   (STATE : q ∈ M.(TaggedDFA.states))
   : q ∈ hopcroft_accepting_class q.
 Proof.
-  unfold hopcroft_accepting_class. rewrite filter_In. split; [exact STATE | eapply same_accepting_tagsb_refl].
+  unfold hopcroft_accepting_class. rewrite filter_In. split; auto.
+  unfold same_accepting_tagsb. ss!; des_ifs; ss!; des_ifs; ss!.
 Qed.
 
 Lemma hopcroft_accepting_class_states (q : Q) (q0 : Q)
   (IN : q0 ∈ hopcroft_accepting_class q)
   : q0 ∈ M.(TaggedDFA.states).
 Proof.
-  unfold hopcroft_accepting_class in IN. rewrite filter_In in IN. tauto.
+  unfold hopcroft_accepting_class in IN. ss!.
 Qed.
 
 Lemma hopcroft_accepting_class_same (q : Q) (q0 : Q)
   (IN : q0 ∈ hopcroft_accepting_class q)
   : same_accepting_tags q q0.
 Proof.
-  unfold hopcroft_accepting_class in IN. rewrite filter_In in IN. destruct IN as [_ SAME].
-  eapply same_accepting_tagsb_same_accepting_tags. exact SAME.
+  unfold hopcroft_accepting_class in IN.
+  eapply same_accepting_tagsb_same_accepting_tags. ss!.
 Qed.
 
 Lemma hopcroft_accepting_class_eq_of_same (q1 : Q) (q2 : Q)
@@ -3217,11 +3111,11 @@ Proof.
   destruct (same_accepting_tagsb q1 q) eqn: SAME1, (same_accepting_tagsb q2 q) eqn: SAME2; try reflexivity.
   - exfalso. pose proof (same_accepting_tagsb_same_accepting_tags q1 q SAME1) as SAME1_PROP.
     assert (SAME2_PROP : same_accepting_tags q2 q).
-    { eapply same_accepting_tags_trans; [eapply same_accepting_tags_sym; exact SAME | exact SAME1_PROP]. }
+    { unfold same_accepting_tagsb in *. ss!. }
     pose proof (same_accepting_tags_same_accepting_tagsb q2 q SAME2_PROP) as SAME2_TRUE. rewrite SAME2 in SAME2_TRUE. inv SAME2_TRUE.
   - exfalso. pose proof (same_accepting_tagsb_same_accepting_tags q2 q SAME2) as SAME2_PROP.
     assert (SAME1_PROP : same_accepting_tags q1 q).
-    { eapply same_accepting_tags_trans; [exact SAME | exact SAME2_PROP]. }
+    { unfold same_accepting_tagsb in *. ss!. }
     pose proof (same_accepting_tags_same_accepting_tagsb q1 q SAME1_PROP) as SAME1_TRUE. rewrite SAME1 in SAME1_TRUE. inv SAME1_TRUE.
 Qed.
 
@@ -3233,7 +3127,7 @@ Proof.
   pose proof (hopcroft_accepting_class_same q1 q IN1) as SAME1.
   pose proof (hopcroft_accepting_class_same q2 q IN2) as SAME2.
   eapply hopcroft_accepting_class_eq_of_same.
-  eapply same_accepting_tags_trans; [exact SAME1 | eapply same_accepting_tags_sym; exact SAME2].
+  unfold same_accepting_tags in *; ss!. 
 Qed.
 
 Lemma hopcroft_accepting_class_in_initial_partition (q : Q)
@@ -3256,7 +3150,7 @@ Proof.
   eapply same_accepting_tags_same_accepting_tagsb.
   pose proof (same_accepting_tagsb_same_accepting_tags q q1 SAME_Q_Q1B) as SAME_Q_Q1.
   pose proof (right_language_equiv_same_accepting_tags q1 q2 SAME) as SAME_Q1_Q2.
-  eapply same_accepting_tags_trans; [exact SAME_Q_Q1 | exact SAME_Q1_Q2].
+  unfold same_accepting_tagsb in *; done.
 Qed.
 
 Lemma hopcroft_initial_partition_basic_okay
@@ -3284,7 +3178,7 @@ Proof.
     destruct BLOCK as (q0 & EQ & STATE). subst block.
     pose proof (hopcroft_accepting_class_same q0 q1 IN1) as SAME1.
     pose proof (hopcroft_accepting_class_same q0 q2 IN2) as SAME2.
-    eapply same_accepting_tags_trans; [eapply same_accepting_tags_sym; exact SAME1 | exact SAME2].
+    unfold hopcroft_accepting_class in *; ss!.
 Qed.
 
 Variant HOPCROFT_PARTITION_SURFACE_SPEC (partition : hopcroft_partition) : Prop :=
@@ -3308,44 +3202,42 @@ Proof.
   pose proof (TRANS_OKAY q2 c STATE2) as NEXT2_STATE.
   pose proof (COVER (M.(TaggedDFA.transition) q1 c) NEXT1_STATE) as (active & ACTIVE & IN_ACTIVE1).
   pose proof (SPLITTERS active c ACTIVE block q1 q2 BLOCK IN1 IN2) as SAME_ACTIVE.
-  exists active. split; [exact ACTIVE | ].
-  split; [exact IN_ACTIVE1 | rewrite <- SAME_ACTIVE; exact IN_ACTIVE1].
+  exists active. unfold hopcroft_accepting_class in *; ss!.
 Qed.
 
 Lemma hopcroft_initial_partition_surface_okay
   : HOPCROFT_PARTITION_SURFACE_SPEC hopcroft_initial_partition.
 Proof.
   pose proof hopcroft_initial_partition_basic_okay as BASIC.
-  destruct BASIC as [_ _ BLOCKS COVER _ RESPECT].
-  constructor; eauto.
+  destruct BASIC as [_ _ BLOCKS COVER _ RESPECT]. split; eauto.
 Qed.
 
 Lemma hopcroft_block_intersection_subset (block : hopcroft_block) (splitter : hopcroft_block) (q : Q)
   (IN : q ∈ hopcroft_block_intersection block splitter)
   : q ∈ block.
 Proof.
-  unfold hopcroft_block_intersection in IN. rewrite filter_In in IN. tauto.
+  unfold hopcroft_block_intersection in IN. ss!.
 Qed.
 
 Lemma hopcroft_block_difference_subset (block : hopcroft_block) (splitter : hopcroft_block) (q : Q)
   (IN : q ∈ hopcroft_block_difference block splitter)
   : q ∈ block.
 Proof.
-  unfold hopcroft_block_difference in IN. rewrite filter_In in IN. tauto.
+  unfold hopcroft_block_difference in IN. ss!.
 Qed.
 
 Lemma hopcroft_block_intersection_in_splitter (block : hopcroft_block) (splitter : hopcroft_block) (q : Q)
   (IN : q ∈ hopcroft_block_intersection block splitter)
   : q ∈ splitter.
 Proof.
-  unfold hopcroft_block_intersection in IN. rewrite filter_In in IN. destruct IN as [_ MEM]. now rewrite <- mem_true_iff.
+  unfold hopcroft_block_intersection in IN. ss!.
 Qed.
 
 Lemma hopcroft_block_difference_not_in_splitter (block : hopcroft_block) (splitter : hopcroft_block) (q : Q)
   (IN : q ∈ hopcroft_block_difference block splitter)
   : ~ q ∈ splitter.
 Proof.
-  unfold hopcroft_block_difference in IN. rewrite filter_In in IN. destruct IN as [_ MEM]. rewrite negb_true_iff in MEM. now rewrite <- mem_false_iff.
+  unfold hopcroft_block_difference in IN. ss!.
 Qed.
 
 Lemma hopcroft_predecessors_preserves_right_language (active : hopcroft_block) (c : ascii) (q1 : Q) (q2 : Q)
@@ -3356,18 +3248,9 @@ Lemma hopcroft_predecessors_preserves_right_language (active : hopcroft_block) (
   (SAME : right_language_equiv q1 q2)
   : q1 ∈ hopcroft_predecessors active c <-> q2 ∈ hopcroft_predecessors active c.
 Proof.
-  destruct OKAY as [_ _ TRANS_OKAY].
-  rewrite !hopcroft_predecessors_iff. split; intros [_ IN_ACTIVE]; split.
-  - exact STATE2.
-  - eapply ACTIVE.
-    + exact IN_ACTIVE.
-    + eapply TRANS_OKAY. exact STATE2.
-    + eapply right_language_equiv_step. exact SAME.
-  - exact STATE1.
-  - eapply ACTIVE.
-    + exact IN_ACTIVE.
-    + eapply TRANS_OKAY. exact STATE1.
-    + eapply right_language_equiv_sym. eapply right_language_equiv_step. exact SAME.
+  destruct OKAY as [_ _ TRANS_OKAY]. rewrite !hopcroft_predecessors_iff. split; intros [_ IN_ACTIVE]; split; eauto.
+  - eapply ACTIVE; eauto. eapply right_language_equiv_step; eauto.
+  - eapply ACTIVE; eauto. ii; symmetry; revert s tag. eapply right_language_equiv_step; eauto.
 Qed.
 
 Lemma hopcroft_block_intersection_difference_disjoint (block : hopcroft_block) (splitter : hopcroft_block) (q : Q)
@@ -3387,8 +3270,7 @@ Lemma hopcroft_refine_partition_preserves_right_language_for_predecessors (activ
   (ACTIVE : forall q, forall q', q ∈ active -> q' ∈ M.(TaggedDFA.states) -> right_language_equiv q q' -> q' ∈ active)
   : hopcroft_partition_preserves_right_language (fst (hopcroft_refine_partition (hopcroft_predecessors active c) partition worklist)).
 Proof.
-  unfold hopcroft_partition_preserves_right_language in *.
-  revert worklist BLOCKS PRESERVE.
+  unfold hopcroft_partition_preserves_right_language in *. revert worklist BLOCKS PRESERVE.
   induction partition as [ | block partition IH]; intros worklist BLOCKS PRESERVE block' q1 q2 BLOCK' IN1 STATE2 SAME; simpl in BLOCK'; [contradiction | ].
   set (splitter := hopcroft_predecessors active c).
   set (block1 := hopcroft_block_intersection block splitter).
@@ -3397,7 +3279,7 @@ Proof.
   fold splitter in BLOCK'. fold block1 in BLOCK'. fold block2 in BLOCK'.
   rewrite REFINE in BLOCK'. simpl in BLOCK'.
   assert (BLOCKS_TAIL : hopcroft_partition_blocks_in_states partition).
-  { intros block0 BLOCK0 q IN_Q. eapply BLOCKS; [right; exact BLOCK0 | exact IN_Q]. }
+  { intros block0 BLOCK0 q IN_Q; eapply BLOCKS; [right; exact BLOCK0 | exact IN_Q]. }
   assert (PRESERVE_TAIL : hopcroft_partition_preserves_right_language partition).
   { intros block0 qa qb BLOCK0 IN_QA STATE_QB SAME_Q.
     eapply PRESERVE; [right; exact BLOCK0 | exact IN_QA | exact STATE_QB | exact SAME_Q].
@@ -3410,28 +3292,27 @@ Proof.
       assert (IN_BLOCK2 : q2 ∈ block).
       { eapply PRESERVE; [left; reflexivity | exact IN_BLOCK | exact STATE2 | exact SAME]. }
       split; [exact IN_BLOCK2 | ].
-      rewrite mem_true_iff.
-      rewrite mem_true_iff in IN_SPLITTER1.
+      rewrite mem_spec in IN_SPLITTER1 |- *.
       pose proof (hopcroft_predecessors_preserves_right_language active c q1 q2 OKAY ACTIVE STATE1 STATE2 SAME) as PRED.
       change (q2 ∈ hopcroft_predecessors active c). rewrite <- PRED. exact IN_SPLITTER1.
     + subst block'. subst block2. unfold hopcroft_block_difference in IN1 |- *.
       rewrite filter_In in IN1 |- *. destruct IN1 as [IN_BLOCK NOT_SPLITTER1].
-      rewrite negb_true_iff in NOT_SPLITTER1. rewrite mem_false_iff in NOT_SPLITTER1.
+      rewrite negb_true_iff in NOT_SPLITTER1. rewrite mem_spec in NOT_SPLITTER1.
       assert (STATE1 : q1 ∈ M.(TaggedDFA.states)) by (eapply BLOCKS; [left; reflexivity | exact IN_BLOCK]).
       assert (IN_BLOCK2 : q2 ∈ block).
       { eapply PRESERVE; [left; reflexivity | exact IN_BLOCK | exact STATE2 | exact SAME]. }
       split; [exact IN_BLOCK2 | ].
-      rewrite negb_true_iff. rewrite mem_false_iff.
+      rewrite negb_true_iff. rewrite mem_spec.
       pose proof (hopcroft_predecessors_preserves_right_language active c q1 q2 OKAY ACTIVE STATE1 STATE2 SAME) as PRED.
       intros IN_SPLITTER2. eapply NOT_SPLITTER1. change (q1 ∈ hopcroft_predecessors active c). rewrite -> PRED. exact IN_SPLITTER2.
     + assert (BLOCK_TAIL : block' ∈ fst (hopcroft_refine_partition (hopcroft_predecessors active c) partition worklist)).
       { change (block' ∈ fst (hopcroft_refine_partition splitter partition worklist)). rewrite REFINE. simpl. exact BLOCK'. }
-      eapply (IH worklist BLOCKS_TAIL PRESERVE_TAIL); [exact BLOCK_TAIL | exact IN1 | exact STATE2 | exact SAME].
+      eapply IH with (worklist := worklist); eauto.
   - destruct BLOCK' as [EQ | BLOCK'].
     + subst block'. eapply PRESERVE; [left; reflexivity | exact IN1 | exact STATE2 | exact SAME].
     + assert (BLOCK_TAIL : block' ∈ fst (hopcroft_refine_partition (hopcroft_predecessors active c) partition worklist)).
       { change (block' ∈ fst (hopcroft_refine_partition splitter partition worklist)). rewrite REFINE. simpl. exact BLOCK'. }
-      eapply (IH worklist BLOCKS_TAIL PRESERVE_TAIL); [exact BLOCK_TAIL | exact IN1 | exact STATE2 | exact SAME].
+      eapply IH with (worklist := worklist); eauto.
 Qed.
 
 Lemma hopcroft_refine_partition_block_source (splitter : hopcroft_block) (partition : hopcroft_partition) (worklist : hopcroft_worklist) (block' : hopcroft_block)
@@ -3499,7 +3380,7 @@ Proof.
   destruct BLOCK as [EQ | BLOCK].
   - subst block0.
     destruct (nonempty block1 && nonempty block2) eqn: SPLIT; simpl.
-    + destruct (mem q splitter) eqn: MEM.
+    + destruct (mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q splitter) eqn: MEM.
       * exists block1. split; [left; reflexivity | subst block1; unfold hopcroft_block_intersection; rewrite filter_In; split; [exact IN | exact MEM]].
       * exists block2. split; [right; left; reflexivity | subst block2; unfold hopcroft_block_difference; rewrite filter_In; split; [exact IN | now rewrite MEM]].
     + exists block. split; [left; reflexivity | exact IN].
@@ -3554,10 +3435,10 @@ Proof.
     destruct BLOCK' as [EQ | [EQ | BLOCK']].
     + subst block'. exact NONEMPTY1.
     + subst block'. exact NONEMPTY2.
-    + eapply (IH worklist NONEMPTY_TAIL). rewrite REFINE. simpl. exact BLOCK'.
+    + eapply IH with (worklist := worklist); eauto. now rewrite REFINE.
   - destruct BLOCK' as [EQ | BLOCK'].
     + subst block'. eapply NONEMPTY_BLOCKS. left. reflexivity.
-    + eapply (IH worklist NONEMPTY_TAIL). rewrite REFINE. simpl. exact BLOCK'.
+    + eapply IH with (worklist := worklist); eauto. now rewrite REFINE.
 Qed.
 
 Lemma hopcroft_refine_partition_NoDup_disjoint (splitter : hopcroft_block) (partition : hopcroft_partition) (worklist : hopcroft_worklist)
@@ -3566,7 +3447,7 @@ Lemma hopcroft_refine_partition_NoDup_disjoint (splitter : hopcroft_block) (part
   (DISJOINT : hopcroft_partition_disjoint partition)
   : NoDup (fst (hopcroft_refine_partition splitter partition worklist)) /\ hopcroft_partition_disjoint (fst (hopcroft_refine_partition splitter partition worklist)).
 Proof.
-  revert worklist NODUP NONEMPTY_BLOCKS DISJOINT. induction partition as [ | block partition IH]; intros worklist NODUP NONEMPTY_BLOCKS DISJOINT; simpl.
+  revert worklist NODUP NONEMPTY_BLOCKS DISJOINT. induction partition as [ | block partition IH]; ii; simpl.
   - split.
     + constructor.
     + intros block1 block2 q BLOCK1 BLOCK2 IN1 IN2. contradiction.
@@ -3579,24 +3460,23 @@ Proof.
     pose proof (IH worklist H2 NONEMPTY_TAIL DISJOINT_TAIL) as [TAIL_NODUP TAIL_DISJOINT].
     set (block1 := hopcroft_block_intersection block splitter).
     set (block2 := hopcroft_block_difference block splitter).
-    destruct (hopcroft_refine_partition splitter partition worklist) as [partition' worklist'] eqn: REFINE.
-    simpl in TAIL_NODUP, TAIL_DISJOINT.
+    destruct (hopcroft_refine_partition splitter partition worklist) as [partition' worklist'] eqn: REFINE. simpl in TAIL_NODUP, TAIL_DISJOINT.
     destruct (nonempty block1 && nonempty block2) eqn: SPLIT.
-    + rewrite andb_true_iff in SPLIT. destruct SPLIT as [NONEMPTY1 NONEMPTY2].
-      split.
-      * constructor.
+    + rewrite andb_true_iff in SPLIT. destruct SPLIT as [NONEMPTY1 NONEMPTY2]. split.
+      * econs 2.
         { intros IN. destruct IN as [EQ | IN].
           - subst block2. subst block1. eapply hopcroft_block_intersection_difference_neq; eauto.
-          - exfalso. eapply (hopcroft_refine_partition_piece_not_in_tail splitter block partition worklist block1); [exact NODUP_CONS | exact DISJOINT | | exact NONEMPTY1 | rewrite REFINE; simpl; exact IN].
-            intros q IN_Q. subst block1. eapply hopcroft_block_intersection_subset. exact IN_Q.
+          - exfalso. eapply hopcroft_refine_partition_piece_not_in_tail with (splitter := splitter) (block := block) (partition := partition) (worklist := worklist) (piece := block1); eauto.
+            + intros q IN_Q. subst block1. eapply hopcroft_block_intersection_subset. exact IN_Q.
+            + rewrite REFINE; simpl; eauto.
         }
-        constructor.
-        { intros IN. exfalso. eapply (hopcroft_refine_partition_piece_not_in_tail splitter block partition worklist block2); [exact NODUP_CONS | exact DISJOINT | | exact NONEMPTY2 | rewrite REFINE; simpl; exact IN].
-          intros q IN_Q. subst block2. eapply hopcroft_block_difference_subset. exact IN_Q.
+        econs 2.
+        { intros IN. exfalso. eapply hopcroft_refine_partition_piece_not_in_tail with (splitter := splitter) (block := block) (partition := partition) (worklist := worklist) (piece := block2); eauto.
+          - intros q IN_Q. subst block2. eapply hopcroft_block_difference_subset. exact IN_Q.
+          - rewrite REFINE; simpl; eauto.
         }
-        exact TAIL_NODUP.
-      * intros blockA blockB q BLOCKA BLOCKB INA INB.
-        simpl in BLOCKA, BLOCKB.
+        { exact TAIL_NODUP. }
+      * intros blockA blockB q BLOCKA BLOCKB INA INB. simpl in BLOCKA, BLOCKB.
         destruct BLOCKA as [EQA | [EQA | BLOCKA]], BLOCKB as [EQB | [EQB | BLOCKB]].
         { subst blockA blockB. reflexivity. }
         { subst blockA blockB. exfalso. subst block1 block2. eapply hopcroft_block_intersection_difference_disjoint; eauto. }
@@ -3707,8 +3587,7 @@ Lemma hopcroft_partition_stableb_false_finds_split (partition : hopcroft_partiti
   (STABLEB : hopcroft_partition_stableb partition = false)
   : exists active, exists c, exists block, active ∈ partition /\ block ∈ partition /\ nonempty (hopcroft_block_intersection block (hopcroft_predecessors active c)) && nonempty (hopcroft_block_difference block (hopcroft_predecessors active c)) = true.
 Proof.
-  destruct OKAY as [_ _ TRANS_OKAY].
-  destruct BASIC as [_ _ BLOCKS COVER _ _].
+  destruct OKAY as [_ _ TRANS_OKAY]. destruct BASIC as [_ _ BLOCKS COVER _ _].
   unfold hopcroft_partition_stableb in STABLEB.
   pose proof (forallb_false_exists _ _ STABLEB) as (block & BLOCK & BLOCK_STABLE_FALSE).
   pose proof (forallb_false_exists _ _ BLOCK_STABLE_FALSE) as (c & _ & CHAR_STABLE_FALSE).
@@ -3722,20 +3601,19 @@ Proof.
   pose proof (COVER (M.(TaggedDFA.transition) q1 c) NEXT1_STATE) as (active & ACTIVE & IN_ACTIVE1).
   assert (NOT_IN_ACTIVE2 : ~ M.(TaggedDFA.transition) q2 c ∈ active).
   { intros IN_ACTIVE2.
-    assert (SAME_BLOCK_TRUE : hopcroft_same_blockb partition (M.(TaggedDFA.transition) q1 c) (M.(TaggedDFA.transition) q2 c) = true).
-    { unfold hopcroft_same_blockb. rewrite existsb_exists. exists active. split; [exact ACTIVE | ].
-      rewrite andb_true_iff. split; rewrite mem_true_iff; assumption.
-    }
-    rewrite SAME_BLOCK_FALSE in SAME_BLOCK_TRUE. inv SAME_BLOCK_TRUE.
+    enough (SAME_BLOCK_TRUE : hopcroft_same_blockb partition (M.(TaggedDFA.transition) q1 c) (M.(TaggedDFA.transition) q2 c) = true).
+    { rewrite SAME_BLOCK_FALSE in SAME_BLOCK_TRUE. inv SAME_BLOCK_TRUE. }
+    unfold hopcroft_same_blockb. rewrite existsb_exists. exists active. split; [exact ACTIVE | ].
+    rewrite andb_true_iff. split; rewrite mem_spec; assumption.
   }
   exists active. exists c. exists block. repeat split; [exact ACTIVE | exact BLOCK | ].
   rewrite andb_true_iff. split.
   - eapply nonempty_of_exists with (x := q1).
     unfold hopcroft_block_intersection. rewrite filter_In. split; [exact IN1 | ].
-    rewrite mem_true_iff. rewrite hopcroft_predecessors_iff. split; [exact STATE1 | exact IN_ACTIVE1].
+    rewrite mem_spec. rewrite hopcroft_predecessors_iff. split; [exact STATE1 | exact IN_ACTIVE1].
   - eapply nonempty_of_exists with (x := q2).
     unfold hopcroft_block_difference. rewrite filter_In. split; [exact IN2 | ].
-    rewrite negb_true_iff. rewrite mem_false_iff.
+    rewrite negb_true_iff. rewrite mem_spec.
     intros IN_PRE.
     rewrite hopcroft_predecessors_iff in IN_PRE. destruct IN_PRE as [_ IN_ACTIVE2].
     contradiction.
@@ -3816,19 +3694,19 @@ Proof.
       eapply (IH worklist BLOCKS_TAIL); [exact BLOCK_TAIL | exact IN1 | exact IN2].
   - destruct BLOCK' as [EQ | BLOCK'].
     + subst block'. split; intros IN_ACTIVE.
-      * destruct (mem q2 splitter) eqn: MEM2.
-        { rewrite mem_true_iff in MEM2. subst splitter. rewrite hopcroft_predecessors_iff in MEM2. tauto. }
+      * destruct (mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q2 splitter) eqn: MEM2.
+        { rewrite mem_spec in MEM2. subst splitter. rewrite hopcroft_predecessors_iff in MEM2. tauto. }
         assert (IN_BLOCK1 : q1 ∈ block1).
-        { subst block1. unfold hopcroft_block_intersection. rewrite filter_In. split; [exact IN1 | rewrite mem_true_iff; subst splitter; rewrite hopcroft_predecessors_iff; split; [eapply BLOCKS; [left; reflexivity | exact IN1] | exact IN_ACTIVE]]. }
+        { subst block1. unfold hopcroft_block_intersection. rewrite filter_In. split; [exact IN1 | rewrite mem_spec; subst splitter; rewrite hopcroft_predecessors_iff; split; [eapply BLOCKS; [left; reflexivity | exact IN1] | exact IN_ACTIVE]]. }
         assert (IN_BLOCK2 : q2 ∈ block2).
         { subst block2. unfold hopcroft_block_difference. rewrite filter_In. split; [exact IN2 | rewrite MEM2; reflexivity]. }
         exfalso. rewrite andb_false_iff in SPLIT. destruct SPLIT as [EMPTY | EMPTY].
         { pose proof (nonempty_exists block1) as EXISTS. destruct block1 as [ | q0 qs] eqn: BLOCK1; simpl in IN_BLOCK1; [contradiction | inv EMPTY]. }
         { pose proof (nonempty_exists block2) as EXISTS. destruct block2 as [ | q0 qs] eqn: BLOCK2; simpl in IN_BLOCK2; [contradiction | inv EMPTY]. }
-      * destruct (mem q1 splitter) eqn: MEM1.
-        { rewrite mem_true_iff in MEM1. subst splitter. rewrite hopcroft_predecessors_iff in MEM1. tauto. }
+      * destruct (mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q1 splitter) eqn: MEM1.
+        { rewrite mem_spec in MEM1. subst splitter. rewrite hopcroft_predecessors_iff in MEM1. tauto. }
         assert (IN_BLOCK1 : q2 ∈ block1).
-        { subst block1. unfold hopcroft_block_intersection. rewrite filter_In. split; [exact IN2 | rewrite mem_true_iff; subst splitter; rewrite hopcroft_predecessors_iff; split; [eapply BLOCKS; [left; reflexivity | exact IN2] | exact IN_ACTIVE]]. }
+        { subst block1. unfold hopcroft_block_intersection. rewrite filter_In. split; [exact IN2 | rewrite mem_spec; subst splitter; rewrite hopcroft_predecessors_iff; split; [eapply BLOCKS; [left; reflexivity | exact IN2] | exact IN_ACTIVE]]. }
         assert (IN_BLOCK2 : q1 ∈ block2).
         { subst block2. unfold hopcroft_block_difference. rewrite filter_In. split; [exact IN1 | rewrite MEM1; reflexivity]. }
         exfalso. rewrite andb_false_iff in SPLIT. destruct SPLIT as [EMPTY | EMPTY].
@@ -4002,7 +3880,7 @@ Qed.
 Fixpoint hopcroft_find_block (q : Q) (partition : hopcroft_partition) {struct partition} : hopcroft_block :=
   match partition with
   | [] => []
-  | block :: partition' => if mem q block then block else hopcroft_find_block q partition'
+  | block :: partition' => if mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q block then block else hopcroft_find_block q partition'
   end.
 
 Definition hopcroft_find_unstable_q2 (partition : hopcroft_partition) (block : hopcroft_block) (c : ascii) (q1 : Q) : option Q :=
@@ -4037,10 +3915,10 @@ Lemma hopcroft_find_block_complete (q : Q) (partition : hopcroft_partition) (blo
   : hopcroft_find_block q partition ∈ partition /\ q ∈ hopcroft_find_block q partition.
 Proof.
   revert block BLOCK IN. induction partition as [ | block0 partition IH]; intros block BLOCK IN; simpl in BLOCK |- *; [contradiction | ].
-  destruct (mem q block0) eqn: MEM.
-  - split; [left; reflexivity | now rewrite mem_true_iff in MEM].
+  destruct (mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q block0) eqn: MEM.
+  - split; [left; reflexivity | now rewrite mem_spec in MEM].
   - destruct BLOCK as [EQ | BLOCK].
-    + subst block0. rewrite mem_false_iff in MEM. contradiction.
+    + subst block0. rewrite mem_spec in MEM. contradiction.
     + pose proof (IH block BLOCK IN) as [FIND_BLOCK FIND_IN]. split; [right; exact FIND_BLOCK | exact FIND_IN].
 Qed.
 
@@ -4078,7 +3956,7 @@ Proof.
     assert (SAME_TRUE : hopcroft_same_blockb partition (M.(TaggedDFA.transition) q1 c) (M.(TaggedDFA.transition) q2 c) = true).
     { unfold hopcroft_same_blockb. rewrite existsb_exists.
       exists (hopcroft_find_block (M.(TaggedDFA.transition) q1 c) partition). split; [exact ACTIVE | ].
-      rewrite andb_true_iff. split; rewrite mem_true_iff; assumption.
+      rewrite andb_true_iff. split; rewrite mem_spec; assumption.
     }
     rewrite SAME_FALSE in SAME_TRUE. inv SAME_TRUE.
   }
@@ -4087,10 +3965,10 @@ Proof.
   - rewrite andb_true_iff. split.
     + eapply nonempty_of_exists with (x := q1).
       unfold hopcroft_block_intersection. rewrite filter_In. split; [exact IN1 | ].
-      rewrite mem_true_iff. rewrite hopcroft_predecessors_iff. split; [exact STATE1 | exact ACTIVE_IN].
+      rewrite mem_spec. rewrite hopcroft_predecessors_iff. split; [exact STATE1 | exact ACTIVE_IN].
     + eapply nonempty_of_exists with (x := q2).
       unfold hopcroft_block_difference. rewrite filter_In. split; [exact IN2 | ].
-      rewrite negb_true_iff. rewrite mem_false_iff.
+      rewrite negb_true_iff. rewrite mem_spec.
       intros IN_PRE. rewrite hopcroft_predecessors_iff in IN_PRE.
       destruct IN_PRE as [_ ACTIVE2]. contradiction.
 Qed.
@@ -4141,7 +4019,7 @@ Proof.
   destruct (hopcroft_find_unstable_q1 partition block c) as [q1' | ] eqn: FIND_Q1; [ | destruct EX_Q1 as (? & CONTRA); inv CONTRA].
   unfold hopcroft_find_unstable_char.
   assert (EX_CHAR : exists c', find (fun c' : ascii => match hopcroft_find_unstable_q1 partition block c' with | Some _ => true | None => false end) all_asciis = Some c').
-  { eapply find_some_exists with (x := c); [eapply all_asciis_complete | rewrite FIND_Q1; reflexivity]. }
+  { eapply find_some_exists with (x := c); [eapply in_all_asciis_intro | rewrite FIND_Q1; reflexivity]. }
   fold (hopcroft_find_unstable_char partition block) in EX_CHAR.
   destruct (hopcroft_find_unstable_char partition block) as [c' | ] eqn: FIND_CHAR; [ | destruct EX_CHAR as (? & CONTRA); inv CONTRA].
   unfold hopcroft_find_unstable_block.
@@ -4480,7 +4358,7 @@ Definition hopcroft_certified_minimise : TaggedDFA.t :=
     state_hasEqDec := list_hasEqDec M.(TaggedDFA.state_hasEqDec);
     states := hopcroft_certified_final_partition;
     start_state := hopcroft_certified_minimised_start_state;
-    accept_states := hopcroft_certified_minimised_accept_states;
+    accept_states := {| kvlist := hopcroft_certified_minimised_accept_states |};
     transition := hopcroft_certified_minimised_transition;
   |}.
 
@@ -4519,7 +4397,7 @@ Qed.
 
 Lemma hopcroft_certified_minimised_accept_states_of_sound (block : hopcroft_block) (block0 : hopcroft_block) (tag : Token.t)
   (ACCEPT : (block0, tag) ∈ hopcroft_certified_minimised_accept_states_of block)
-  : block0 = block /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).
+  : block0 = block /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold hopcroft_certified_minimised_accept_states_of in ACCEPT.
   pose proof (in_list_bind_elim _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
@@ -4530,7 +4408,7 @@ Qed.
 
 Lemma hopcroft_certified_minimised_accept_states_sound (block : hopcroft_block) (tag : Token.t)
   (ACCEPT : (block, tag) ∈ hopcroft_certified_minimised_accept_states)
-  : block ∈ hopcroft_certified_final_partition /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).
+  : block ∈ hopcroft_certified_final_partition /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold hopcroft_certified_minimised_accept_states in ACCEPT.
   pose proof (in_list_bind_elim _ _ _ ACCEPT) as (block' & BLOCK & ACCEPT').
@@ -4549,7 +4427,7 @@ Proof.
 Qed.
 
 Lemma hopcroft_certified_minimised_accept_states_of_complete (block : hopcroft_block) (tag : Token.t)
-  (ACCEPT : (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states))
+  (ACCEPT : (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
   : (block, tag) ∈ hopcroft_certified_minimised_accept_states_of block.
 Proof.
   unfold hopcroft_certified_minimised_accept_states_of.
@@ -4559,7 +4437,7 @@ Qed.
 
 Lemma hopcroft_certified_minimised_accept_states_complete (block : hopcroft_block) (tag : Token.t)
   (BLOCK : block ∈ hopcroft_certified_final_partition)
-  (ACCEPT : (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states))
+  (ACCEPT : (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
   : (block, tag) ∈ hopcroft_certified_minimised_accept_states.
 Proof.
   unfold hopcroft_certified_minimised_accept_states.
@@ -4742,7 +4620,7 @@ Definition hopcroft_minimise : TaggedDFA.t :=
     state_hasEqDec := list_hasEqDec M.(TaggedDFA.state_hasEqDec);
     states := hopcroft_final_partition;
     start_state := hopcroft_minimised_start_state;
-    accept_states := hopcroft_minimised_accept_states;
+    accept_states := {| kvlist := hopcroft_minimised_accept_states |};
     transition := hopcroft_minimised_transition;
   |}.
 
@@ -4771,7 +4649,7 @@ Qed.
 
 Lemma hopcroft_minimised_accept_states_of_sound (block : hopcroft_block) (block0 : hopcroft_block) (tag : Token.t)
   (ACCEPT : (block0, tag) ∈ hopcroft_minimised_accept_states_of block)
-  : block0 = block /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).
+  : block0 = block /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold hopcroft_minimised_accept_states_of in ACCEPT.
   pose proof (in_list_bind_elim _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
@@ -4782,7 +4660,7 @@ Qed.
 
 Lemma hopcroft_minimised_accept_states_sound (block : hopcroft_block) (tag : Token.t)
   (ACCEPT : (block, tag) ∈ hopcroft_minimised_accept_states)
-  : block ∈ hopcroft_final_partition /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).
+  : block ∈ hopcroft_final_partition /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold hopcroft_minimised_accept_states in ACCEPT.
   pose proof (in_list_bind_elim _ _ _ ACCEPT) as (block' & BLOCK & ACCEPT').
@@ -4801,7 +4679,7 @@ Proof.
 Qed.
 
 Lemma hopcroft_minimised_accept_states_of_complete (block : hopcroft_block) (tag : Token.t)
-  (ACCEPT : (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states))
+  (ACCEPT : (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
   : (block, tag) ∈ hopcroft_minimised_accept_states_of block.
 Proof.
   unfold hopcroft_minimised_accept_states_of.
@@ -4811,7 +4689,7 @@ Qed.
 
 Lemma hopcroft_minimised_accept_states_complete (block : hopcroft_block) (tag : Token.t)
   (BLOCK : block ∈ hopcroft_final_partition)
-  (ACCEPT : (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states))
+  (ACCEPT : (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
   : (block, tag) ∈ hopcroft_minimised_accept_states.
 Proof.
   unfold hopcroft_minimised_accept_states.
@@ -5159,7 +5037,7 @@ Fixpoint minimisation_equivb (fuel : nat) (q1 : Q) (q2 : Q) {struct fuel} : bool
   end.
 
 Definition minimisation_pair_states : list (Q * Q) :=
-  M.(TaggedDFA.states) >>= fun q1 => map (fun q2 => (q1, q2)) M.(TaggedDFA.states).
+  bind (isMonad := B.list_isMonad) M.(TaggedDFA.states) (fun q1 => map (fun q2 => (q1, q2)) M.(TaggedDFA.states)).
 
 Definition minimisation_fuel : nat :=
   length minimisation_pair_states.
@@ -5171,10 +5049,8 @@ Lemma minimisation_equivb_refl (fuel : nat) (q : Q)
   : minimisation_equivb fuel q q = true.
 Proof.
   revert q. induction fuel as [ | fuel IH]; intros q.
-  - cbn [minimisation_equivb]. eapply same_accepting_tagsb_refl.
-  - cbn [minimisation_equivb]. rewrite same_accepting_tagsb_refl.
-    change (forallb (fun c => minimisation_equivb fuel (M.(TaggedDFA.transition) q c) (M.(TaggedDFA.transition) q c)) all_asciis = true).
-    rewrite forallb_forall. intros c IN. eapply IH.
+  - cbn [minimisation_equivb]. unfold same_accepting_tagsb; ss!; des_ifs; ss!; des_ifs; ss!.
+  - cbn [minimisation_equivb]. unfold same_accepting_tagsb; ss!; des_ifs; ss!; des_ifs; ss!.
 Qed.
 
 Lemma minimisation_equivb_same_accepting_tagsb (fuel : nat) (q1 : Q) (q2 : Q)
@@ -5199,7 +5075,7 @@ Proof.
     cbn [minimisation_equivb] in EQUIV. rewrite andb_true_iff in EQUIV. destruct EQUIV as [_ EQUIV].
     simpl in ACCEPT |- *.
     eapply (IH fuel (M.(TaggedDFA.transition) q1 c) (M.(TaggedDFA.transition) q2 c)); [lia | | exact ACCEPT].
-    rewrite forallb_forall in EQUIV. eapply EQUIV. eapply all_asciis_complete.
+    rewrite forallb_forall in EQUIV. eapply EQUIV. eapply in_all_asciis_intro.
 Qed.
 
 Lemma minimisation_equivb_accepts_from_complete (fuel : nat) (q1 : Q) (q2 : Q) (s : Input.t) (tag : Token.t)
@@ -5216,7 +5092,7 @@ Proof.
     cbn [minimisation_equivb] in EQUIV. rewrite andb_true_iff in EQUIV. destruct EQUIV as [_ EQUIV].
     simpl in ACCEPT |- *.
     eapply (IH fuel (M.(TaggedDFA.transition) q1 c) (M.(TaggedDFA.transition) q2 c)); [lia | | exact ACCEPT].
-    rewrite forallb_forall in EQUIV. eapply EQUIV. eapply all_asciis_complete.
+    rewrite forallb_forall in EQUIV. eapply EQUIV. eapply in_all_asciis_intro.
 Qed.
 
 Lemma minimisation_equivb_false_distinguish (fuel : nat) (q1 : Q) (q2 : Q)
@@ -5308,7 +5184,7 @@ Lemma minimisation_equivb_step (fuel : nat) (q1 : Q) (q2 : Q) (c : ascii)
 Proof.
   cbn [minimisation_equivb] in EQUIV. rewrite andb_true_iff in EQUIV.
   destruct EQUIV as [_ EQUIV]. rewrite forallb_forall in EQUIV.
-  eapply EQUIV. eapply all_asciis_complete.
+  eapply EQUIV. eapply in_all_asciis_intro.
 Qed.
 
 Lemma minimisation_equivb_walk_same_accepting_tagsb (fuel : nat) (qq : Q * Q) (qq' : Q * Q) (w : list (Q * Q))
@@ -5556,7 +5432,7 @@ Definition minimised_accept_states : list (minimised_state * Token.t) :=
   minimised_states >>= minimised_accept_states_of.
 
 Lemma minimised_accept_states_of_complete (qs : minimised_state) (tag : Token.t)
-  (ACCEPT : (representative qs, tag) ∈ M.(TaggedDFA.accept_states))
+  (ACCEPT : (representative qs, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
   : (qs, tag) ∈ minimised_accept_states_of qs.
 Proof.
   unfold minimised_accept_states_of.
@@ -5566,7 +5442,7 @@ Qed.
 
 Lemma minimised_accept_states_of_sound (qs : minimised_state) (qs0 : minimised_state) (tag : Token.t)
   (ACCEPT : (qs0, tag) ∈ minimised_accept_states_of qs)
-  : qs0 = qs /\ (representative qs, tag) ∈ M.(TaggedDFA.accept_states).
+  : qs0 = qs /\ (representative qs, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold minimised_accept_states_of in ACCEPT.
   pose proof (in_list_bind_elim _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
@@ -5577,7 +5453,7 @@ Qed.
 
 Lemma minimised_accept_states_complete (qs : minimised_state) (tag : Token.t)
   (QS : qs ∈ minimised_states)
-  (ACCEPT : (representative qs, tag) ∈ M.(TaggedDFA.accept_states))
+  (ACCEPT : (representative qs, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
   : (qs, tag) ∈ minimised_accept_states.
 Proof.
   unfold minimised_accept_states.
@@ -5587,7 +5463,7 @@ Qed.
 
 Lemma minimised_accept_states_sound (qs : minimised_state) (tag : Token.t)
   (ACCEPT : (qs, tag) ∈ minimised_accept_states)
-  : qs ∈ minimised_states /\ (representative qs, tag) ∈ M.(TaggedDFA.accept_states).
+  : qs ∈ minimised_states /\ (representative qs, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold minimised_accept_states in ACCEPT.
   pose proof (in_list_bind_elim _ _ _ ACCEPT) as (qs' & QS & ACCEPT').
@@ -5694,13 +5570,13 @@ Section DELETE_DEAD_STATE.
 
 Variable M : TaggedDFA.t.
 
-#[local] Notation Q := M.(TaggedDFA.state).
+#[local] Abbreviation Q := M.(TaggedDFA.state).
 
 Definition delete_state_set : Set :=
   list Q.
 
 Definition delete_normalize (qs : delete_state_set) : delete_state_set :=
-  filter (fun q => mem q qs) M.(TaggedDFA.states).
+  filter (fun q => mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q qs) M.(TaggedDFA.states).
 
 Lemma delete_normalize_complete (qs : delete_state_set) (q : Q)
   (STATES : q ∈ M.(TaggedDFA.states))
@@ -5708,7 +5584,7 @@ Lemma delete_normalize_complete (qs : delete_state_set) (q : Q)
   : q ∈ delete_normalize qs.
 Proof.
   unfold delete_normalize. rewrite filter_In. split; [exact STATES | ].
-  now rewrite mem_true_iff.
+  now rewrite mem_spec.
 Qed.
 
 Lemma delete_normalize_sound (qs : delete_state_set) (q : Q)
@@ -5717,7 +5593,7 @@ Lemma delete_normalize_sound (qs : delete_state_set) (q : Q)
 Proof.
   unfold delete_normalize in IN. rewrite filter_In in IN.
   destruct IN as [STATES MEM]. split; [ | exact STATES].
-  now rewrite mem_true_iff in MEM.
+  now rewrite mem_spec in MEM.
 Qed.
 
 Definition delete_successors (q : Q) : delete_state_set :=
@@ -5727,13 +5603,13 @@ Definition delete_reachable_move (qs : delete_state_set) : delete_state_set :=
   qs >>= delete_successors.
 
 Definition delete_reachable_step (qs : delete_state_set) : delete_state_set :=
-  delete_normalize (union (delete_reachable_move qs) qs).
+  delete_normalize (union (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) (delete_reachable_move qs) qs).
 
 Definition reachable_states : delete_state_set :=
   iter (length M.(TaggedDFA.states)) delete_reachable_step (delete_normalize [M.(TaggedDFA.start_state)]).
 
 Definition accepting_stateb (q : Q) : bool :=
-  existsb (fun '(q', _) => eqb q q') M.(TaggedDFA.accept_states).
+  existsb (fun '(q', _) => eqb q q') M.(TaggedDFA.accept_states).(kvlist).
 
 Definition accepting_states : delete_state_set :=
   filter accepting_stateb M.(TaggedDFA.states).
@@ -5748,13 +5624,13 @@ Definition live_move (qs : delete_state_set) : delete_state_set :=
   qs >>= predecessors.
 
 Definition live_step (qs : delete_state_set) : delete_state_set :=
-  delete_normalize (union (live_move qs) qs).
+  delete_normalize (union (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) (live_move qs) qs).
 
 Definition live_states : delete_state_set :=
   iter (length M.(TaggedDFA.states)) live_step accepting_states.
 
 Lemma accepting_stateb_complete (q : Q) (tag : Token.t)
-  (ACCEPT : (q, tag) ∈ M.(TaggedDFA.accept_states))
+  (ACCEPT : (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
   : accepting_stateb q = true.
 Proof.
   unfold accepting_stateb. rewrite existsb_exists.
@@ -5764,7 +5640,7 @@ Qed.
 
 Lemma accepting_states_complete (q : Q) (tag : Token.t)
   (OKAY : okay M)
-  (ACCEPT : (q, tag) ∈ M.(TaggedDFA.accept_states))
+  (ACCEPT : (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
   : q ∈ accepting_states.
 Proof.
   destruct OKAY as [_ ACCEPT_OKAY _].
@@ -5774,13 +5650,13 @@ Proof.
 Qed.
 
 Definition dead_states : delete_state_set :=
-  filter (fun q => negb (mem q live_states)) M.(TaggedDFA.states).
+  filter (fun q => negb (mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q live_states)) M.(TaggedDFA.states).
 
 Definition useful_states : delete_state_set :=
-  filter (fun q => mem q reachable_states && mem q live_states) M.(TaggedDFA.states).
+  filter (fun q => mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q reachable_states && mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q live_states) M.(TaggedDFA.states).
 
 Definition delete_dead_accept_states : list (Q * Token.t) :=
-  filter (fun '(q, _) => mem q live_states) M.(TaggedDFA.accept_states).
+  filter (fun '(q, _) => mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q live_states) M.(TaggedDFA.accept_states).(kvlist).
 
 Lemma live_step_complete_keep (q : Q) (qs : delete_state_set)
   (STATE : q ∈ M.(TaggedDFA.states))
@@ -5789,7 +5665,7 @@ Lemma live_step_complete_keep (q : Q) (qs : delete_state_set)
 Proof.
   unfold live_step.
   eapply delete_normalize_complete; [exact STATE | ].
-  eapply union_complete. right. exact IN.
+  ss!.
 Qed.
 
 Lemma iter_live_step_keeps (fuel : nat) (q : Q) (qs : delete_state_set)
@@ -5804,7 +5680,7 @@ Qed.
 
 Lemma accepting_state_live (q : Q) (tag : Token.t)
   (OKAY : okay M)
-  (ACCEPT : (q, tag) ∈ M.(TaggedDFA.accept_states))
+  (ACCEPT : (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
   : q ∈ live_states.
 Proof.
   unfold live_states.
@@ -5814,21 +5690,21 @@ Proof.
 Qed.
 
 Lemma delete_dead_accept_states_complete (q : Q) (tag : Token.t)
-  (ACCEPT : (q, tag) ∈ M.(TaggedDFA.accept_states))
+  (ACCEPT : (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
   (LIVE : q ∈ live_states)
   : (q, tag) ∈ delete_dead_accept_states.
 Proof.
   unfold delete_dead_accept_states. rewrite filter_In. split; [exact ACCEPT | ].
-  now rewrite mem_true_iff.
+  now rewrite mem_spec.
 Qed.
 
 Lemma delete_dead_accept_states_sound (q : Q) (tag : Token.t)
   (ACCEPT : (q, tag) ∈ delete_dead_accept_states)
-  : (q, tag) ∈ M.(TaggedDFA.accept_states) /\ q ∈ live_states.
+  : (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist) /\ q ∈ live_states.
 Proof.
   unfold delete_dead_accept_states in ACCEPT. rewrite filter_In in ACCEPT.
   destruct ACCEPT as [ACCEPT LIVE]. split; [exact ACCEPT | ].
-  now rewrite mem_true_iff in LIVE.
+  now rewrite mem_spec in LIVE.
 Qed.
 
 Definition delete_normalize_ensemble (qs : delete_state_set) : ensemble Q :=
@@ -5841,7 +5717,7 @@ Definition delete_reachable_move_ensemble (qs : delete_state_set) : ensemble Q :
   fun q' => exists q, q ∈ qs /\ (exists c, c ∈ all_asciis /\ q' = M.(TaggedDFA.transition) q c).
 
 Definition accepting_state_ensemble (q : Q) : Prop :=
-  exists tag, (q, tag) ∈ M.(TaggedDFA.accept_states).
+  exists tag, (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 
 Definition accepting_states_ensemble : ensemble Q :=
   fun q => q ∈ M.(TaggedDFA.states) /\ accepting_state_ensemble q.
@@ -5859,15 +5735,12 @@ Definition useful_states_ensemble : ensemble Q :=
   fun q => q ∈ M.(TaggedDFA.states) /\ q ∈ reachable_states /\ q ∈ live_states.
 
 Definition delete_dead_accept_state_ensemble : ensemble (Q * Token.t) :=
-  fun qtag => let '(q, tag) := qtag in (q, tag) ∈ M.(TaggedDFA.accept_states) /\ q ∈ live_states.
+  fun qtag => let '(q, tag) := qtag in (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist) /\ q ∈ live_states.
 
 Lemma delete_membership_similarity (qs : delete_state_set) (q : Q)
-  : is_similar_to (Similarity := Similarity_bool_Prop) (mem q qs) (q ∈ qs).
+  : is_similar_to (Similarity := Similarity_bool_Prop) (mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q qs) (q ∈ qs).
 Proof.
-  change (if mem q qs then q ∈ qs else ~ q ∈ qs).
-  destruct (mem q qs) eqn: MEM.
-  - now rewrite mem_true_iff in MEM.
-  - now rewrite mem_false_iff in MEM.
+  do 2 red. des_ifs; ss!.
 Qed.
 
 Lemma delete_normalize_similarity (qs : delete_state_set)
@@ -5879,12 +5752,11 @@ Proof.
 Qed.
 
 Lemma delete_normalize_membership_similarity (qs : delete_state_set) (q : Q)
-  : is_similar_to (Similarity := Similarity_bool_Prop) (mem q (delete_normalize qs)) (q ∈ M.(TaggedDFA.states) /\ q ∈ qs).
+  : is_similar_to (Similarity := Similarity_bool_Prop) (mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q (delete_normalize qs)) (q ∈ M.(TaggedDFA.states) /\ q ∈ qs).
 Proof.
-  change (if mem q (delete_normalize qs) then q ∈ M.(TaggedDFA.states) /\ q ∈ qs else ~ (q ∈ M.(TaggedDFA.states) /\ q ∈ qs)).
-  destruct (mem q (delete_normalize qs)) eqn: MEM.
-  - rewrite mem_true_iff in MEM. pose proof (delete_normalize_sound qs q MEM) as [IN_QS STATES]. split; [exact STATES | exact IN_QS].
-  - rewrite mem_false_iff in MEM. intros [STATES IN_QS]. eapply MEM. eapply delete_normalize_complete; eauto.
+  do 2 red. des_ifs.
+  - rewrite mem_spec in Heq. pose proof (delete_normalize_sound qs q Heq) as [IN_QS STATES]. split; [exact STATES | exact IN_QS].
+  - rewrite mem_spec in Heq. intros [STATES IN_QS]. eapply Heq. eapply delete_normalize_complete; eauto.
 Qed.
 
 Lemma delete_successors_similarity (q : Q)
@@ -5951,16 +5823,16 @@ Lemma dead_states_similarity
   : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) dead_states dead_states_ensemble.
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff. intros q. split.
-  - intros IN. unfold dead_states in IN. rewrite filter_In in IN. destruct IN as [STATE LIVE]. rewrite negb_true_iff in LIVE. rewrite mem_false_iff in LIVE. split; [exact STATE | exact LIVE].
-  - intros [STATE NOT_LIVE]. unfold dead_states. rewrite filter_In. split; [exact STATE | ]. rewrite negb_true_iff. rewrite mem_false_iff. exact NOT_LIVE.
+  - intros IN. unfold dead_states in IN. rewrite filter_In in IN. destruct IN as [STATE LIVE]. rewrite negb_true_iff in LIVE. rewrite mem_spec in LIVE. split; [exact STATE | exact LIVE].
+  - intros [STATE NOT_LIVE]. unfold dead_states. rewrite filter_In. split; [exact STATE | ]. rewrite negb_true_iff. rewrite mem_spec. exact NOT_LIVE.
 Qed.
 
 Lemma useful_states_similarity
   : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) useful_states useful_states_ensemble.
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff. intros q. split.
-  - intros IN. unfold useful_states in IN. rewrite filter_In in IN. destruct IN as [STATE USEFUL]. rewrite andb_true_iff in USEFUL. destruct USEFUL as [REACH LIVE]. rewrite mem_true_iff in REACH. rewrite mem_true_iff in LIVE. split; [exact STATE | split; [exact REACH | exact LIVE]].
-  - intros [STATE [REACH LIVE]]. unfold useful_states. rewrite filter_In. split; [exact STATE | ]. rewrite andb_true_iff. split; rewrite mem_true_iff; assumption.
+  - intros IN. unfold useful_states in IN. rewrite filter_In in IN. destruct IN as [STATE USEFUL]. rewrite andb_true_iff in USEFUL. destruct USEFUL as [REACH LIVE]. rewrite mem_spec in REACH. rewrite mem_spec in LIVE. split; [exact STATE | split; [exact REACH | exact LIVE]].
+  - intros [STATE [REACH LIVE]]. unfold useful_states. rewrite filter_In. split; [exact STATE | ]. rewrite andb_true_iff. split; rewrite mem_spec; assumption.
 Qed.
 
 Lemma delete_dead_accept_states_similarity
@@ -5969,45 +5841,6 @@ Proof.
   rewrite list_corresponds_to_finite_ensemble_iff. intros [q tag]. split.
   - eapply delete_dead_accept_states_sound.
   - intros [ACCEPT LIVE]. eapply delete_dead_accept_states_complete; eauto.
-Qed.
-
-Variant DELETE_DEAD_STATE_COMPUTATION_SPEC : Prop :=
-  | delete_dead_state_computation_spec_intro
-    (delete_membership_sim : forall qs : delete_state_set, forall q : Q, is_similar_to (Similarity := Similarity_bool_Prop) (mem q qs) (q ∈ qs))
-    (delete_normalize_sim : forall qs : delete_state_set, is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (delete_normalize qs) (delete_normalize_ensemble qs))
-    (delete_normalize_membership_sim : forall qs : delete_state_set, forall q : Q, is_similar_to (Similarity := Similarity_bool_Prop) (mem q (delete_normalize qs)) (q ∈ M.(TaggedDFA.states) /\ q ∈ qs))
-    (delete_successors_sim : forall q : Q, is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (delete_successors q) (delete_successors_ensemble q))
-    (delete_reachable_move_sim : forall qs : delete_state_set, is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (delete_reachable_move qs) (delete_reachable_move_ensemble qs))
-    (reachable_states_sim : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) reachable_states (fun q : Q => q ∈ reachable_states))
-    (accepting_stateb_sim : forall q : Q, is_similar_to (Similarity := Similarity_bool_Prop) (accepting_stateb q) (accepting_state_ensemble q))
-    (accepting_states_sim : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) accepting_states accepting_states_ensemble)
-    (predecessorb_sim : forall q : Q, forall p : Q, is_similar_to (Similarity := Similarity_bool_Prop) (predecessorb q p) (exists c, c ∈ all_asciis /\ M.(TaggedDFA.transition) p c = q))
-    (predecessors_sim : forall q : Q, is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (predecessors q) (predecessor_ensemble q))
-    (live_move_sim : forall qs : delete_state_set, is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (live_move qs) (live_move_ensemble qs))
-    (live_states_sim : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) live_states (fun q : Q => q ∈ live_states))
-    (dead_states_sim : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) dead_states dead_states_ensemble)
-    (useful_states_sim : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) useful_states useful_states_ensemble)
-    (delete_dead_accept_states_sim : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) delete_dead_accept_states delete_dead_accept_state_ensemble).
-
-Lemma delete_dead_state_computation_okay
-  : DELETE_DEAD_STATE_COMPUTATION_SPEC.
-Proof.
-  constructor.
-  - eapply delete_membership_similarity.
-  - eapply delete_normalize_similarity.
-  - eapply delete_normalize_membership_similarity.
-  - eapply delete_successors_similarity.
-  - eapply delete_reachable_move_similarity.
-  - rewrite list_corresponds_to_finite_ensemble_iff. intros q. split; intros IN; exact IN.
-  - eapply accepting_stateb_similarity.
-  - eapply accepting_states_similarity.
-  - eapply predecessorb_similarity.
-  - eapply predecessors_similarity.
-  - eapply live_move_similarity.
-  - rewrite list_corresponds_to_finite_ensemble_iff. intros q. split; intros IN; exact IN.
-  - eapply dead_states_similarity.
-  - eapply useful_states_similarity.
-  - eapply delete_dead_accept_states_similarity.
 Qed.
 
 Definition delete_dead_state : Partial.TaggedDFA :=
@@ -6022,98 +5855,23 @@ Definition delete_dead_state : Partial.TaggedDFA :=
 
 End DELETE_DEAD_STATE.
 
-Module Abs.
-
-Notation delta := delta.
-
-Notation accepts := accepts.
-
-Notation accepted_tags := accepted_tags.
-
-Notation state_reachable := state_reachable.
-
-Notation all_states_reachable := all_states_reachable.
-
-Notation language_equiv := language_equiv.
-
-Notation okay := okay.
-
-Notation right_language_equiv := right_language_equiv.
-
-End Abs.
-
-Module Impl.
-
-Notation automaton := TaggedDFA.t.
-
-Notation delta := delta.
-
-Notation accepts := accepts.
-
-Notation okay := okay.
-
-Notation same_accepting_tags_b := same_accepting_tagsb.
-
-End Impl.
-
-Module Refine.
-
-Theorem accept_states_refine (M : TaggedDFA.t)
-  : Common.Refinement.list_refines M.(TaggedDFA.accept_states) (accept_state_ensemble M).
-Proof.
-  rewrite Common.Refinement.list_refines_iff. intros qtag. split; intros IN; exact IN.
-Qed.
-
-Theorem same_accepting_tags_b_refines (M : TaggedDFA.t) (q1 : M.(TaggedDFA.state)) (q2 : M.(TaggedDFA.state))
-  : Common.Refinement.bool_refines (same_accepting_tagsb M q1 q2) (same_accepting_tags M q1 q2).
-Proof.
-  eapply same_accepting_tagsb_similarity.
-Qed.
-
-Theorem transition_table_refines (M : TaggedDFA.t)
-  : Common.Refinement.alist_refines (transition_alist M) (transition_partial_map M).
-Proof.
-  eapply transition_alist_similarity.
-Qed.
-
-End Refine.
-
 Module Numbering.
 
-Notation state_number := state_number.
-
-Notation numbered_state_denote := numbered_state_denote.
-
-Notation numbered_transition := numbered_transition.
-
-Notation numbered_accept_states_list := numbered_accept_states.
-
-Notation numbered_accept_states := numbered_accept_states_list.
-
-Notation number_states := number_states.
-
 Theorem numbered_accept_states_order (M : TaggedDFA.t)
-  : numbered_accept_states M = map (fun '(q, tag) => (state_number M q, tag)) M.(TaggedDFA.accept_states).
+  : numbered_accept_states M = map (fun '(q, tag) => (state_number M q, tag)) M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold numbered_accept_states.
-  change ((M.(TaggedDFA.accept_states) >>= fun '(q, tag) => [(state_number M q, tag)]) = map (fun '(q, tag) => (state_number M q, tag)) M.(TaggedDFA.accept_states)).
   remember M.(TaggedDFA.accept_states) as accept_states eqn: ACCEPT_STATES.
   clear ACCEPT_STATES.
-  induction accept_states as [ | [q tag] accept_states IH]; simpl.
-  - reflexivity.
-  - f_equal. exact IH.
+  induction accept_states.(kvlist) as [ | [q tag] qtags IH]; simpl; f_equal; eauto.
 Qed.
-
-Notation numbered_state_denote_state_number := LGS.TaggedDFA.numbered_state_denote_state_number.
-
-Notation numbered_delta := LGS.TaggedDFA.numbered_delta.
 
 Theorem number_states_sound (M : TaggedDFA.t) (s : Input.t) (tag : Token.t)
   (OKAY : okay M)
   (ACCEPT : accepts (number_states M) s tag)
   : accepts M s tag.
 Proof.
-  eapply LGS.TaggedDFA.number_states_sound; eauto.
+  eapply number_states_sound; eauto.
 Qed.
 
 Theorem number_states_complete (M : TaggedDFA.t) (s : Input.t) (tag : Token.t)
@@ -6121,7 +5879,7 @@ Theorem number_states_complete (M : TaggedDFA.t) (s : Input.t) (tag : Token.t)
   (ACCEPT : accepts M s tag)
   : accepts (number_states M) s tag.
 Proof.
-  eapply LGS.TaggedDFA.number_states_complete; eauto.
+  eapply number_states_complete; eauto.
 Qed.
 
 Theorem number_states_correct (M : TaggedDFA.t) (s : Input.t) (tag : Token.t)
@@ -6132,10 +5890,6 @@ Proof.
   - intros ACCEPT. eapply number_states_sound; eauto.
   - intros ACCEPT. eapply number_states_complete; eauto.
 Qed.
-
-Notation number_states_okay := LGS.TaggedDFA.number_states_okay.
-
-Notation number_states_states_NoDup := LGS.TaggedDFA.number_states_states_NoDup.
 
 End Numbering.
 
@@ -6160,116 +5914,42 @@ Definition accept_states (M : TaggedENFA.t) : ensemble (TaggedDFA.subset_state M
 
 End Abs.
 
-Module Impl.
-
-Notation subset_state_list := subset_state.
-
-Notation normalize_list := normalize.
-
-Notation move_list := move.
-
-Notation eps_move_list := eps_move.
-
-Notation eclose_list := eclose.
-
-Notation subset_transition_list := subset_transition.
-
-Notation subset_states_list := subset_states.
-
-Notation subset_accept_states_list := subset_accept_states.
-
-Notation subset_construct := subset_construct.
-
-End Impl.
-
-Module Refine.
-
-Theorem normalize_refines (M : TaggedENFA.t) (qs : subset_state M)
-  : Common.Refinement.list_refines (normalize M qs) (normalize_ensemble M qs).
-Proof.
-  eapply normalize_similarity.
-Qed.
-
 Theorem normalize_canonical (M : TaggedENFA.t) (qs : subset_state M)
   (NODUP : NoDup M.(TaggedENFA.states))
   : NoDup (normalize M qs).
 Proof.
-  assert (FILTER_NODUP : forall states : list M.(TaggedENFA.state), NoDup states -> NoDup (filter (fun q => mem q qs) states)).
-  { intros states NODUP_STATES.
-    induction states as [ | q states IH]; simpl.
-    - constructor.
-    - inversion NODUP_STATES as [ | q' states' NOTIN NODUP_TAIL]; subst.
-      destruct (mem q qs).
-      + constructor.
-        * intros IN. rewrite filter_In in IN. tauto.
-        * eapply IH. exact NODUP_TAIL.
-      + eapply IH. exact NODUP_TAIL.
-  }
-  unfold normalize. eapply FILTER_NODUP. exact NODUP.
-Qed.
-
-Theorem move_refines (M : TaggedENFA.t) (qs : subset_state M) (c : ascii)
-  : Common.Refinement.list_refines (move M qs c) (move_ensemble M qs c).
-Proof.
-  eapply move_similarity.
-Qed.
-
-Theorem eps_move_refines (M : TaggedENFA.t) (qs : subset_state M)
-  : Common.Refinement.list_refines (eps_move M qs) (eps_move_ensemble M qs).
-Proof.
-  eapply eps_move_similarity.
+  enough (FILTER_NODUP : forall states : list M.(TaggedENFA.state), NoDup states -> NoDup (filter (fun q => mem (EQ_DEC := M.(TaggedENFA.state_hasEqDec)) q qs) states)).
+  { unfold normalize. eapply FILTER_NODUP. exact NODUP. }
+  clear. intros states NODUP_STATES. induction states as [ | q states IH]; simpl.
+  - constructor.
+  - inversion NODUP_STATES as [ | q' states' NOTIN NODUP]; subst. des_ifs.
+    + constructor.
+      * intros IN. rewrite filter_In in IN. tauto.
+      * eapply IH. exact NODUP.
+    + eapply IH. exact NODUP.
 Qed.
 
 Theorem eclose_step_refines (M : TaggedENFA.t) (qs : subset_state M)
-  : Common.Refinement.list_refines (eclose_step M qs) (Abs.eclose_step M qs).
+  : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (eclose_step M qs) (Abs.eclose_step M qs).
 Proof.
-  rewrite Common.Refinement.list_refines_iff. intros q. split.
+  s!. intros q. split.
   - intros IN. unfold eclose_step in IN.
-    pose proof (normalize_sound M (union (eps_move M qs) qs) q IN) as [IN_UNION STATE].
-    pose proof (union_sound _ _ _ IN_UNION) as [IN_EPS | IN_QS].
-    + split; [exact STATE | left; exact IN_EPS].
-    + split; [exact STATE | right; exact IN_QS].
+    rewrite in_normalize_iff in IN. destruct IN as [IN_UNION STATE].
+    rewrite in_union_iff in IN_UNION. destruct IN_UNION as [IN_EPS | IN_QS]; ss!.
   - intros [STATE IN_STEP]. unfold eclose_step.
-    eapply normalize_complete; [exact STATE | ].
-    destruct IN_STEP as [IN_EPS | IN_QS].
-    + eapply union_complete. left. exact IN_EPS.
-    + eapply union_complete. right. exact IN_QS.
-Qed.
-
-Theorem eclose_refines (M : TaggedENFA.t) (qs : subset_state M)
-  (OKAY : TaggedENFA.okay M)
-  (QS_STATES : forall q, q ∈ qs -> q ∈ M.(TaggedENFA.states))
-  : Common.Refinement.list_refines (eclose M qs) (eclose_ensemble M qs).
-Proof.
-  eapply eclose_similarity; eauto.
+    rewrite in_normalize_iff. rewrite in_union_iff. ss!.
 Qed.
 
 Theorem subset_start_state_refines (M : TaggedENFA.t)
   (OKAY : TaggedENFA.okay M)
-  : Common.Refinement.list_refines (subset_start_state M) (fun q : M.(TaggedENFA.state) => q \in Abs.eclosure M M.(TaggedENFA.start_state)).
+  : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (subset_start_state M) (fun q : M.(TaggedENFA.state) => q \in Abs.eclosure M M.(TaggedENFA.start_state)).
 Proof.
-  pose proof (subset_construction_computation_okay M) as SPEC.
-  destruct SPEC as [_ _ _ _ _ _ _ START _ _].
-  eapply START. exact OKAY.
+  s!. intros q. split.
+  - eapply subset_start_state_sound.
+  - intros CLOS. unfold subset_start_state. eapply eclose_complete with (q := M.(TaggedENFA.start_state)); eauto.
+    + intros q' IN. destruct OKAY as [START_OKAY _ _ _]. destruct IN as [EQ | []]. now subst q'.
+    + left. reflexivity.
 Qed.
-
-Theorem subset_transition_refines (M : TaggedENFA.t) (qs : subset_state M) (c : ascii)
-  (OKAY : TaggedENFA.okay M)
-  (QS_STATES : forall q, q ∈ qs -> q ∈ M.(TaggedENFA.states))
-  : Common.Refinement.list_refines (subset_transition M qs c) (Abs.transition M qs c).
-Proof.
-  eapply subset_transition_similarity; eauto.
-Qed.
-
-Theorem subset_accept_states_refines (M : TaggedENFA.t)
-  : Common.Refinement.list_refines (subset_accept_states M) (Abs.accept_states M).
-Proof.
-  eapply subset_accept_states_similarity.
-Qed.
-
-End Refine.
-
-Notation subset_construct := subset_construct.
 
 Theorem subset_construct_correct (M : TaggedENFA.t) (s : Input.t) (tag : Token.t)
   (OKAY : TaggedENFA.okay M)
@@ -6280,48 +5960,26 @@ Proof.
   - intros ACCEPT. eapply subset_construct_complete; eauto.
 Qed.
 
-Notation subset_construct_okay := subset_construct_okay.
-
 End Subset.
 
 Module Minimise.
 
 Module Abs.
 
-Notation accepts_from := accepts_from.
+Abbreviation quotient_state := minimised_state.
 
-Notation right_language_equiv := right_language_equiv.
-
-Notation quotient_state := minimised_state.
-
-Notation quotient_dfa := minimise.
+Abbreviation quotient_dfa := minimise.
 
 Theorem quotient_language_equiv (M : TaggedDFA.t) (s : Input.t) (tag : Token.t)
   (OKAY : okay M)
   : accepts (quotient_dfa M) s tag <-> accepts M s tag.
 Proof.
   split.
-  - intros ACCEPT. eapply LGS.TaggedDFA.minimise_sound; eauto.
-  - intros ACCEPT. eapply LGS.TaggedDFA.minimise_complete; eauto.
+  - intros ACCEPT. eapply TaggedDFA.minimise_sound; eauto.
+  - intros ACCEPT. eapply TaggedDFA.minimise_complete; eauto.
 Qed.
 
 End Abs.
-
-Module Impl.
-
-Notation minimisation_equiv_b := minimisation_equivb.
-
-Notation minimisation_fuel := minimisation_fuel.
-
-Notation minimisation_class_list := minimisation_class.
-
-Notation minimised_states_list := minimised_states.
-
-Notation minimised_transition := minimised_transition.
-
-Notation minimise := minimise.
-
-End Impl.
 
 Module Refine.
 
@@ -6345,14 +6003,12 @@ Qed.
 Theorem minimisation_class_refines (M : TaggedDFA.t) (q : M.(TaggedDFA.state))
   (OKAY : okay M)
   (STATE : q ∈ M.(TaggedDFA.states))
-  : Common.Refinement.list_refines (minimisation_class M q) (fun q' => q' ∈ M.(TaggedDFA.states) /\ right_language_equiv M q q').
+  : is_similar_to (Similarity := list_corresponds_to_finite_ensemble) (minimisation_class M q) (fun q' => q' ∈ M.(TaggedDFA.states) /\ right_language_equiv M q q').
 Proof.
-  rewrite Common.Refinement.list_refines_iff. intros q'. unfold minimisation_class.
+  s!. intros q'. unfold minimisation_class.
   rewrite filter_In. split.
-  - intros [IN_STATE EQUIV].
-    split; [exact IN_STATE | eapply minimisation_equiv_b_sound_unbounded; eauto].
-  - intros [IN_STATE EQUIV].
-    split; [exact IN_STATE | eapply right_language_equiv_minimisation_equiv_b; exact EQUIV].
+  - intros [IN_STATE EQUIV]. split; [exact IN_STATE | eapply minimisation_equiv_b_sound_unbounded; eauto].
+  - intros [IN_STATE EQUIV]. split; [exact IN_STATE | eapply right_language_equiv_minimisation_equiv_b; exact EQUIV].
 Qed.
 
 Theorem representative_choice_preserves_right_language (M : TaggedDFA.t) (q : M.(TaggedDFA.state))
@@ -6360,37 +6016,12 @@ Theorem representative_choice_preserves_right_language (M : TaggedDFA.t) (q : M.
   (IN : q ∈ M.(TaggedDFA.states))
   : right_language_equiv M (representative M (minimisation_class M q)) q.
 Proof.
-  eapply right_language_equiv_sym.
-  eapply minimisation_equivb_right_language_equiv.
-  - exact OKAY.
-  - exact IN.
-  - eapply minimisation_class_representative_state. exact IN.
-  - eapply representative_minimisation_class_equiv. exact IN.
+  ii; symmetry; revert s tag. eapply minimisation_equivb_right_language_equiv; eauto.
+  - now eapply minimisation_class_representative_state.
+  - now eapply representative_minimisation_class_equiv.
 Qed.
-
-Theorem minimise_sound (M : TaggedDFA.t) (s : Input.t) (tag : Token.t)
-  (OKAY : okay M)
-  (ACCEPT : accepts (minimise M) s tag)
-  : accepts M s tag.
-Proof.
-  eapply LGS.TaggedDFA.minimise_sound; eauto.
-Qed.
-
-Theorem minimise_complete (M : TaggedDFA.t) (s : Input.t) (tag : Token.t)
-  (OKAY : okay M)
-  (ACCEPT : accepts M s tag)
-  : accepts (minimise M) s tag.
-Proof.
-  eapply LGS.TaggedDFA.minimise_complete; eauto.
-Qed.
-
-Notation minimise_okay := LGS.TaggedDFA.minimise_okay.
 
 End Refine.
-
-Notation minimise := minimise.
-
-Notation minimise_numbered := minimise_numbered.
 
 Theorem minimise_correct (M : TaggedDFA.t) (s : Input.t) (tag : Token.t)
   (OKAY : okay M)
@@ -6410,13 +6041,7 @@ Proof.
   - intros ACCEPT. eapply minimise_numbered_complete; eauto.
 Qed.
 
-Notation minimise_numbered_states_minimal := minimise_numbered_states_minimal.
-
 Module Hopcroft.
-
-Notation certified_minimise := hopcroft_certified_minimise.
-
-Notation certified_minimise_numbered := hopcroft_certified_minimise_numbered.
 
 Theorem certified_minimise_correct (M : TaggedDFA.t) (s : Input.t) (tag : Token.t)
   (OKAY : okay M)
@@ -6429,25 +6054,11 @@ Qed.
 
 End Hopcroft.
 
-Module API.
-
-Notation minimise := minimise.
-
-Notation minimise_numbered := minimise_numbered.
-
-Notation minimise_correct := minimise_correct.
-
-Notation minimise_numbered_correct := minimise_numbered_correct.
-
-Notation minimise_numbered_states_minimal := minimise_numbered_states_minimal.
-
-End API.
-
 End Minimise.
 
 Module DeleteDead.
 
-Notation delete_dead_state := delete_dead_state.
+Abbreviation delete_dead_state := delete_dead_state.
 
 Module Abs.
 
@@ -6462,83 +6073,11 @@ Definition useful (M : TaggedDFA.t) : ensemble M.(TaggedDFA.state) :=
 
 End Abs.
 
-Module Impl.
-
-Notation reachable_states_list := reachable_states.
-
-Notation accepting_states_list := accepting_states.
-
-Notation predecessors_list := predecessors.
-
-Notation live_states_list := live_states.
-
-Notation dead_states_list := dead_states.
-
-Notation useful_states_list := useful_states.
-
-Notation delete_dead_accept_states_list := delete_dead_accept_states.
-
-End Impl.
-
-Module Refine.
-
-Theorem accepting_state_b_refines (M : TaggedDFA.t) (q : M.(TaggedDFA.state))
-  : Common.Refinement.bool_refines (accepting_stateb M q) (accepting_state_ensemble M q).
-Proof.
-  eapply accepting_stateb_similarity.
-Qed.
-
-Theorem predecessor_b_refines (M : TaggedDFA.t) (q : M.(TaggedDFA.state)) (p : M.(TaggedDFA.state))
-  : Common.Refinement.bool_refines (predecessorb M q p) (exists c, c ∈ all_asciis /\ M.(TaggedDFA.transition) p c = q).
-Proof.
-  eapply predecessorb_similarity.
-Qed.
-
-Theorem reachable_states_refines (M : TaggedDFA.t)
-  : Common.Refinement.list_refines (reachable_states M) (Abs.reachable M).
-Proof.
-  rewrite Common.Refinement.list_refines_iff. intros q. split; intros IN; exact IN.
-Qed.
-
-Theorem live_states_refines (M : TaggedDFA.t)
-  : Common.Refinement.list_refines (live_states M) (Abs.live M).
-Proof.
-  rewrite Common.Refinement.list_refines_iff. intros q. split; intros IN; exact IN.
-Qed.
-
-Theorem dead_states_refines (M : TaggedDFA.t)
-  : Common.Refinement.list_refines (dead_states M) (dead_states_ensemble M).
-Proof.
-  eapply dead_states_similarity.
-Qed.
-
-Theorem useful_states_refines (M : TaggedDFA.t)
-  : Common.Refinement.list_refines (useful_states M) (Abs.useful M).
-Proof.
-  eapply useful_states_similarity.
-Qed.
-
-Theorem delete_dead_accept_states_refines (M : TaggedDFA.t)
-  : Common.Refinement.list_refines (delete_dead_accept_states M) (delete_dead_accept_state_ensemble M).
-Proof.
-  eapply delete_dead_accept_states_similarity.
-Qed.
-
-End Refine.
-
-Theorem delete_dead_accept_states_refines (M : TaggedDFA.t)
-  : Common.Refinement.list_refines (delete_dead_accept_states M) (delete_dead_accept_state_ensemble M).
-Proof.
-  eapply Refine.delete_dead_accept_states_refines.
-Qed.
-
-Notation delete_dead_state_computation_spec := delete_dead_state_computation_okay.
-
 End DeleteDead.
 
 End TaggedDFA.
 
-(*
+Module LGS.
 
 Definition t : Type :=
   TaggedDFA.Partial.TaggedDFA.
@@ -6572,11 +6111,9 @@ Theorem delete_dead_state_sound (M : TaggedDFA.t) (s : Input.t) (tag : Token.t)
   : TaggedDFA.accepts M s tag.
 Proof.
   unfold accepts, TaggedDFA.accepts in *. rewrite delete_dead_state_delta in ACCEPT. cbn in ACCEPT.
-  pose proof (TaggedDFA.delete_dead_state_computation_okay M) as DELETE_SPEC.
-  destruct DELETE_SPEC as [_ _ _ _ _ _ _ _ _ _ _ _ _ _ ACCEPT_STATES_SIM].
-  rewrite list_corresponds_to_finite_ensemble_iff in ACCEPT_STATES_SIM.
-  rewrite ACCEPT_STATES_SIM in ACCEPT. simpl in ACCEPT. destruct ACCEPT as [ACCEPT' _].
-  exact ACCEPT'.
+  pose proof (TaggedDFA.delete_dead_accept_states_similarity M) as DELETE_SPEC.
+  rewrite list_corresponds_to_finite_ensemble_iff in DELETE_SPEC.
+  rewrite DELETE_SPEC in ACCEPT. simpl in ACCEPT. destruct ACCEPT as [ACCEPT' _]. exact ACCEPT'.
 Qed.
 
 Theorem delete_dead_state_complete (M : TaggedDFA.t) (s : Input.t) (tag : Token.t)
@@ -6585,11 +6122,9 @@ Theorem delete_dead_state_complete (M : TaggedDFA.t) (s : Input.t) (tag : Token.
   : accepts (TaggedDFA.delete_dead_state M) s tag.
 Proof.
   unfold accepts, TaggedDFA.accepts in *. rewrite delete_dead_state_delta. cbn.
-  pose proof (TaggedDFA.delete_dead_state_computation_okay M) as DELETE_SPEC.
-  destruct DELETE_SPEC as [_ _ _ _ _ _ _ _ _ _ _ _ _ _ ACCEPT_STATES_SIM].
-  rewrite list_corresponds_to_finite_ensemble_iff in ACCEPT_STATES_SIM.
-  rewrite ACCEPT_STATES_SIM. simpl. split; [exact ACCEPT | ].
-  eapply TaggedDFA.accepting_state_live; eauto.
+  pose proof (TaggedDFA.delete_dead_accept_states_similarity M) as DELETE_SPEC.
+  rewrite list_corresponds_to_finite_ensemble_iff in DELETE_SPEC.
+  rewrite DELETE_SPEC. simpl. split; [exact ACCEPT | eapply TaggedDFA.accepting_state_live; eauto].
 Qed.
 
 Theorem delete_dead_state_correct (M : TaggedDFA.t) (s : Input.t) (tag : Token.t)
@@ -6598,7 +6133,7 @@ Theorem delete_dead_state_correct (M : TaggedDFA.t) (s : Input.t) (tag : Token.t
 Proof.
   split.
   - eapply delete_dead_state_sound.
-  - eapply delete_dead_state_complete. exact OKAY.
+  - now eapply delete_dead_state_complete.
 Qed.
 
 Fixpoint first_accepting_token_from {Q : Set} `{Q_hasEqDec : hasEqDec@{Set} Q} (q : Q) (accept_states : list (Q * Token.t)) {struct accept_states} : option Token.t :=
@@ -6985,9 +6520,8 @@ Inductive scan_all_rules (rules : list Rule.t) : Input.t -> list Token.t -> Prop
     (REST : scan_all_rules rules rest tags)
     : scan_all_rules rules (consumed ++ rest) (tag :: tags).
 
-Definition build : BuildErrorM LGS.t := do
-  'rules <- Rule.compileds;
-  ret (TaggedDFA.delete_dead_state (TaggedDFA.minimise_numbered (TaggedDFA.subset_construct (TaggedENFA.mkUnitedTaggedENFA rules)))).
+Definition build : BuildErrorM LGS.t :=
+  bind (isMonad := BuildErrorM_isMonad@{Type}) Rule.compileds (fun rules => pure (isMonad := BuildErrorM_isMonad@{Type}) (TaggedDFA.delete_dead_state (TaggedDFA.minimise_numbered (TaggedDFA.subset_construct (TaggedENFA.mkUnitedTaggedENFA rules))))).
 
 Theorem build_sound (M : LGS.t)
   (BUILD : build = inr M)
@@ -7010,12 +6544,11 @@ Lemma build_accepts_sound (M : LGS.t) (s : Input.t) (tag : Token.t)
   : exists rules, Rule.compileds = inr rules /\ exists rule, rule ∈ rules /\ rule.(Rule.token) = tag /\ s \in eval_regex rule.(Rule.regex).
 Proof.
   pose proof (build_sound M BUILD) as (rules & COMPILED & EQ). subst M.
-  exists rules. split; [exact COMPILED | ].
-  pose proof (TaggedDFA.delete_dead_state_computation_okay (TaggedDFA.minimise_numbered (TaggedDFA.subset_construct (TaggedENFA.mkUnitedTaggedENFA rules)))) as DELETE_SPEC.
-  destruct DELETE_SPEC as [_ _ _ _ _ _ _ _ _ _ _ _ _ _ DELETE_ACCEPT_STATES_SIM].
+  exists rules. split; eauto.
+  pose proof (TaggedDFA.delete_dead_accept_states_similarity (TaggedDFA.minimise_numbered (TaggedDFA.subset_construct (TaggedENFA.mkUnitedTaggedENFA rules)))) as DELETE_SPEC.
   unfold accepts, TaggedDFA.accepts in ACCEPT. rewrite delete_dead_state_delta in ACCEPT. cbn in ACCEPT.
-  rewrite list_corresponds_to_finite_ensemble_iff in DELETE_ACCEPT_STATES_SIM.
-  rewrite DELETE_ACCEPT_STATES_SIM in ACCEPT. simpl in ACCEPT. destruct ACCEPT as [ACCEPT_DFA _].
+  rewrite list_corresponds_to_finite_ensemble_iff in DELETE_SPEC.
+  rewrite DELETE_SPEC in ACCEPT. simpl in ACCEPT. destruct ACCEPT as [ACCEPT_DFA _].
   pose proof (TaggedDFA.minimise_numbered_sound _ _ _ (TaggedDFA.subset_construct_okay _ (TaggedENFA.mkUnitedTaggedENFA_okay rules)) ACCEPT_DFA) as ACCEPT_SUBSET.
   pose proof (TaggedDFA.subset_construct_sound _ _ _ ACCEPT_SUBSET) as ACCEPT_ENFA.
   assert (COMPILE : fmap TaggedENFA.mkUnitedTaggedENFA Rule.compileds = inr (TaggedENFA.mkUnitedTaggedENFA rules)).
@@ -7060,15 +6593,14 @@ Proof.
   pose proof (TaggedENFA.mkUnitedTaggedENFA_complete _ COMPILE) as (rules' & COMPILED' & COMPLETE).
   rewrite COMPILED in COMPILED'. injection COMPILED' as EQ_RULES. subst rules'.
   pose proof (COMPLETE s tag ACCEPT) as ACCEPT_ENFA.
-  pose proof (TaggedDFA.subset_construct_complete _ OKAY_ENFA _ _ ACCEPT_ENFA) as ACCEPT_SUBSET.
+  pose proof (TaggedDFA.subset_construct_complete (TaggedENFA.mkUnitedTaggedENFA rules) s tag OKAY_ENFA ACCEPT_ENFA) as ACCEPT_SUBSET.
   pose proof (TaggedDFA.subset_construct_okay _ OKAY_ENFA) as OKAY_SUBSET.
   pose proof (TaggedDFA.minimise_numbered_complete _ _ _ OKAY_SUBSET ACCEPT_SUBSET) as ACCEPT_MIN.
   pose proof (TaggedDFA.minimise_numbered_okay _ OKAY_SUBSET) as OKAY_MIN.
-  pose proof (TaggedDFA.delete_dead_state_computation_okay (TaggedDFA.minimise_numbered (TaggedDFA.subset_construct (TaggedENFA.mkUnitedTaggedENFA rules)))) as DELETE_SPEC.
-  destruct DELETE_SPEC as [_ _ _ _ _ _ _ _ _ _ _ _ _ _ DELETE_ACCEPT_STATES_SIM].
+  pose proof (TaggedDFA.delete_dead_accept_states_similarity (TaggedDFA.minimise_numbered (TaggedDFA.subset_construct (TaggedENFA.mkUnitedTaggedENFA rules)))) as DELETE_SPEC.
   unfold accepts, TaggedDFA.accepts in *. rewrite delete_dead_state_delta. cbn.
-  rewrite list_corresponds_to_finite_ensemble_iff in DELETE_ACCEPT_STATES_SIM.
-  rewrite DELETE_ACCEPT_STATES_SIM. simpl. split; [exact ACCEPT_MIN | ].
+  rewrite list_corresponds_to_finite_ensemble_iff in DELETE_SPEC.
+  rewrite DELETE_SPEC. simpl. split; [exact ACCEPT_MIN | ].
   eapply TaggedDFA.accepting_state_live; eauto.
 Qed.
 
@@ -7195,79 +6727,81 @@ Qed.
 
 End MAIN_THEOREMS.
 
+End LGS.
+
 Module Scanner.
 
 Module Abs.
 
-Notation accepts := accepts.
+Abbreviation accepts := LGS.accepts.
 
-Notation scan_candidate := scan_candidate.
+Abbreviation scan_candidate := LGS.scan_candidate.
 
 Definition maximal_scan_candidate (M : LGS.t) (s : Input.t) (rest : Input.t) (tag : Token.t) : Prop :=
   scan_candidate M s rest tag /\ (forall rest', forall tag', scan_candidate M s rest' tag' -> length rest <= length rest').
 
 Definition priority_candidate (M : LGS.t) (s : Input.t) (rest : Input.t) (tag : Token.t) : Prop :=
-  exists consumed, exists prefix, exists suffix, s = consumed ++ rest /\ (~ consumed = []) /\ M.(TaggedDFA.Partial.accept_states) = prefix ++ (delta M M.(TaggedDFA.Partial.start_state) consumed, tag) :: suffix /\ forall tag', ~ (delta M M.(TaggedDFA.Partial.start_state) consumed, tag') ∈ prefix.
+  exists consumed, exists prefix, exists suffix, s = consumed ++ rest /\ (~ consumed = []) /\ M.(TaggedDFA.Partial.accept_states) = prefix ++ (LGS.delta M M.(TaggedDFA.Partial.start_state) consumed, tag) :: suffix /\ forall tag', ~ (LGS.delta M M.(TaggedDFA.Partial.start_state) consumed, tag') ∈ prefix.
 
-Notation scan_all_spec := scan_all_spec.
+Abbreviation scan_all_spec := LGS.scan_all_spec.
 
-Notation scan_all_rules := scan_all_rules.
+Abbreviation scan_all_rules := LGS.scan_all_rules.
 
 End Abs.
 
 Module Impl.
 
-Notation first_accepting_token_from := first_accepting_token_from.
+Abbreviation first_accepting_token_from := LGS.first_accepting_token_from.
 
-Notation first_accepting_token := first_accepting_token.
+Abbreviation first_accepting_token := LGS.first_accepting_token.
 
-Notation maximal_munch := maximal_munch.
+Abbreviation maximal_munch := LGS.maximal_munch.
 
-Notation scan_one := scan_one.
+Abbreviation scan_one := LGS.scan_one.
 
-Notation scan_all := scan_all.
+Abbreviation scan_all := LGS.scan_all.
 
 End Impl.
 
 Module Refine.
 
 Theorem first_accepting_token_from_sound {Q : Set} `{Q_hasEqDec : hasEqDec@{Set} Q} (q : Q) (accept_states : list (Q * Token.t)) (tag : Token.t)
-  (FIND : first_accepting_token_from q accept_states = Some tag)
+  (FIND : LGS.first_accepting_token_from q accept_states = Some tag)
   : (q, tag) ∈ accept_states.
 Proof.
-  eapply first_accepting_token_from_sound. exact FIND.
+  eapply LGS.first_accepting_token_from_sound. exact FIND.
 Qed.
 
 Theorem first_accepting_token_from_complete_some {Q : Set} `{Q_hasEqDec : hasEqDec@{Set} Q} (q : Q) (accept_states : list (Q * Token.t))
   (ACCEPT : exists tag, (q, tag) ∈ accept_states)
-  : exists tag, first_accepting_token_from q accept_states = Some tag.
+  : exists tag, LGS.first_accepting_token_from q accept_states = Some tag.
 Proof.
-  eapply first_accepting_token_from_complete_some. exact ACCEPT.
+  eapply LGS.first_accepting_token_from_complete_some. exact ACCEPT.
 Qed.
 
 Theorem first_accepting_token_from_first {Q : Set} `{Q_hasEqDec : hasEqDec@{Set} Q} (q : Q) (accept_states : list (Q * Token.t)) (tag : Token.t)
-  (FIND : first_accepting_token_from q accept_states = Some tag)
+  (FIND : LGS.first_accepting_token_from q accept_states = Some tag)
   : exists prefix, exists suffix, accept_states = prefix ++ (q, tag) :: suffix /\ forall tag', ~ (q, tag') ∈ prefix.
 Proof.
   eapply LGS.first_accepting_token_from_first. exact FIND.
 Qed.
 
 Theorem scan_one_correct (M : LGS.t) (s : Input.t) (rest : Input.t) (tag : Token.t)
-  (SCAN : scan_one M s = Some (rest, tag))
+  (SCAN : LGS.scan_one M s = Some (rest, tag))
   : Abs.maximal_scan_candidate M s rest tag.
 Proof.
-  eapply scan_one_correct. exact SCAN.
+  eapply LGS.scan_one_correct. exact SCAN.
 Qed.
 
 Theorem scan_one_complete (M : LGS.t) (s : Input.t) (rest : Input.t) (tag : Token.t)
-  (CANDIDATE : scan_candidate M s rest tag)
-  : exists rest', exists tag', scan_one M s = Some (rest', tag') /\ length rest' <= length rest.
+  (CANDIDATE : LGS.scan_candidate M s rest tag)
+  : exists rest', exists tag', LGS.scan_one M s = Some (rest', tag') /\ length rest' <= length rest.
 Proof.
   eapply LGS.scan_one_complete. exact CANDIDATE.
 Qed.
 
 Theorem scan_all_correct (M : LGS.t) (s : Input.t) (tags : list Token.t)
-  : scan_all M s = Some tags <-> scan_all_spec M s tags.
+  : LGS.scan_all M s = Some tags <-> LGS.scan_all_spec M s tags.
 Proof.
   eapply LGS.scan_all_correct.
 Qed.
@@ -7276,19 +6810,19 @@ End Refine.
 
 Module API.
 
-Notation first_accepting_token := Impl.first_accepting_token.
+Abbreviation first_accepting_token := Impl.first_accepting_token.
 
-Notation maximal_munch := Impl.maximal_munch.
+Abbreviation maximal_munch := Impl.maximal_munch.
 
-Notation scan_one := Impl.scan_one.
+Abbreviation scan_one := Impl.scan_one.
 
-Notation scan_all := Impl.scan_all.
+Abbreviation scan_all := Impl.scan_all.
 
-Notation scan_candidate := Abs.scan_candidate.
+Abbreviation scan_candidate := Abs.scan_candidate.
 
-Notation priority_candidate := Abs.priority_candidate.
+Abbreviation priority_candidate := Abs.priority_candidate.
 
-Notation scan_all_spec := Abs.scan_all_spec.
+Abbreviation scan_all_spec := Abs.scan_all_spec.
 
 End API.
 
@@ -7299,7 +6833,7 @@ Module Builder.
 Definition pipeline (rules : list Rule.t) : LGS.t :=
   TaggedDFA.delete_dead_state (TaggedDFA.minimise_numbered (TaggedDFA.subset_construct (TaggedENFA.mkUnitedTaggedENFA rules))).
 
-Notation build := build.
+Abbreviation build := LGS.build.
 
 Theorem build_sound (M : LGS.t)
   (BUILD : build = inr M)
@@ -7326,10 +6860,10 @@ Qed.
 
 Theorem pipeline_accepts_sound (rules : list Rule.t) (s : Input.t) (tag : Token.t)
   (COMPILED : Rule.compileds = inr rules)
-  (ACCEPT : accepts (pipeline rules) s tag)
+  (ACCEPT : LGS.accepts (pipeline rules) s tag)
   : exists rule, rule ∈ rules /\ rule.(Rule.token) = tag /\ s \in eval_regex rule.(Rule.regex).
 Proof.
-  eapply build_accepts_sound_with_rules.
+  eapply LGS.build_accepts_sound_with_rules.
   - eapply build_complete. exact COMPILED.
   - exact COMPILED.
   - exact ACCEPT.
@@ -7338,9 +6872,9 @@ Qed.
 Theorem pipeline_accepts_complete (rules : list Rule.t) (s : Input.t) (tag : Token.t)
   (COMPILED : Rule.compileds = inr rules)
   (ACCEPT : exists rule, rule ∈ rules /\ rule.(Rule.token) = tag /\ s \in eval_regex rule.(Rule.regex))
-  : accepts (pipeline rules) s tag.
+  : LGS.accepts (pipeline rules) s tag.
 Proof.
-  eapply build_accepts_complete with (rules := rules).
+  eapply LGS.build_accepts_complete with (rules := rules).
   - eapply build_complete. exact COMPILED.
   - exact COMPILED.
   - exact ACCEPT.
@@ -7353,7 +6887,7 @@ Proof.
   unfold build in BUILD.
   destruct Rule.compileds as [err_rules | rules] eqn: COMPILED; cbn in BUILD; [ | discriminate].
   inv BUILD. unfold Rule.compileds in COMPILED.
-  eapply Rule.Refine.compile_rules_failure_nullable. exact COMPILED.
+  eapply Rule.compileRules_failure_elim. exact COMPILED.
 Qed.
 
 Theorem nullable_rule_build_failure
@@ -7361,12 +6895,10 @@ Theorem nullable_rule_build_failure
   : exists idx, build = inl (BuildError.NullableTokenRule idx).
 Proof.
   unfold build, Rule.compileds.
-  pose proof (Rule.Refine.compile_rules_has_nullable_failure Rule.raws EXISTS) as (idx & FAILURE).
+  pose proof (Rule.compile_rules_failure_intro Rule.raws EXISTS) as (idx & FAILURE).
   rewrite FAILURE. exists idx. reflexivity.
 Qed.
 
 End Builder.
-
-*)
 
 End MkLGS.
