@@ -2052,13 +2052,7 @@ Variable M : TaggedENFA.t.
 #[local] Notation M_delta_star := (TaggedENFA.delta_star M.(TaggedENFA.eps_step) M.(TaggedENFA.char_step)).
 
 Definition subset_state : Set :=
-  fin_ensemble Q.
-
-Fixpoint iter {A : Type} (fuel : nat) (step : A -> A) (x : A) {struct fuel} : A :=
-  match fuel with
-  | O => x
-  | S fuel' => iter fuel' step (step x)
-  end.
+  list Q.
 
 Definition normalize (qs : subset_state) : subset_state :=
   filter (fun q => mem q qs) M.(TaggedENFA.states).
@@ -3436,21 +3430,6 @@ Lemma hopcroft_block_difference_subset (block : hopcroft_block) (splitter : hopc
   : q ∈ block.
 Proof.
   unfold hopcroft_block_difference in IN. rewrite filter_In in IN. tauto.
-Qed.
-
-Lemma nonempty_exists {A : Type} (xs : list A)
-  (NONEMPTY : nonempty xs = true)
-  : exists x, x ∈ xs.
-Proof.
-  destruct xs as [ | x xs]; simpl in NONEMPTY; [inv NONEMPTY | ].
-  exists x. left. reflexivity.
-Qed.
-
-Lemma nonempty_of_exists {A : Type} (xs : list A) (x : A)
-  (IN : x ∈ xs)
-  : nonempty xs = true.
-Proof.
-  destruct xs as [ | y ys]; simpl in IN |- *; [contradiction | reflexivity].
 Qed.
 
 Lemma hopcroft_block_intersection_in_splitter (block : hopcroft_block) (splitter : hopcroft_block) (q : Q)

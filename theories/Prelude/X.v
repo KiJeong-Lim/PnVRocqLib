@@ -32,18 +32,33 @@ Qed.
 
 #[global] Hint Rewrite inject_pair_eq : simplication_hints.
 
-#[universes(polymorphic=yes)]
-Fixpoint iter@{u | } {A : Type@{u}} (fuel : nat) (step : A -> A) (x : A) {struct fuel} : A :=
+Fixpoint iter {A : Type} (fuel : nat) (step : A -> A) (x : A) {struct fuel} : A :=
   match fuel with
   | O => x
   | S fuel' => iter fuel' step (step x)
   end.
 
-#[universes(polymorphic=yes)]
-Lemma iter_succ@{u | } {A : Type@{u}} (fuel : nat) (step : A -> A) (x : A)
+Lemma iter_succ {A : Type} (fuel : nat) (step : A -> A) (x : A)
   : iter (S fuel) step x = step (iter fuel step x).
 Proof.
   revert x; induction fuel as [ | fuel IH]; intros x; simpl.
   - reflexivity.
   - eapply IH.
+Qed.
+
+Definition nonempty {A : Type} (xs : list A) : bool :=
+  negb (L.null xs).
+
+Lemma nonempty_exists {A : Type} (xs : list A)
+  (NONEMPTY : nonempty xs = true)
+  : exists x, L.In x xs.
+Proof.
+  unfold nonempty in NONEMPTY. destruct xs; done.
+Qed.
+
+Lemma nonempty_of_exists {A : Type} (xs : list A) (x : A)
+  (IN : L.In x xs)
+  : nonempty xs = true.
+Proof.
+  unfold nonempty. destruct xs; done.
 Qed.
