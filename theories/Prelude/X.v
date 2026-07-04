@@ -2,15 +2,21 @@ Require Import PnV.Prelude.Prelude.
 
 Notation "lhs ≠ rhs" := (~ (lhs = rhs)) : type_scope.
 
+Tactic Notation "use" uconstr( H ) :=
+  hexploit H; cycle -1; [i | eauto with * ..]; cycle 1.
+
+Tactic Notation "use" uconstr( H ) "as" simple_intropattern( p ) :=
+  hexploit H; cycle -1; [intros p | try eassumption ..]; cycle 1.
+
+Ltac done :=
+  des; subst; done!.
+
 Lemma S_lt_S_intro (n : nat) (m : nat)
   (H_lt : n < m)
   : S n < S m.
 Proof.
   lia.
 Qed.
-
-Ltac done :=
-  des; subst; done!.
 
 #[projections(primitive)]
 Class isFinite@{u} (A : Type@{u}) : Type@{u} :=
@@ -38,13 +44,15 @@ Fixpoint iter {A : Type} (fuel : nat) (step : A -> A) (x : A) {struct fuel} : A 
   | S fuel' => iter fuel' step (step x)
   end.
 
-Lemma iter_succ {A : Type} (fuel : nat) (step : A -> A) (x : A)
+Lemma iter_succ (A : Type) (fuel : nat) (step : A -> A) (x : A)
   : iter (S fuel) step x = step (iter fuel step x).
 Proof.
   revert x; induction fuel as [ | fuel IH]; intros x; simpl.
   - reflexivity.
   - eapply IH.
 Qed.
+
+#[global] Hint Rewrite iter_succ : simplication_hints.
 
 Definition nonempty {A : Type} (xs : list A) : bool :=
   negb (L.null xs).
