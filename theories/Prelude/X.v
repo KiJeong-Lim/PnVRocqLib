@@ -2,6 +2,9 @@ Require Import PnV.Prelude.Prelude.
 
 Notation "lhs ≠ rhs" := (~ (lhs = rhs)) : type_scope.
 
+Ltac use_exact H :=
+  revert H; clear; intro H; exact H.
+
 Tactic Notation "use" uconstr( H ) :=
   hexploit H; cycle -1; [i | eauto with * ..]; cycle 1.
 
