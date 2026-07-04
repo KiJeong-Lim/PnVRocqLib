@@ -1737,21 +1737,18 @@ Proof.
   - des; subst.
     pose proof (rules2fragments_start_ge _ _ _ _ _ _ _ _ FRAGS IN_FRAG REGEX).
     lia.
-  - destruct EPS as (q1 & STEP & REST).
-    autorewrite with simplication_hints in STEP. rename STEP into IN_EDGE.
-    pose proof (fragment_eps_edges_start_sound _ _ _ _ _ FRAGS qi_POS IN_EDGE) as (rule' & frag' & qi_rule' & qf' & IN_FRAG' & REGEX' & START_EDGE). subst q1.
+  - destruct EPS as (q1 & STEP & REST). s!.
+    pose proof (fragment_eps_edges_start_sound _ _ _ _ _ FRAGS qi_POS STEP) as (rule' & frag' & qi_rule' & qf' & IN_FRAG' & REGEX' & START_EDGE). subst q1.
     pose proof (regex2fragment_bounds _ _ _ _ REGEX') as [START' ACCEPT' LT' _ _].
     assert (RANGE : qi_rule <= frag.(frag_accept) <= qf) by lia.
     assert (RANGE' : qi_rule' <= frag.(frag_accept) <= qf').
     { eapply delta_star_fragment_range with (qi := qi) (rules := rules) (qmax := qmax) (frags := frags) (rule := rule') (frag := frag') (q := frag'.(frag_start)) (s := s); eauto. lia. }
     pose proof (rules2fragments_ranges_disjoint _ _ _ _ _ _ _ _ _ _ _ _ _ FRAGS IN_FRAG IN_FRAG' REGEX REGEX' RANGE RANGE') as EQ.
     inv EQ. eapply delta_star_global_to_fragment; eauto. lia.
-  - destruct CHAR as (c & s' & q1 & EQ & STEP & REST).
-    autorewrite with simplication_hints in STEP.
+  - destruct CHAR as (c & s' & q1 & EQ & STEP & REST). s!.
     hexploit fragment_char_edges_owner; eauto.
     intros (rule' & frag' & qi_rule' & qf' & IN_FRAG' & REGEX' & BOUNDS' & LE_START & LT_END & RANGE' & IN_EDGE').
-    simpl in *.
-    lia.
+    simpl in *. lia.
 Qed.
 
 Lemma TaggedENFA_FRAGMENTS_sound qi rules qmax frags s tag
@@ -6744,24 +6741,6 @@ Proof.
 Qed.
 
 End Refine.
-
-Module API.
-
-Abbreviation first_accepting_token := Impl.first_accepting_token.
-
-Abbreviation maximal_munch := Impl.maximal_munch.
-
-Abbreviation scan_one := Impl.scan_one.
-
-Abbreviation scan_all := Impl.scan_all.
-
-Abbreviation scan_candidate := Abs.scan_candidate.
-
-Abbreviation priority_candidate := Abs.priority_candidate.
-
-Abbreviation scan_all_spec := Abs.scan_all_spec.
-
-End API.
 
 End Scanner.
 
