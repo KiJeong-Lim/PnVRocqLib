@@ -8,6 +8,33 @@ Tactic Notation "use" uconstr( H ) :=
 Tactic Notation "use" uconstr( H ) "as" simple_intropattern( p ) :=
   hexploit H; cycle -1; [intros p | try eassumption ..]; cycle 1.
 
+Tactic Notation "use" uconstr( H ) "as" simple_intropattern( p ) "with" ident( H1 ) :=
+  hexploit H; cycle -1; [intros p | try (revert H1; clear; i; eassumption) ..]; cycle 1.
+
+Tactic Notation "use" uconstr( H ) "as" simple_intropattern( p ) "with" ident( H1 ) ident( H2 ) :=
+  hexploit H; cycle -1; [intros p | try (revert H1 H2; clear; i; eassumption) ..]; cycle 1.
+
+Tactic Notation "use" uconstr( H ) "as" simple_intropattern( p ) "with" ident( H1 ) ident( H2 ) ident( H3 ) :=
+  hexploit H; cycle -1; [intros p | try (revert H1 H2 H3; clear; i; eassumption) ..]; cycle 1.
+
+Tactic Notation "use" uconstr( H ) "as" simple_intropattern( p ) "with" ident( H1 ) ident( H2 ) ident( H3 ) ident( H4 ) :=
+  hexploit H; cycle -1; [intros p | try (revert H1 H2 H3 H4; clear; i; eassumption) ..]; cycle 1.
+
+Tactic Notation "use" uconstr( H ) "as" simple_intropattern( p ) "with" ident( H1 ) ident( H2 ) ident( H3 ) ident( H4 ) ident( H5 ) :=
+  hexploit H; cycle -1; [intros p | try (revert H1 H2 H3 H4 H5; clear; i; eassumption) ..]; cycle 1.
+
+Tactic Notation "use" uconstr( H ) "as" simple_intropattern( p ) "with" ident( H1 ) ident( H2 ) ident( H3 ) ident( H4 ) ident( H5 ) ident( H6 ) :=
+  hexploit H; cycle -1; [intros p | try (revert H1 H2 H3 H4 H5 H6; clear; i; eassumption) ..]; cycle 1.
+
+Tactic Notation "use" uconstr( H ) "as" simple_intropattern( p ) "with" ident( H1 ) ident( H2 ) ident( H3 ) ident( H4 ) ident( H5 ) ident( H6 ) ident( H7 ) :=
+  hexploit H; cycle -1; [intros p | try (revert H1 H2 H3 H4 H5 H6 H7; clear; i; eassumption) ..]; cycle 1.
+
+Tactic Notation "use" uconstr( H ) "as" simple_intropattern( p ) "with" ident( H1 ) ident( H2 ) ident( H3 ) ident( H4 ) ident( H5 ) ident( H6 ) ident( H7 ) ident( H8 ) :=
+  hexploit H; cycle -1; [intros p | try (revert H1 H2 H3 H4 H5 H6 H7 H8; clear; i; eassumption) ..]; cycle 1.
+
+Tactic Notation "use" uconstr( H ) "as" simple_intropattern( p ) "with" ident( H1 ) ident( H2 ) ident( H3 ) ident( H4 ) ident( H5 ) ident( H6 ) ident( H7 ) ident( H8 ) ident( H9 ) :=
+  hexploit H; cycle -1; [intros p | try (revert H1 H2 H3 H4 H5 H6 H7 H8 H9; clear; i; eassumption) ..]; cycle 1.
+
 Ltac done :=
   des; subst; done!.
 
