@@ -26,14 +26,14 @@ Instance fin_ensemble_isSetoid (Elem : Type) : isSetoid (fin_ensemble Elem) :=
 #[local] Infix "\in" := E.In.
 #[local] Infix "∈" := L.In.
 
-Definition Similarity_list_finite_ensemble {ELEM : Type} {ELEM' : Type} (ELEM_sim : Similarity ELEM ELEM') : Similarity (list ELEM) (ensemble ELEM') :=
+Definition Similarity_list_finite_ensemble {ELEM : Type} {ELEM' : Type} (ELEM_sim : Similarity ELEM ELEM') : Similarity (fin_ensemble ELEM) (ensemble ELEM') :=
   fun xs : list ELEM => fun X' : ensemble ELEM' => ⟪ SUBSET1 : forall x, x ∈ xs -> (exists x', x =~= x' /\ x' \in X') ⟫ /\ ⟪ SUBSET2 : forall x', x' \in X' -> (exists x, x =~= x' /\ x ∈ xs) ⟫.
 
 #[global]
 Instance list_corresponds_to_finite_ensemble {ELEM : Type} : Similarity (list ELEM) (ensemble ELEM) :=
   Similarity_list_finite_ensemble eq.
 
-Theorem list_corresponds_to_finite_ensemble_iff (ELEM : Type) (xs : list ELEM) (X : ensemble ELEM)
+Theorem list_corresponds_to_finite_ensemble_iff (A : Type) (xs : list A) (X : ensemble A)
   : xs =~= X <-> (forall x, x ∈ xs <-> x \in X).
 Proof.
   done!.
@@ -43,7 +43,7 @@ Qed.
 
 Theorem list_corresponds_to_finite_ensemble_flat_map {A : Type} {B : Type} (xs : list A) (X : ensemble A) (f : A -> list B) (F : A -> ensemble B)
   (xs_sim : xs =~= X)
-  (f_sim : forall x, f x =~= F x)
+  (f_sim : forall x : A, x ∈ xs -> f x =~= F x)
   : L.flat_map f xs =~= (X >>= F).
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff.
@@ -55,7 +55,7 @@ Proof.
       exact (proj1 (XS_SIM x) x_in).
     + pose proof (f_sim x) as F_SIM.
       rewrite list_corresponds_to_finite_ensemble_iff in F_SIM.
-      exact (proj1 (F_SIM b) b_in).
+      exact (proj1 (F_SIM x_in b) b_in).
   - intros [x [x_in b_in]].
     exists x. split.
     + pose proof xs_sim as XS_SIM.
@@ -63,7 +63,8 @@ Proof.
       exact (proj2 (XS_SIM x) x_in).
     + pose proof (f_sim x) as F_SIM.
       rewrite list_corresponds_to_finite_ensemble_iff in F_SIM.
-      exact (proj2 (F_SIM b) b_in).
+      assert (x ∈ xs) as HH by done.
+      exact (proj2 (F_SIM HH b) b_in).
 Qed.
 
 Fact existsb_iff (A : Type) (p : A -> bool) (xs : list A)

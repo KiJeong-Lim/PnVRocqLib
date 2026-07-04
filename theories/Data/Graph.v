@@ -441,7 +441,7 @@ Definition gmu' (x : V) : list A :=
 Theorem gmu_sim (x : V)
   : gmu' x =~= gmu x.
 Proof.
-  pose proof (list_corresponds_to_finite_ensemble_flat_map (reachable' x) (reachable x) seed' seed (reachable_sim x) seed_sim) as FLAT_MAP.
+  pose proof (list_corresponds_to_finite_ensemble_flat_map (reachable' x) (reachable x) seed' seed (reachable_sim x) (fun x : V => fun _ => seed_sim x)) as FLAT_MAP.
   rewrite list_corresponds_to_finite_ensemble_iff in FLAT_MAP |- *. intros a. rewrite FLAT_MAP. symmetry. eapply gmu_iff_reachable_seed.
 Qed.
 
