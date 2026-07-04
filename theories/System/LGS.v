@@ -120,11 +120,11 @@ Instance BuildErrorM_isMonad@{u} : isMonad@{u u} BuildErrorM@{u} :=
 #[local] Hint Rewrite mem_spec : simplication_hints.
 #[local] Hint Rewrite existsb_iff : simplication_hints.
 #[local] Hint Rewrite forallb_iff : simplication_hints.
-#[global] Hint Rewrite in_union_iff: simplication_hints.
-#[global] Hint Rewrite in_normalize_iff : simplication_hints.
-#[global] Hint Rewrite in_unions_iff : simplication_hints.
-#[global] Hint Rewrite product_iff : simplication_hints.
 
+#[local] Hint Rewrite in_union_iff: simplication_hints.
+#[local] Hint Rewrite in_normalize_iff : simplication_hints.
+#[local] Hint Rewrite in_unions_iff : simplication_hints.
+#[local] Hint Rewrite product_iff : simplication_hints.
 #[local] Hint Rewrite L.filter_In : simplication_hints.
 
 #[local] Existing Instance list_corresponds_to_finite_ensemble.

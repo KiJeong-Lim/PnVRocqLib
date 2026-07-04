@@ -10597,7 +10597,7 @@ Proof.
   destruct alpha as [ | X alpha_tail].
   - simpl in TARGET. injection TARGET as A_EQ SUFFIX_EQ. subst A. subst suffix.
     assert (TARGET_SUFFIX : inr t :: map inr z = [@inr N' T' eof]).
-    { eapply (plain_steps_terminal_inv ([eof] : list T') (inr t :: map inr z)). eapply rm_steps_plain_steps. eapply rm_steps_n_rm_steps. exact SUFFIX_STEPS. }
+    { eapply plain_steps_terminal_inv with (ts := ([eof] : list T')) (ys := inr t :: map inr z). eapply rm_steps_plain_steps. eapply rm_steps_n_rm_steps. exact SUFFIX_STEPS. }
     simpl in TARGET_SUFFIX. injection TARGET_SUFFIX as T_EQ Z_EQ. subst t. destruct z as [ | z0 z]; [ | discriminate].
     pose proof (npath_nil nq0 q0 nq0_state) as PATH_NIL.
     pose proof (npath_deterministic [] nq0 p nq0 PATH_ALPHA PATH_NIL) as P_EQ. subst p.
@@ -19030,7 +19030,8 @@ Proof.
   - intros q t CONFLICT.
     destruct (Pruned.Numbering.dN q (inr t)) as [q_next | ] eqn: STEP.
     + eapply pruned_action_conflict_semantic_path_image_shift_to_orig; [exact CONFLICT | ]. eapply Pruned.Table.shift_action_complete. exact STEP.
-    + eapply (orig_semantic_lalr_no_shift_path_resolver_conflict W R). econstructor; [exact CONFLICT | ].
+    + eapply R.(orig_semantic_lalr_no_shift_path_resolver_conflict W) with (q := q) (t := t).
+      econstructor; [exact CONFLICT | ].
       intros q_next IN_SHIFT. pose proof (Pruned.Table.shift_action_sound q t (Pruned.Table.Shift q_next) IN_SHIFT) as (q_mid & STEP_SHIFT & EQ). congruence.
   - intros lookahead q q' EDGE. exact (orig_semantic_lalr_no_shift_path_resolver_rank_edge W R lookahead q q' EDGE).
 Qed.
@@ -20457,7 +20458,7 @@ Lemma pruned_canonical_npath_from_start_retarget_from_transition
   (PATH : Pruned.Numbering.npath alpha Pruned.Numbering.nq0 q)
   : Orig.Numbering.npath (map erase_aug_symbol alpha) Orig.Numbering.nq0 (canonical_pruned_state_image q).
 Proof.
-  rewrite <- (pruned_canonical_lr0_nq0_retarget O). eapply (pruned_canonical_npath_retarget_from_transition O). exact PATH.
+  rewrite <- (pruned_canonical_lr0_nq0_retarget O). eapply pruned_canonical_npath_retarget_from_transition with (O := O). exact PATH.
 Qed.
 
 Lemma pruned_canonical_read_domain_retarget_from_transition
@@ -20478,7 +20479,9 @@ Proof.
   destruct FOLLOW_ERASE as [alpha z p_orig STEPS_PRUNED PATH_PRUNED PATH_ORIG EMB FOLLOW_ORIG].
   pose proof (pruned_rm_steps_erase [@inl Pruned.GrammarSyntax.N' Pruned.GrammarSyntax.T' Pruned.GrammarSyntax.start_prime] (alpha ++ inl A :: inr t :: map inr z) STEPS_PRUNED) as STEPS_ORIG.
   repeat rewrite map_app in STEPS_ORIG. simpl in STEPS_ORIG. rewrite erase_aug_terminal_symbols in STEPS_ORIG.
-  unfold Orig.Follow.Follow_sem. exists (map erase_aug_symbol alpha). exists z. split; [exact STEPS_ORIG | eapply (pruned_canonical_npath_from_start_retarget_from_transition O); exact PATH_PRUNED].
+  unfold Orig.Follow.Follow_sem. exists (map erase_aug_symbol alpha). exists z. split.
+  - exact STEPS_ORIG.
+  - eapply pruned_canonical_npath_from_start_retarget_from_transition with (O := O). exact PATH_PRUNED.
 Qed.
 
 Lemma pruned_canonical_LA_path_retargeting_obligations_from_transition
@@ -20498,7 +20501,7 @@ Proof.
   eapply pruned_canonical_LA_path_intro with (p := p) (A := A).
   - eapply pruned_canonical_read_domain_retarget_from_transition; [exact O | exact IN_D].
   - rewrite LHS. reflexivity.
-  - eapply (pruned_canonical_npath_retarget_from_transition O). exact PATH_ITEM_PRUNED.
+  - eapply pruned_canonical_npath_retarget_from_transition with (O := O). exact PATH_ITEM_PRUNED.
   - eapply pruned_canonical_Follow_sem_retarget_from_transition; [exact O | exact FOLLOW_ERASE].
 Qed.
 
@@ -20513,7 +20516,7 @@ Proof.
   - exact IN_REDUCE.
   - exact PATH_PRUNED.
   - exact STEP_PRUNED.
-  - unfold erase_prod'. simpl. eapply (pruned_canonical_npath_retarget_from_transition O). exact PATH_PRUNED.
+  - unfold erase_prod'. simpl. eapply pruned_canonical_npath_retarget_from_transition with (O := O). exact PATH_PRUNED.
   - unfold erase_prod'. simpl. exact (pruned_canonical_lr0_dN_retarget O p (inl pr.(Pruned.GrammarSyntax.p_lhs)) q' STEP_PRUNED).
 Qed.
 
@@ -20799,8 +20802,12 @@ Theorem pruned_same_state_image_policy_from_canonical_obligations
 Proof.
   refine {| pruned_same_state_image := canonical_pruned_state_image |}.
   - intros q st STATE. eapply canonical_pruned_state_image_embedding. exact STATE.
-  - intros q t CONFLICT. eapply (pruned_canonical_same_state_image_conflict O). exact CONFLICT.
-  - intros lookahead q q' EDGE. eapply (pruned_canonical_same_state_image_rank_edge O). exact EDGE.
+  - intros q t CONFLICT.
+    eapply O.(pruned_canonical_same_state_image_conflict) with (q := q) (t := t).
+    exact CONFLICT.
+  - intros lookahead q q' EDGE.
+    eapply O.(pruned_canonical_same_state_image_rank_edge) with (lookahead := lookahead) (q := q) (q' := q').
+    exact EDGE.
 Qed.
 
 Theorem orig_semantic_lalr_pruned_path_image_resolver_from_same_state_policy (W : orig_semantic_lalr_witness)
@@ -20823,10 +20830,10 @@ Theorem orig_semantic_lalr_pruned_image_resolver_from_path_image (W : orig_seman
 Proof.
   refine {| orig_semantic_lalr_resolver_rank := orig_semantic_lalr_path_resolver_rank W R |}.
   - intros q t CONFLICT.
-    eapply (orig_semantic_lalr_path_resolver_conflict W R).
+    eapply R.(orig_semantic_lalr_path_resolver_conflict W) with (q := q) (t := t).
     eapply pruned_action_conflict_semantic_image_to_path_image. exact CONFLICT.
   - intros lookahead q q' EDGE.
-    eapply (orig_semantic_lalr_path_resolver_rank_edge W R).
+    eapply R.(orig_semantic_lalr_path_resolver_rank_edge W) with (lookahead := lookahead) (q := q) (q' := q').
     eapply pruned_reduce_edge_semantic_image_to_path_image. exact EDGE.
 Qed.
 
@@ -20836,11 +20843,14 @@ Theorem semantic_lalr_transport_witness_from_orig_semantic_lalr (W : orig_semant
 Proof.
   refine {| semantic_lalr_transport_rank := orig_semantic_lalr_resolver_rank W R |}.
   - intros q t CONFLICT.
-    pose proof (orig_semantic_lalr_resolver_conflict W R q t CONFLICT) as (q_orig & ORIG_CONFLICT).
-    eapply (orig_semantic_lalr_conflict_free W q_orig t). exact ORIG_CONFLICT.
+    pose proof (R.(orig_semantic_lalr_resolver_conflict W) q t CONFLICT) as (q_orig & ORIG_CONFLICT).
+    eapply W.(orig_semantic_lalr_conflict_free) with (q := q_orig) (t := t).
+    exact ORIG_CONFLICT.
   - intros lookahead q q' EDGE.
-    pose proof (orig_semantic_lalr_resolver_rank_edge W R lookahead q q' EDGE) as (q_orig & q_orig' & ORIG_EDGE & RANK_Q & RANK_Q').
-    rewrite RANK_Q. rewrite RANK_Q'. eapply (orig_semantic_lalr_rank_cert W lookahead q_orig q_orig'). exact ORIG_EDGE.
+    pose proof (R.(orig_semantic_lalr_resolver_rank_edge W) lookahead q q' EDGE) as (q_orig & q_orig' & ORIG_EDGE & RANK_Q & RANK_Q').
+    rewrite RANK_Q. rewrite RANK_Q'.
+    eapply W.(orig_semantic_lalr_rank_cert) with (lookahead := lookahead) (q := q_orig) (q' := q_orig').
+    exact ORIG_EDGE.
 Qed.
 
 Theorem semantic_lalr_path_transport_witness_from_orig_semantic_lalr_path_image (W : orig_semantic_lalr_witness)
@@ -20849,11 +20859,14 @@ Theorem semantic_lalr_path_transport_witness_from_orig_semantic_lalr_path_image 
 Proof.
   refine {| semantic_lalr_path_transport_rank := orig_semantic_lalr_path_resolver_rank W R |}.
   - intros q t CONFLICT.
-    pose proof (orig_semantic_lalr_path_resolver_conflict W R q t CONFLICT) as (q_orig & ORIG_CONFLICT).
-    eapply (orig_semantic_lalr_conflict_free W q_orig t). exact ORIG_CONFLICT.
+    pose proof (R.(orig_semantic_lalr_path_resolver_conflict W) q t CONFLICT) as (q_orig & ORIG_CONFLICT).
+    eapply W.(orig_semantic_lalr_conflict_free) with (q := q_orig) (t := t).
+    exact ORIG_CONFLICT.
   - intros lookahead q q' EDGE.
-    pose proof (orig_semantic_lalr_path_resolver_rank_edge W R lookahead q q' EDGE) as (q_orig & q_orig' & ORIG_EDGE & RANK_Q & RANK_Q').
-    rewrite RANK_Q. rewrite RANK_Q'. eapply (orig_semantic_lalr_rank_cert W lookahead q_orig q_orig'). exact ORIG_EDGE.
+    pose proof (R.(orig_semantic_lalr_path_resolver_rank_edge W) lookahead q q' EDGE) as (q_orig & q_orig' & ORIG_EDGE & RANK_Q & RANK_Q').
+    rewrite RANK_Q. rewrite RANK_Q'.
+    eapply W.(orig_semantic_lalr_rank_cert) with (lookahead := lookahead) (q := q_orig) (q' := q_orig').
+    exact ORIG_EDGE.
 Qed.
 
 Lemma semantic_lalr_path_transport_witness_from_orig_semantic_lalr_no_shift_path_image (W : orig_semantic_lalr_witness)
