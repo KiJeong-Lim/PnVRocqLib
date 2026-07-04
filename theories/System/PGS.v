@@ -1807,437 +1807,437 @@ Qed.
 
 Module Abs.
 
-Notation prod' := prod'.
+Abbreviation prod' := prod'.
 
-Notation P' := P'.
+Abbreviation P' := P'.
 
-Notation rm_step := rm_step.
+Abbreviation rm_step := rm_step.
 
-Notation rm_steps := rm_steps.
+Abbreviation rm_steps := rm_steps.
 
-Notation rm_steps_n := rm_steps_n.
+Abbreviation rm_steps_n := rm_steps_n.
 
-Notation rm_steps_bounded := rm_steps_bounded.
+Abbreviation rm_steps_bounded := rm_steps_bounded.
 
-Notation Productive := Productive.
+Abbreviation Productive := Productive.
 
-Notation ProductiveStr := ProductiveStr.
+Abbreviation ProductiveStr := ProductiveStr.
 
-Notation Gen := Gen.
+Abbreviation Gen := Gen.
 
-Notation GenStr := GenStr.
+Abbreviation GenStr := GenStr.
 
-Notation all_nonterminals_productive := all_nonterminals_productive.
+Abbreviation all_nonterminals_productive := all_nonterminals_productive.
 
-Notation genb := genb.
+Abbreviation genb := genb.
 
-Notation genstrb := genstrb.
+Abbreviation genstrb := genstrb.
 
-Notation rm_steps_n_case_spec := rm_steps_n_case_spec.
+Abbreviation rm_steps_n_case_spec := rm_steps_n_case_spec.
 
-Notation rm_steps_n_last_case_spec := rm_steps_n_last_case_spec.
+Abbreviation rm_steps_n_last_case_spec := rm_steps_n_last_case_spec.
 
-Notation rm_steps_n_start_case_spec := rm_steps_n_start_case_spec.
+Abbreviation rm_steps_n_start_case_spec := rm_steps_n_start_case_spec.
 
-Notation terminal_suffix_image_head_spec := terminal_suffix_image_head_spec.
+Abbreviation terminal_suffix_image_head_spec := terminal_suffix_image_head_spec.
 
-Notation app_cons_split_spec := app_cons_split_spec.
+Abbreviation app_cons_split_spec := app_cons_split_spec.
 
-Notation app_middle_occurrence_split_spec := app_middle_occurrence_split_spec.
+Abbreviation app_middle_occurrence_split_spec := app_middle_occurrence_split_spec.
 
-Notation plain_step := plain_step.
+Abbreviation plain_step := plain_step.
 
-Notation plain_steps := plain_steps.
+Abbreviation plain_steps := plain_steps.
 
-Notation terminal_lift := terminal_lift.
+Abbreviation terminal_lift := terminal_lift.
 
-Notation accept_sentence := accept_sentence.
+Abbreviation accept_sentence := accept_sentence.
 
-Notation augmented_start_sentence := augmented_start_sentence.
+Abbreviation augmented_start_sentence := augmented_start_sentence.
 
-Notation grammar_step := grammar_step.
+Abbreviation grammar_step := grammar_step.
 
-Notation grammar_steps := grammar_steps.
+Abbreviation grammar_steps := grammar_steps.
 
-Notation grammar_accepts := grammar_accepts.
+Abbreviation grammar_accepts := grammar_accepts.
 
 End Abs.
 
 Module Impl.
 
-Notation inject := inject.
+Abbreviation inject := inject.
 
-Notation augmented_prod := augmented_prod.
+Abbreviation augmented_prod := augmented_prod.
 
-Notation P' := P'.
+Abbreviation P' := P'.
 
-Notation gen_symbol_in := gen_symbol_in.
+Abbreviation gen_symbol_in := gen_symbol_in.
 
-Notation gen_rhs_in := gen_rhs_in.
+Abbreviation gen_rhs_in := gen_rhs_in.
 
-Notation gen_prod_in := gen_prod_in.
+Abbreviation gen_prod_in := gen_prod_in.
 
-Notation gen_step := gen_step.
+Abbreviation gen_step := gen_step.
 
-Notation gen_fuel := gen_fuel.
+Abbreviation gen_fuel := gen_fuel.
 
-Notation gen_set := gen_set.
+Abbreviation gen_set := gen_set.
 
-Notation genb := genb.
+Abbreviation genb := genb.
 
-Notation gen_symbolb := gen_symbolb.
+Abbreviation gen_symbolb := gen_symbolb.
 
-Notation genstrb := genstrb.
+Abbreviation genstrb := genstrb.
 
 End Impl.
 
 Module Refine.
 
-Notation N'_all_complete_refines := N'_all_complete.
+Abbreviation N'_all_complete_refines := N'_all_complete.
 
-Notation T'_all_complete_refines := T'_all_complete.
+Abbreviation T'_all_complete_refines := T'_all_complete.
 
-Notation V'_all_complete_refines := V'_all_complete.
+Abbreviation V'_all_complete_refines := V'_all_complete.
 
-Notation N'_all_no_dup_refines := N'_all_no_dup.
+Abbreviation N'_all_no_dup_refines := N'_all_no_dup.
 
-Notation T'_all_no_dup_refines := T'_all_no_dup.
+Abbreviation T'_all_no_dup_refines := T'_all_no_dup.
 
-Notation V'_all_no_dup_refines := V'_all_no_dup.
+Abbreviation V'_all_no_dup_refines := V'_all_no_dup.
 
-Notation start_prime_not_in_rhs_refines := start_prime_not_in_rhs.
+Abbreviation start_prime_not_in_rhs_refines := start_prime_not_in_rhs.
 
-Notation eof_not_in_injected_rhs_refines := eof_not_in_injected_rhs.
+Abbreviation eof_not_in_injected_rhs_refines := eof_not_in_injected_rhs.
 
-Notation eof_in_rhs_only_augmented_refines := eof_in_rhs_only_augmented.
+Abbreviation eof_in_rhs_only_augmented_refines := eof_in_rhs_only_augmented.
 
-Notation terminal_lift_app_eof_refines := terminal_lift_app_eof.
+Abbreviation terminal_lift_app_eof_refines := terminal_lift_app_eof.
 
-Notation rm_steps_n_case_spec_refines := rm_steps_n_case_spec.
+Abbreviation rm_steps_n_case_spec_refines := rm_steps_n_case_spec.
 
-Notation rm_steps_n_case_refines := rm_steps_n_case.
+Abbreviation rm_steps_n_case_refines := rm_steps_n_case.
 
-Notation rm_steps_n_last_case_spec_refines := rm_steps_n_last_case_spec.
+Abbreviation rm_steps_n_last_case_spec_refines := rm_steps_n_last_case_spec.
 
-Notation rm_steps_n_last_case_refines := rm_steps_n_last_case.
+Abbreviation rm_steps_n_last_case_refines := rm_steps_n_last_case.
 
-Notation rm_step_start_augmented_refines := rm_step_start_augmented.
+Abbreviation rm_step_start_augmented_refines := rm_step_start_augmented.
 
-Notation rm_step_start_refines := rm_step_start.
+Abbreviation rm_step_start_refines := rm_step_start.
 
-Notation rm_steps_n_start_case_spec_refines := rm_steps_n_start_case_spec.
+Abbreviation rm_steps_n_start_case_spec_refines := rm_steps_n_start_case_spec.
 
-Notation rm_steps_n_start_case_refines := rm_steps_n_start_case.
+Abbreviation rm_steps_n_start_case_refines := rm_steps_n_start_case.
 
-Notation map_inr_injective_list_refines := map_inr_injective_list.
+Abbreviation map_inr_injective_list_refines := map_inr_injective_list.
 
-Notation map_inr_app_inv_prefix_refines := map_inr_app_inv_prefix.
+Abbreviation map_inr_app_inv_prefix_refines := map_inr_app_inv_prefix.
 
-Notation rm_step_source_decompose_refines := rm_step_source_decompose.
+Abbreviation rm_step_source_decompose_refines := rm_step_source_decompose.
 
-Notation map_inr_app_inv_refines := map_inr_app_inv.
+Abbreviation map_inr_app_inv_refines := map_inr_app_inv.
 
-Notation map_inr_no_nonterminal_refines := map_inr_no_nonterminal.
+Abbreviation map_inr_no_nonterminal_refines := map_inr_no_nonterminal.
 
-Notation terminal_suffix_image_head_spec_refines := terminal_suffix_image_head_spec.
+Abbreviation terminal_suffix_image_head_spec_refines := terminal_suffix_image_head_spec.
 
-Notation terminal_suffix_image_head_case_refines := terminal_suffix_image_head_case.
+Abbreviation terminal_suffix_image_head_case_refines := terminal_suffix_image_head_case.
 
-Notation app_cons_split_spec_refines := app_cons_split_spec.
+Abbreviation app_cons_split_spec_refines := app_cons_split_spec.
 
-Notation app_cons_split_refines := app_cons_split.
+Abbreviation app_cons_split_refines := app_cons_split.
 
-Notation app_cons_not_in_tail_inv_refines := app_cons_not_in_tail_inv.
+Abbreviation app_cons_not_in_tail_inv_refines := app_cons_not_in_tail_inv.
 
-Notation app_middle_occurrence_split_spec_refines := app_middle_occurrence_split_spec.
+Abbreviation app_middle_occurrence_split_spec_refines := app_middle_occurrence_split_spec.
 
-Notation app_middle_occurrence_split_refines := app_middle_occurrence_split.
+Abbreviation app_middle_occurrence_split_refines := app_middle_occurrence_split.
 
-Notation grammar_step_plain_step_refines := grammar_step_plain_step.
+Abbreviation grammar_step_plain_step_refines := grammar_step_plain_step.
 
-Notation grammar_step_plain_step_suffix_refines := grammar_step_plain_step_suffix.
+Abbreviation grammar_step_plain_step_suffix_refines := grammar_step_plain_step_suffix.
 
-Notation grammar_steps_plain_steps_refines := grammar_steps_plain_steps.
+Abbreviation grammar_steps_plain_steps_refines := grammar_steps_plain_steps.
 
-Notation grammar_steps_plain_steps_suffix_refines := grammar_steps_plain_steps_suffix.
+Abbreviation grammar_steps_plain_steps_suffix_refines := grammar_steps_plain_steps_suffix.
 
-Notation grammar_accepts_plain_augmented_refines := grammar_accepts_plain_augmented.
+Abbreviation grammar_accepts_plain_augmented_refines := grammar_accepts_plain_augmented.
 
-Notation plain_step_eof_suffix_grammar_step_refines := plain_step_eof_suffix_grammar_step.
+Abbreviation plain_step_eof_suffix_grammar_step_refines := plain_step_eof_suffix_grammar_step.
 
-Notation plain_steps_eof_suffix_grammar_steps_refines := plain_steps_eof_suffix_grammar_steps.
+Abbreviation plain_steps_eof_suffix_grammar_steps_refines := plain_steps_eof_suffix_grammar_steps.
 
-Notation plain_augmented_grammar_accepts_refines := plain_augmented_grammar_accepts.
+Abbreviation plain_augmented_grammar_accepts_refines := plain_augmented_grammar_accepts.
 
-Notation rm_step_plain_step_refines := rm_step_plain_step.
+Abbreviation rm_step_plain_step_refines := rm_step_plain_step.
 
-Notation rm_steps_n_rm_steps_refines := rm_steps_n_rm_steps.
+Abbreviation rm_steps_n_rm_steps_refines := rm_steps_n_rm_steps.
 
-Notation rm_steps_rm_steps_n_refines := rm_steps_rm_steps_n.
+Abbreviation rm_steps_rm_steps_n_refines := rm_steps_rm_steps_n.
 
-Notation rm_steps_bounded_rm_steps_refines := rm_steps_bounded_rm_steps.
+Abbreviation rm_steps_bounded_rm_steps_refines := rm_steps_bounded_rm_steps.
 
-Notation GenStr_terminals_refines := GenStr_terminals.
+Abbreviation GenStr_terminals_refines := GenStr_terminals.
 
-Notation GenStr_app_refines := GenStr_app.
+Abbreviation GenStr_app_refines := GenStr_app.
 
-Notation GenStr_app_inv_refines := GenStr_app_inv.
+Abbreviation GenStr_app_inv_refines := GenStr_app_inv.
 
-Notation Gen_productive_refines := Gen_productive.
+Abbreviation Gen_productive_refines := Gen_productive.
 
-Notation GenStr_productive_refines := GenStr_productive.
+Abbreviation GenStr_productive_refines := GenStr_productive.
 
-Notation rm_step_source_GenStr_refines := rm_step_source_GenStr.
+Abbreviation rm_step_source_GenStr_refines := rm_step_source_GenStr.
 
-Notation rm_steps_n_terminal_GenStr_refines := rm_steps_n_terminal_GenStr.
+Abbreviation rm_steps_n_terminal_GenStr_refines := rm_steps_n_terminal_GenStr.
 
-Notation rm_steps_terminal_GenStr_refines := rm_steps_terminal_GenStr.
+Abbreviation rm_steps_terminal_GenStr_refines := rm_steps_terminal_GenStr.
 
-Notation Productive_Gen_refines := Productive_Gen.
+Abbreviation Productive_Gen_refines := Productive_Gen.
 
-Notation ProductiveStr_GenStr_refines := ProductiveStr_GenStr.
+Abbreviation ProductiveStr_GenStr_refines := ProductiveStr_GenStr.
 
-Notation Gen_correct_refines := Gen_correct.
+Abbreviation Gen_correct_refines := Gen_correct.
 
-Notation GenStr_correct_refines := GenStr_correct.
+Abbreviation GenStr_correct_refines := GenStr_correct.
 
-Notation genb_sound_refines := genb_sound.
+Abbreviation genb_sound_refines := genb_sound.
 
-Notation genstrb_sound_refines := genstrb_sound.
+Abbreviation genstrb_sound_refines := genstrb_sound.
 
-Notation gen_fixed_at_fuel_refines := gen_fixed_at_fuel.
+Abbreviation gen_fixed_at_fuel_refines := gen_fixed_at_fuel.
 
-Notation genb_complete_refines := genb_complete.
+Abbreviation genb_complete_refines := genb_complete.
 
-Notation genstrb_complete_refines := genstrb_complete.
+Abbreviation genstrb_complete_refines := genstrb_complete.
 
-Notation genb_correct_refines := genb_correct.
+Abbreviation genb_correct_refines := genb_correct.
 
-Notation genstrb_correct_refines := genstrb_correct.
+Abbreviation genstrb_correct_refines := genstrb_correct.
 
-Notation all_nonterminals_productive_string_refines := all_nonterminals_productive_string.
+Abbreviation all_nonterminals_productive_string_refines := all_nonterminals_productive_string.
 
-Notation rm_steps_plain_steps_refines := rm_steps_plain_steps.
+Abbreviation rm_steps_plain_steps_refines := rm_steps_plain_steps.
 
-Notation plain_step_prefix_refines := plain_step_prefix.
+Abbreviation plain_step_prefix_refines := plain_step_prefix.
 
-Notation plain_steps_prefix_refines := plain_steps_prefix.
+Abbreviation plain_steps_prefix_refines := plain_steps_prefix.
 
-Notation plain_step_app_inv_refines := plain_step_app_inv.
+Abbreviation plain_step_app_inv_refines := plain_step_app_inv.
 
-Notation plain_steps_app_inv_terminal_refines := plain_steps_app_inv_terminal.
+Abbreviation plain_steps_app_inv_terminal_refines := plain_steps_app_inv_terminal.
 
-Notation plain_step_terminal_absurd_refines := plain_step_terminal_absurd.
+Abbreviation plain_step_terminal_absurd_refines := plain_step_terminal_absurd.
 
-Notation plain_steps_terminal_inv_refines := plain_steps_terminal_inv.
+Abbreviation plain_steps_terminal_inv_refines := plain_steps_terminal_inv.
 
-Notation rm_step_prefix_refines := rm_step_prefix.
+Abbreviation rm_step_prefix_refines := rm_step_prefix.
 
-Notation rm_steps_prefix_refines := rm_steps_prefix.
+Abbreviation rm_steps_prefix_refines := rm_steps_prefix.
 
-Notation rm_step_terminal_suffix_refines := rm_step_terminal_suffix.
+Abbreviation rm_step_terminal_suffix_refines := rm_step_terminal_suffix.
 
-Notation rm_steps_terminal_suffix_refines := rm_steps_terminal_suffix.
+Abbreviation rm_steps_terminal_suffix_refines := rm_steps_terminal_suffix.
 
-Notation plain_steps_n_plain_steps_refines := plain_steps_n_plain_steps.
+Abbreviation plain_steps_n_plain_steps_refines := plain_steps_n_plain_steps.
 
-Notation plain_steps_plain_steps_n_refines := plain_steps_plain_steps_n.
+Abbreviation plain_steps_plain_steps_n_refines := plain_steps_plain_steps_n.
 
-Notation plain_steps_bounded_plain_steps_refines := plain_steps_bounded_plain_steps.
+Abbreviation plain_steps_bounded_plain_steps_refines := plain_steps_bounded_plain_steps.
 
-Notation plain_steps_n_app_inv_terminal_refines := plain_steps_n_app_inv_terminal.
+Abbreviation plain_steps_n_app_inv_terminal_refines := plain_steps_n_app_inv_terminal.
 
-Notation plain_steps_bounded_app_inv_terminal_refines := plain_steps_bounded_app_inv_terminal.
+Abbreviation plain_steps_bounded_app_inv_terminal_refines := plain_steps_bounded_app_inv_terminal.
 
-Notation plain_steps_bounded_terminal_rm_steps_refines := plain_steps_bounded_terminal_rm_steps.
+Abbreviation plain_steps_bounded_terminal_rm_steps_refines := plain_steps_bounded_terminal_rm_steps.
 
-Notation plain_steps_terminal_rm_steps_refines := plain_steps_terminal_rm_steps.
+Abbreviation plain_steps_terminal_rm_steps_refines := plain_steps_terminal_rm_steps.
 
-Notation grammar_accepts_rm_steps_refines := grammar_accepts_rm_steps.
+Abbreviation grammar_accepts_rm_steps_refines := grammar_accepts_rm_steps.
 
 End Refine.
 
 Module API.
 
-Notation N := N.
+Abbreviation N := N.
 
-Notation T := T.
+Abbreviation T := T.
 
-Notation N' := N'.
+Abbreviation N' := N'.
 
-Notation T' := T'.
+Abbreviation T' := T'.
 
-Notation V := V.
+Abbreviation V := V.
 
-Notation V' := V'.
+Abbreviation V' := V'.
 
-Notation prod' := prod'.
+Abbreviation prod' := prod'.
 
-Notation P' := P'.
+Abbreviation P' := P'.
 
-Notation start_prime := start_prime.
+Abbreviation start_prime := start_prime.
 
-Notation eof := eof.
+Abbreviation eof := eof.
 
-Notation inject := inject.
+Abbreviation inject := inject.
 
-Notation rm_step := rm_step.
+Abbreviation rm_step := rm_step.
 
-Notation rm_steps := rm_steps.
+Abbreviation rm_steps := rm_steps.
 
-Notation rm_steps_n := rm_steps_n.
+Abbreviation rm_steps_n := rm_steps_n.
 
-Notation rm_steps_bounded := rm_steps_bounded.
+Abbreviation rm_steps_bounded := rm_steps_bounded.
 
-Notation Productive := Productive.
+Abbreviation Productive := Productive.
 
-Notation ProductiveStr := ProductiveStr.
+Abbreviation ProductiveStr := ProductiveStr.
 
-Notation Gen := Gen.
+Abbreviation Gen := Gen.
 
-Notation GenStr := GenStr.
+Abbreviation GenStr := GenStr.
 
-Notation all_nonterminals_productive := all_nonterminals_productive.
+Abbreviation all_nonterminals_productive := all_nonterminals_productive.
 
-Notation gen_fuel := gen_fuel.
+Abbreviation gen_fuel := gen_fuel.
 
-Notation gen_set := gen_set.
+Abbreviation gen_set := gen_set.
 
-Notation genb := genb.
+Abbreviation genb := genb.
 
-Notation genstrb := genstrb.
+Abbreviation genstrb := genstrb.
 
-Notation rm_steps_n_case_spec := rm_steps_n_case_spec.
+Abbreviation rm_steps_n_case_spec := rm_steps_n_case_spec.
 
-Notation rm_steps_n_last_case_spec := rm_steps_n_last_case_spec.
+Abbreviation rm_steps_n_last_case_spec := rm_steps_n_last_case_spec.
 
-Notation rm_steps_n_start_case_spec := rm_steps_n_start_case_spec.
+Abbreviation rm_steps_n_start_case_spec := rm_steps_n_start_case_spec.
 
-Notation plain_step := plain_step.
+Abbreviation plain_step := plain_step.
 
-Notation plain_steps := plain_steps.
+Abbreviation plain_steps := plain_steps.
 
-Notation terminal_lift := terminal_lift.
+Abbreviation terminal_lift := terminal_lift.
 
-Notation accept_sentence := accept_sentence.
+Abbreviation accept_sentence := accept_sentence.
 
-Notation augmented_start_sentence := augmented_start_sentence.
+Abbreviation augmented_start_sentence := augmented_start_sentence.
 
-Notation grammar_step := grammar_step.
+Abbreviation grammar_step := grammar_step.
 
-Notation grammar_steps := grammar_steps.
+Abbreviation grammar_steps := grammar_steps.
 
-Notation grammar_accepts := grammar_accepts.
+Abbreviation grammar_accepts := grammar_accepts.
 
-Notation map_inr_injective_list := map_inr_injective_list.
+Abbreviation map_inr_injective_list := map_inr_injective_list.
 
-Notation map_inr_app_inv_prefix := map_inr_app_inv_prefix.
+Abbreviation map_inr_app_inv_prefix := map_inr_app_inv_prefix.
 
-Notation rm_step_source_decompose := rm_step_source_decompose.
+Abbreviation rm_step_source_decompose := rm_step_source_decompose.
 
-Notation rm_steps_n_rm_steps := rm_steps_n_rm_steps.
+Abbreviation rm_steps_n_rm_steps := rm_steps_n_rm_steps.
 
-Notation rm_steps_rm_steps_n := rm_steps_rm_steps_n.
+Abbreviation rm_steps_rm_steps_n := rm_steps_rm_steps_n.
 
-Notation rm_steps_bounded_rm_steps := rm_steps_bounded_rm_steps.
+Abbreviation rm_steps_bounded_rm_steps := rm_steps_bounded_rm_steps.
 
-Notation GenStr_terminals := GenStr_terminals.
+Abbreviation GenStr_terminals := GenStr_terminals.
 
-Notation GenStr_app := GenStr_app.
+Abbreviation GenStr_app := GenStr_app.
 
-Notation GenStr_app_inv := GenStr_app_inv.
+Abbreviation GenStr_app_inv := GenStr_app_inv.
 
-Notation Gen_productive := Gen_productive.
+Abbreviation Gen_productive := Gen_productive.
 
-Notation GenStr_productive := GenStr_productive.
+Abbreviation GenStr_productive := GenStr_productive.
 
-Notation rm_step_source_GenStr := rm_step_source_GenStr.
+Abbreviation rm_step_source_GenStr := rm_step_source_GenStr.
 
-Notation rm_steps_n_terminal_GenStr := rm_steps_n_terminal_GenStr.
+Abbreviation rm_steps_n_terminal_GenStr := rm_steps_n_terminal_GenStr.
 
-Notation rm_steps_terminal_GenStr := rm_steps_terminal_GenStr.
+Abbreviation rm_steps_terminal_GenStr := rm_steps_terminal_GenStr.
 
-Notation Productive_Gen := Productive_Gen.
+Abbreviation Productive_Gen := Productive_Gen.
 
-Notation ProductiveStr_GenStr := ProductiveStr_GenStr.
+Abbreviation ProductiveStr_GenStr := ProductiveStr_GenStr.
 
-Notation Gen_correct := Gen_correct.
+Abbreviation Gen_correct := Gen_correct.
 
-Notation GenStr_correct := GenStr_correct.
+Abbreviation GenStr_correct := GenStr_correct.
 
-Notation genb_correct := genb_correct.
+Abbreviation genb_correct := genb_correct.
 
-Notation genstrb_correct := genstrb_correct.
+Abbreviation genstrb_correct := genstrb_correct.
 
-Notation all_nonterminals_productive_string := all_nonterminals_productive_string.
+Abbreviation all_nonterminals_productive_string := all_nonterminals_productive_string.
 
-Notation rm_steps_n_case := rm_steps_n_case.
+Abbreviation rm_steps_n_case := rm_steps_n_case.
 
-Notation rm_steps_n_last_case := rm_steps_n_last_case.
+Abbreviation rm_steps_n_last_case := rm_steps_n_last_case.
 
-Notation rm_step_start_augmented := rm_step_start_augmented.
+Abbreviation rm_step_start_augmented := rm_step_start_augmented.
 
-Notation rm_step_start := rm_step_start.
+Abbreviation rm_step_start := rm_step_start.
 
-Notation rm_steps_n_start_case := rm_steps_n_start_case.
+Abbreviation rm_steps_n_start_case := rm_steps_n_start_case.
 
-Notation map_inr_app_inv := map_inr_app_inv.
+Abbreviation map_inr_app_inv := map_inr_app_inv.
 
-Notation map_inr_no_nonterminal := map_inr_no_nonterminal.
+Abbreviation map_inr_no_nonterminal := map_inr_no_nonterminal.
 
-Notation terminal_suffix_image_head_spec := terminal_suffix_image_head_spec.
+Abbreviation terminal_suffix_image_head_spec := terminal_suffix_image_head_spec.
 
-Notation terminal_suffix_image_head_case := terminal_suffix_image_head_case.
+Abbreviation terminal_suffix_image_head_case := terminal_suffix_image_head_case.
 
-Notation app_cons_split_spec := app_cons_split_spec.
+Abbreviation app_cons_split_spec := app_cons_split_spec.
 
-Notation app_cons_split := app_cons_split.
+Abbreviation app_cons_split := app_cons_split.
 
-Notation app_cons_not_in_tail_inv := app_cons_not_in_tail_inv.
+Abbreviation app_cons_not_in_tail_inv := app_cons_not_in_tail_inv.
 
-Notation app_middle_occurrence_split_spec := app_middle_occurrence_split_spec.
+Abbreviation app_middle_occurrence_split_spec := app_middle_occurrence_split_spec.
 
-Notation app_middle_occurrence_split := app_middle_occurrence_split.
+Abbreviation app_middle_occurrence_split := app_middle_occurrence_split.
 
-Notation plain_step_prefix := plain_step_prefix.
+Abbreviation plain_step_prefix := plain_step_prefix.
 
-Notation plain_steps_prefix := plain_steps_prefix.
+Abbreviation plain_steps_prefix := plain_steps_prefix.
 
-Notation plain_step_app_inv := plain_step_app_inv.
+Abbreviation plain_step_app_inv := plain_step_app_inv.
 
-Notation plain_steps_app_inv_terminal := plain_steps_app_inv_terminal.
+Abbreviation plain_steps_app_inv_terminal := plain_steps_app_inv_terminal.
 
-Notation plain_step_terminal_absurd := plain_step_terminal_absurd.
+Abbreviation plain_step_terminal_absurd := plain_step_terminal_absurd.
 
-Notation plain_steps_terminal_inv := plain_steps_terminal_inv.
+Abbreviation plain_steps_terminal_inv := plain_steps_terminal_inv.
 
-Notation rm_step_prefix := rm_step_prefix.
+Abbreviation rm_step_prefix := rm_step_prefix.
 
-Notation rm_steps_prefix := rm_steps_prefix.
+Abbreviation rm_steps_prefix := rm_steps_prefix.
 
-Notation rm_step_terminal_suffix := rm_step_terminal_suffix.
+Abbreviation rm_step_terminal_suffix := rm_step_terminal_suffix.
 
-Notation rm_steps_terminal_suffix := rm_steps_terminal_suffix.
+Abbreviation rm_steps_terminal_suffix := rm_steps_terminal_suffix.
 
-Notation plain_steps_n := plain_steps_n.
+Abbreviation plain_steps_n := plain_steps_n.
 
-Notation plain_steps_bounded := plain_steps_bounded.
+Abbreviation plain_steps_bounded := plain_steps_bounded.
 
-Notation plain_steps_n_plain_steps := plain_steps_n_plain_steps.
+Abbreviation plain_steps_n_plain_steps := plain_steps_n_plain_steps.
 
-Notation plain_steps_plain_steps_n := plain_steps_plain_steps_n.
+Abbreviation plain_steps_plain_steps_n := plain_steps_plain_steps_n.
 
-Notation plain_steps_bounded_plain_steps := plain_steps_bounded_plain_steps.
+Abbreviation plain_steps_bounded_plain_steps := plain_steps_bounded_plain_steps.
 
-Notation plain_steps_n_app_inv_terminal := plain_steps_n_app_inv_terminal.
+Abbreviation plain_steps_n_app_inv_terminal := plain_steps_n_app_inv_terminal.
 
-Notation plain_steps_bounded_app_inv_terminal := plain_steps_bounded_app_inv_terminal.
+Abbreviation plain_steps_bounded_app_inv_terminal := plain_steps_bounded_app_inv_terminal.
 
-Notation plain_steps_bounded_terminal_rm_steps := plain_steps_bounded_terminal_rm_steps.
+Abbreviation plain_steps_bounded_terminal_rm_steps := plain_steps_bounded_terminal_rm_steps.
 
-Notation plain_steps_terminal_rm_steps := plain_steps_terminal_rm_steps.
+Abbreviation plain_steps_terminal_rm_steps := plain_steps_terminal_rm_steps.
 
-Notation grammar_accepts_rm_steps := grammar_accepts_rm_steps.
+Abbreviation grammar_accepts_rm_steps := grammar_accepts_rm_steps.
 
 End API.
 
@@ -2967,101 +2967,101 @@ Qed.
 
 Module Abs.
 
-Notation item := item.
+Abbreviation item := item.
 
-Notation state := state.
+Abbreviation state := state.
 
-Notation valid_item := valid_item.
+Abbreviation valid_item := valid_item.
 
-Notation closure_rel := closure_rel.
+Abbreviation closure_rel := closure_rel.
 
 End Abs.
 
 Module Impl.
 
-Notation all_items := all_items.
+Abbreviation all_items := all_items.
 
-Notation closure := closure.
+Abbreviation closure := closure.
 
-Notation goto := goto.
+Abbreviation goto := goto.
 
-Notation kernel := kernel.
+Abbreviation kernel := kernel.
 
-Notation shift_dot := shift_dot.
+Abbreviation shift_dot := shift_dot.
 
-Notation closure_no_dup := closure_no_dup.
+Abbreviation closure_no_dup := closure_no_dup.
 
-Notation goto_no_dup := goto_no_dup.
+Abbreviation goto_no_dup := goto_no_dup.
 
 End Impl.
 
 Module Refine.
 
-Notation all_items_complete_refines := all_items_complete.
+Abbreviation all_items_complete_refines := all_items_complete.
 
-Notation all_items_no_dup_refines := all_items_no_dup.
+Abbreviation all_items_no_dup_refines := all_items_no_dup.
 
-Notation closure_rel_valid_refines := closure_rel_valid.
+Abbreviation closure_rel_valid_refines := closure_rel_valid.
 
-Notation closure_correct_refines := closure_correct.
+Abbreviation closure_correct_refines := closure_correct.
 
-Notation closure_sound_refines := closure_sound.
+Abbreviation closure_sound_refines := closure_sound.
 
-Notation closure_complete_refines := closure_complete.
+Abbreviation closure_complete_refines := closure_complete.
 
-Notation closure_monotone_refines := closure_monotone.
+Abbreviation closure_monotone_refines := closure_monotone.
 
-Notation closure_idempotent_refines := closure_idempotent.
+Abbreviation closure_idempotent_refines := closure_idempotent.
 
-Notation closure_valid_refines := closure_valid.
+Abbreviation closure_valid_refines := closure_valid.
 
-Notation closure_no_dup_refines := closure_no_dup.
+Abbreviation closure_no_dup_refines := closure_no_dup.
 
-Notation goto_sound_refines := goto_sound.
+Abbreviation goto_sound_refines := goto_sound.
 
-Notation goto_correct_refines := goto_correct.
+Abbreviation goto_correct_refines := goto_correct.
 
-Notation goto_kernel_correct_refines := goto_kernel_correct.
+Abbreviation goto_kernel_correct_refines := goto_kernel_correct.
 
-Notation goto_monotone_refines := goto_monotone.
+Abbreviation goto_monotone_refines := goto_monotone.
 
-Notation goto_valid_refines := goto_valid.
+Abbreviation goto_valid_refines := goto_valid.
 
-Notation goto_all_items_refines := goto_all_items.
+Abbreviation goto_all_items_refines := goto_all_items.
 
-Notation goto_no_dup_refines := goto_no_dup.
+Abbreviation goto_no_dup_refines := goto_no_dup.
 
-Notation goto_kernel_start_prime_absurd_refines := goto_kernel_start_prime_absurd.
+Abbreviation goto_kernel_start_prime_absurd_refines := goto_kernel_start_prime_absurd.
 
-Notation goto_start_prime_absurd_refines := goto_start_prime_absurd.
+Abbreviation goto_start_prime_absurd_refines := goto_start_prime_absurd.
 
 End Refine.
 
 Module API.
 
-Notation item := item.
+Abbreviation item := item.
 
-Notation state := state.
+Abbreviation state := state.
 
-Notation valid_item := valid_item.
+Abbreviation valid_item := valid_item.
 
-Notation closure_rel := closure_rel.
+Abbreviation closure_rel := closure_rel.
 
-Notation closure := closure.
+Abbreviation closure := closure.
 
-Notation goto := goto.
+Abbreviation goto := goto.
 
-Notation kernel := kernel.
+Abbreviation kernel := kernel.
 
-Notation closure_no_dup := closure_no_dup.
+Abbreviation closure_no_dup := closure_no_dup.
 
-Notation goto_no_dup := goto_no_dup.
+Abbreviation goto_no_dup := goto_no_dup.
 
-Notation all_items := all_items.
+Abbreviation all_items := all_items.
 
-Notation goto_kernel_start_prime_absurd := goto_kernel_start_prime_absurd.
+Abbreviation goto_kernel_start_prime_absurd := goto_kernel_start_prime_absurd.
 
-Notation goto_start_prime_absurd := goto_start_prime_absurd.
+Abbreviation goto_start_prime_absurd := goto_start_prime_absurd.
 
 End API.
 
@@ -5670,1197 +5670,1197 @@ Qed.
 
 Module Abs.
 
-Notation PT := PT.
+Abbreviation PT := PT.
 
-Notation Q := Q.
+Abbreviation Q := Q.
 
-Notation delta := delta.
+Abbreviation delta := delta.
 
-Notation nonempty_exists := nonempty_exists.
+Abbreviation nonempty_exists := nonempty_exists.
 
-Notation delta_some_parent_item := delta_some_parent_item.
+Abbreviation delta_some_parent_item := delta_some_parent_item.
 
-Notation q0_items_valid := q0_items_valid.
+Abbreviation q0_items_valid := q0_items_valid.
 
-Notation lr0_item_plain_viable := lr0_item_plain_viable.
+Abbreviation lr0_item_plain_viable := lr0_item_plain_viable.
 
-Notation lr0_closure_rel_item_plain_viable := lr0_closure_rel_item_plain_viable.
+Abbreviation lr0_closure_rel_item_plain_viable := lr0_closure_rel_item_plain_viable.
 
-Notation lr0_goto_kernel_item_plain_viable := lr0_goto_kernel_item_plain_viable.
+Abbreviation lr0_goto_kernel_item_plain_viable := lr0_goto_kernel_item_plain_viable.
 
-Notation lr0_goto_item_plain_viable := lr0_goto_item_plain_viable.
+Abbreviation lr0_goto_item_plain_viable := lr0_goto_item_plain_viable.
 
-Notation q0_item_plain_viable := q0_item_plain_viable.
+Abbreviation q0_item_plain_viable := q0_item_plain_viable.
 
-Notation lr0_item_valid_for_path := lr0_item_valid_for_path.
+Abbreviation lr0_item_valid_for_path := lr0_item_valid_for_path.
 
-Notation lr0_item_valid_for_path_realization := lr0_item_valid_for_path_realization.
+Abbreviation lr0_item_valid_for_path_realization := lr0_item_valid_for_path_realization.
 
-Notation lr0_closure_rel_item_valid_for_path_productive := lr0_closure_rel_item_valid_for_path_productive.
+Abbreviation lr0_closure_rel_item_valid_for_path_productive := lr0_closure_rel_item_valid_for_path_productive.
 
-Notation lr0_goto_kernel_item_valid_for_path_productive := lr0_goto_kernel_item_valid_for_path_productive.
+Abbreviation lr0_goto_kernel_item_valid_for_path_productive := lr0_goto_kernel_item_valid_for_path_productive.
 
-Notation lr0_goto_item_valid_for_path_productive := lr0_goto_item_valid_for_path_productive.
+Abbreviation lr0_goto_item_valid_for_path_productive := lr0_goto_item_valid_for_path_productive.
 
-Notation q0_item_valid_for_path_productive := q0_item_valid_for_path_productive.
+Abbreviation q0_item_valid_for_path_productive := q0_item_valid_for_path_productive.
 
-Notation lr0_path_items_valid_for_path_productive_from := lr0_path_items_valid_for_path_productive_from.
+Abbreviation lr0_path_items_valid_for_path_productive_from := lr0_path_items_valid_for_path_productive_from.
 
-Notation lr0_path_items_valid_for_path_productive := lr0_path_items_valid_for_path_productive.
+Abbreviation lr0_path_items_valid_for_path_productive := lr0_path_items_valid_for_path_productive.
 
-Notation lr0_path_productive_realization := lr0_path_productive_realization.
+Abbreviation lr0_path_productive_realization := lr0_path_productive_realization.
 
-Notation lr0_path_productive_viable := lr0_path_productive_viable.
+Abbreviation lr0_path_productive_viable := lr0_path_productive_viable.
 
-Notation state_successors_sound := state_successors_sound.
+Abbreviation state_successors_sound := state_successors_sound.
 
-Notation state_successors_complete := state_successors_complete.
+Abbreviation state_successors_complete := state_successors_complete.
 
-Notation state_successors_correct := state_successors_correct.
+Abbreviation state_successors_correct := state_successors_correct.
 
-Notation state_successors_valid := state_successors_valid.
+Abbreviation state_successors_valid := state_successors_valid.
 
-Notation states_step_valid := states_step_valid.
+Abbreviation states_step_valid := states_step_valid.
 
-Notation states_step_successor := states_step_successor.
+Abbreviation states_step_successor := states_step_successor.
 
-Notation states_step_monotone := states_step_monotone.
+Abbreviation states_step_monotone := states_step_monotone.
 
-Notation states_iter_valid := states_iter_valid.
+Abbreviation states_iter_valid := states_iter_valid.
 
-Notation states_iter_mono_fuel := states_iter_mono_fuel.
+Abbreviation states_iter_mono_fuel := states_iter_mono_fuel.
 
-Notation states_iter_successor := states_iter_successor.
+Abbreviation states_iter_successor := states_iter_successor.
 
-Notation lists_of_length := lists_of_length.
+Abbreviation lists_of_length := lists_of_length.
 
-Notation lists_upto_length := lists_upto_length.
+Abbreviation lists_upto_length := lists_upto_length.
 
-Notation all_state_lists := all_state_lists.
+Abbreviation all_state_lists := all_state_lists.
 
-Notation state_fuel := state_fuel.
+Abbreviation state_fuel := state_fuel.
 
-Notation lists_of_length_complete := lists_of_length_complete.
+Abbreviation lists_of_length_complete := lists_of_length_complete.
 
-Notation lists_upto_length_complete := lists_upto_length_complete.
+Abbreviation lists_upto_length_complete := lists_upto_length_complete.
 
-Notation all_items_nonempty := all_items_nonempty.
+Abbreviation all_items_nonempty := all_items_nonempty.
 
-Notation state_fuel_two := state_fuel_two.
+Abbreviation state_fuel_two := state_fuel_two.
 
-Notation q0_no_dup := q0_no_dup.
+Abbreviation q0_no_dup := q0_no_dup.
 
-Notation state_successors_state_no_dup := state_successors_state_no_dup.
+Abbreviation state_successors_state_no_dup := state_successors_state_no_dup.
 
-Notation states_step_state_no_dup := states_step_state_no_dup.
+Abbreviation states_step_state_no_dup := states_step_state_no_dup.
 
-Notation states_iter_state_no_dup := states_iter_state_no_dup.
+Abbreviation states_iter_state_no_dup := states_iter_state_no_dup.
 
-Notation states_iter_all_items := states_iter_all_items.
+Abbreviation states_iter_all_items := states_iter_all_items.
 
-Notation state_in_all_state_lists := state_in_all_state_lists.
+Abbreviation state_in_all_state_lists := state_in_all_state_lists.
 
-Notation states_iter_state_in_all_state_lists := states_iter_state_in_all_state_lists.
+Abbreviation states_iter_state_in_all_state_lists := states_iter_state_in_all_state_lists.
 
-Notation state_list_subsetb := state_list_subsetb.
+Abbreviation state_list_subsetb := state_list_subsetb.
 
-Notation state_list_subsetb_sound := state_list_subsetb_sound.
+Abbreviation state_list_subsetb_sound := state_list_subsetb_sound.
 
-Notation state_list_subsetb_complete := state_list_subsetb_complete.
+Abbreviation state_list_subsetb_complete := state_list_subsetb_complete.
 
-Notation state_list_subsetb_false_new := state_list_subsetb_false_new.
+Abbreviation state_list_subsetb_false_new := state_list_subsetb_false_new.
 
-Notation state_NoDup_incl_remove_length_lt := state_NoDup_incl_remove_length_lt.
+Abbreviation state_NoDup_incl_remove_length_lt := state_NoDup_incl_remove_length_lt.
 
-Notation states_step_no_dup := states_step_no_dup.
+Abbreviation states_step_no_dup := states_step_no_dup.
 
-Notation states_iter_no_dup := states_iter_no_dup.
+Abbreviation states_iter_no_dup := states_iter_no_dup.
 
-Notation states_step_length_if_not_subset := states_step_length_if_not_subset.
+Abbreviation states_step_length_if_not_subset := states_step_length_if_not_subset.
 
-Notation states_step_fixed_if_subset := states_step_fixed_if_subset.
+Abbreviation states_step_fixed_if_subset := states_step_fixed_if_subset.
 
-Notation states_iter_no_dup_from_start := states_iter_no_dup_from_start.
+Abbreviation states_iter_no_dup_from_start := states_iter_no_dup_from_start.
 
-Notation states_iter_length_bound := states_iter_length_bound.
+Abbreviation states_iter_length_bound := states_iter_length_bound.
 
-Notation states_not_fixed_length_lower := states_not_fixed_length_lower.
+Abbreviation states_not_fixed_length_lower := states_not_fixed_length_lower.
 
-Notation states_first_fixed_before_bound := states_first_fixed_before_bound.
+Abbreviation states_first_fixed_before_bound := states_first_fixed_before_bound.
 
-Notation states_iter_after_fixed_subset := states_iter_after_fixed_subset.
+Abbreviation states_iter_after_fixed_subset := states_iter_after_fixed_subset.
 
-Notation PT_step_closed_of_length_bound := PT_step_closed_of_length_bound.
+Abbreviation PT_step_closed_of_length_bound := PT_step_closed_of_length_bound.
 
-Notation PT_step_closed := PT_step_closed.
+Abbreviation PT_step_closed := PT_step_closed.
 
-Notation PT_items_valid := PT_items_valid.
+Abbreviation PT_items_valid := PT_items_valid.
 
-Notation Q_items_valid := Q_items_valid.
+Abbreviation Q_items_valid := Q_items_valid.
 
-Notation delta_start_prime_none := delta_start_prime_none.
+Abbreviation delta_start_prime_none := delta_start_prime_none.
 
-Notation q0_closed := q0_closed.
+Abbreviation q0_closed := q0_closed.
 
-Notation goto_closed := goto_closed.
+Abbreviation goto_closed := goto_closed.
 
-Notation state_successors_closed := state_successors_closed.
+Abbreviation state_successors_closed := state_successors_closed.
 
-Notation states_step_closed := states_step_closed.
+Abbreviation states_step_closed := states_step_closed.
 
-Notation states_iter_closed := states_iter_closed.
+Abbreviation states_iter_closed := states_iter_closed.
 
-Notation PT_closed := PT_closed.
+Abbreviation PT_closed := PT_closed.
 
-Notation Q_closed := Q_closed.
+Abbreviation Q_closed := Q_closed.
 
-Notation Q_closure_rel_complete := Q_closure_rel_complete.
+Abbreviation Q_closure_rel_complete := Q_closure_rel_complete.
 
-Notation Q_closure_seed_for := Q_closure_seed_for.
+Abbreviation Q_closure_seed_for := Q_closure_seed_for.
 
-Notation delta_nonterminal_seed := delta_nonterminal_seed.
+Abbreviation delta_nonterminal_seed := delta_nonterminal_seed.
 
-Notation delta_target_in_Q_of_PT_step_closed := delta_target_in_Q_of_PT_step_closed.
+Abbreviation delta_target_in_Q_of_PT_step_closed := delta_target_in_Q_of_PT_step_closed.
 
-Notation path := path.
+Abbreviation path := path.
 
-Notation path_source_in_Q := path_source_in_Q.
+Abbreviation path_source_in_Q := path_source_in_Q.
 
-Notation path_target_in_Q := path_target_in_Q.
+Abbreviation path_target_in_Q := path_target_in_Q.
 
-Notation path_source_items_valid := path_source_items_valid.
+Abbreviation path_source_items_valid := path_source_items_valid.
 
-Notation path_target_items_valid := path_target_items_valid.
+Abbreviation path_target_items_valid := path_target_items_valid.
 
-Notation lr0_path_items_plain_viable_from := lr0_path_items_plain_viable_from.
+Abbreviation lr0_path_items_plain_viable_from := lr0_path_items_plain_viable_from.
 
-Notation lr0_path_plain_viable_prefix := lr0_path_plain_viable_prefix.
+Abbreviation lr0_path_plain_viable_prefix := lr0_path_plain_viable_prefix.
 
-Notation path_states_iter := path_states_iter.
+Abbreviation path_states_iter := path_states_iter.
 
-Notation path_from_q0_states_iter := path_from_q0_states_iter.
+Abbreviation path_from_q0_states_iter := path_from_q0_states_iter.
 
-Notation path_from_q0_in_PT_if_short := path_from_q0_in_PT_if_short.
+Abbreviation path_from_q0_in_PT_if_short := path_from_q0_in_PT_if_short.
 
-Notation states_iter_reachable_path := states_iter_reachable_path.
+Abbreviation states_iter_reachable_path := states_iter_reachable_path.
 
-Notation PT_reachable_path := PT_reachable_path.
+Abbreviation PT_reachable_path := PT_reachable_path.
 
-Notation Q_reachable_path := Q_reachable_path.
+Abbreviation Q_reachable_path := Q_reachable_path.
 
-Notation path_app := path_app.
+Abbreviation path_app := path_app.
 
-Notation path_app_inv := path_app_inv.
+Abbreviation path_app_inv := path_app_inv.
 
-Notation path_deterministic := path_deterministic.
+Abbreviation path_deterministic := path_deterministic.
 
-Notation lr0_path_factorization := lr0_path_factorization.
+Abbreviation lr0_path_factorization := lr0_path_factorization.
 
-Notation lr0_source_handle_prod_path_spec := lr0_source_handle_prod_path_spec.
+Abbreviation lr0_source_handle_prod_path_spec := lr0_source_handle_prod_path_spec.
 
-Notation lr0_source_handle_prod_path := lr0_source_handle_prod_path.
+Abbreviation lr0_source_handle_prod_path := lr0_source_handle_prod_path.
 
-Notation lr0_rm_step_source_handle_prod_path_spec := lr0_rm_step_source_handle_prod_path_spec.
+Abbreviation lr0_rm_step_source_handle_prod_path_spec := lr0_rm_step_source_handle_prod_path_spec.
 
-Notation lr0_rm_step_source_handle_prod_path := lr0_rm_step_source_handle_prod_path.
+Abbreviation lr0_rm_step_source_handle_prod_path := lr0_rm_step_source_handle_prod_path.
 
-Notation path_symbol := path_symbol.
+Abbreviation path_symbol := path_symbol.
 
-Notation path_snoc := path_snoc.
+Abbreviation path_snoc := path_snoc.
 
-Notation goto_shift_item := goto_shift_item.
+Abbreviation goto_shift_item := goto_shift_item.
 
-Notation lr0_item_suffix_path_under_delta_closed := lr0_item_suffix_path_under_delta_closed.
+Abbreviation lr0_item_suffix_path_under_delta_closed := lr0_item_suffix_path_under_delta_closed.
 
-Notation lr0_seed_item_prefix_path_under_delta_closed := lr0_seed_item_prefix_path_under_delta_closed.
+Abbreviation lr0_seed_item_prefix_path_under_delta_closed := lr0_seed_item_prefix_path_under_delta_closed.
 
-Notation lr0_path_item_invariant := lr0_path_item_invariant.
+Abbreviation lr0_path_item_invariant := lr0_path_item_invariant.
 
-Notation path_completed_item := path_completed_item.
+Abbreviation path_completed_item := path_completed_item.
 
-Notation config := config.
+Abbreviation config := config.
 
-Notation reduce := reduce.
+Abbreviation reduce := reduce.
 
-Notation lr0_reduce_completed_item_iff := lr0_reduce_completed_item_iff.
+Abbreviation lr0_reduce_completed_item_iff := lr0_reduce_completed_item_iff.
 
-Notation lr0_handle_reduce_core := lr0_handle_reduce_core.
+Abbreviation lr0_handle_reduce_core := lr0_handle_reduce_core.
 
-Notation lr0_handle_completed_item_and_reduce := lr0_handle_completed_item_and_reduce.
+Abbreviation lr0_handle_completed_item_and_reduce := lr0_handle_completed_item_and_reduce.
 
-Notation lr0_handle_reduce_from_parent := lr0_handle_reduce_from_parent.
+Abbreviation lr0_handle_reduce_from_parent := lr0_handle_reduce_from_parent.
 
-Notation lr0_handle_reduce_from_delta_prod := lr0_handle_reduce_from_delta_prod.
+Abbreviation lr0_handle_reduce_from_delta_prod := lr0_handle_reduce_from_delta_prod.
 
-Notation lr0_handle_from_parent_completed_item_and_reduce := lr0_handle_from_parent_completed_item_and_reduce.
+Abbreviation lr0_handle_from_parent_completed_item_and_reduce := lr0_handle_from_parent_completed_item_and_reduce.
 
-Notation lr0_path_handle_invariant_spec := lr0_path_handle_invariant_spec.
+Abbreviation lr0_path_handle_invariant_spec := lr0_path_handle_invariant_spec.
 
-Notation lr0_path_handle_invariant := lr0_path_handle_invariant.
+Abbreviation lr0_path_handle_invariant := lr0_path_handle_invariant.
 
-Notation step := step.
+Abbreviation step := step.
 
-Notation lr0_shift_step := lr0_shift_step.
+Abbreviation lr0_shift_step := lr0_shift_step.
 
-Notation lr0_reduce_step_from_seed := lr0_reduce_step_from_seed.
+Abbreviation lr0_reduce_step_from_seed := lr0_reduce_step_from_seed.
 
-Notation lr0_reduce_step_from_parent := lr0_reduce_step_from_parent.
+Abbreviation lr0_reduce_step_from_parent := lr0_reduce_step_from_parent.
 
-Notation lr0_reduce_step_from_prod := lr0_reduce_step_from_prod.
+Abbreviation lr0_reduce_step_from_prod := lr0_reduce_step_from_prod.
 
-Notation steps := steps.
+Abbreviation steps := steps.
 
-Notation lr0_steps_trans := lr0_steps_trans.
+Abbreviation lr0_steps_trans := lr0_steps_trans.
 
-Notation lr0_shift_steps := lr0_shift_steps.
+Abbreviation lr0_shift_steps := lr0_shift_steps.
 
-Notation lr0_shift_terminal_list_steps := lr0_shift_terminal_list_steps.
+Abbreviation lr0_shift_terminal_list_steps := lr0_shift_terminal_list_steps.
 
-Notation lr0_reduce_steps_from_seed := lr0_reduce_steps_from_seed.
+Abbreviation lr0_reduce_steps_from_seed := lr0_reduce_steps_from_seed.
 
-Notation lr0_reduce_steps_from_reduce := lr0_reduce_steps_from_reduce.
+Abbreviation lr0_reduce_steps_from_reduce := lr0_reduce_steps_from_reduce.
 
-Notation lr0_reduce_steps_from_completed_item := lr0_reduce_steps_from_completed_item.
+Abbreviation lr0_reduce_steps_from_completed_item := lr0_reduce_steps_from_completed_item.
 
-Notation lr0_reduce_steps_from_parent := lr0_reduce_steps_from_parent.
+Abbreviation lr0_reduce_steps_from_parent := lr0_reduce_steps_from_parent.
 
-Notation lr0_reduce_steps_from_prod := lr0_reduce_steps_from_prod.
+Abbreviation lr0_reduce_steps_from_prod := lr0_reduce_steps_from_prod.
 
-Notation lr0_reduce_then_shift_terminal_list_from_reduce := lr0_reduce_then_shift_terminal_list_from_reduce.
+Abbreviation lr0_reduce_then_shift_terminal_list_from_reduce := lr0_reduce_then_shift_terminal_list_from_reduce.
 
-Notation lr0_reduce_then_shift_terminal_list_from_completed_item := lr0_reduce_then_shift_terminal_list_from_completed_item.
+Abbreviation lr0_reduce_then_shift_terminal_list_from_completed_item := lr0_reduce_then_shift_terminal_list_from_completed_item.
 
-Notation lr0_reduce_then_shift_terminal_list_from_prod := lr0_reduce_then_shift_terminal_list_from_prod.
+Abbreviation lr0_reduce_then_shift_terminal_list_from_prod := lr0_reduce_then_shift_terminal_list_from_prod.
 
-Notation lr0_reduce_then_shift_terminal_list_from_parent := lr0_reduce_then_shift_terminal_list_from_parent.
+Abbreviation lr0_reduce_then_shift_terminal_list_from_parent := lr0_reduce_then_shift_terminal_list_from_parent.
 
-Notation lr0_parent_handle_completed_reduce_and_shift_terminal_list := lr0_parent_handle_completed_reduce_and_shift_terminal_list.
+Abbreviation lr0_parent_handle_completed_reduce_and_shift_terminal_list := lr0_parent_handle_completed_reduce_and_shift_terminal_list.
 
-Notation q_f := q_f.
+Abbreviation q_f := q_f.
 
-Notation q_f_exists := q_f_exists.
+Abbreviation q_f_exists := q_f_exists.
 
-Notation q_f_accept_path := q_f_accept_path.
+Abbreviation q_f_accept_path := q_f_accept_path.
 
-Notation accept_path_q_f := accept_path_q_f.
+Abbreviation accept_path_q_f := accept_path_q_f.
 
-Notation q_f_accept_path_iff := q_f_accept_path_iff.
+Abbreviation q_f_accept_path_iff := q_f_accept_path_iff.
 
-Notation q_f_exists_path := q_f_exists_path.
+Abbreviation q_f_exists_path := q_f_exists_path.
 
-Notation lr0_final_eof_shift_steps := lr0_final_eof_shift_steps.
+Abbreviation lr0_final_eof_shift_steps := lr0_final_eof_shift_steps.
 
-Notation lr0_shift_input_eof_steps := lr0_shift_input_eof_steps.
+Abbreviation lr0_shift_input_eof_steps := lr0_shift_input_eof_steps.
 
-Notation lr0_shift_accept_sentence_steps := lr0_shift_accept_sentence_steps.
+Abbreviation lr0_shift_accept_sentence_steps := lr0_shift_accept_sentence_steps.
 
-Notation lr0_init_accept_sentence_prefix_steps := lr0_init_accept_sentence_prefix_steps.
+Abbreviation lr0_init_accept_sentence_prefix_steps := lr0_init_accept_sentence_prefix_steps.
 
-Notation L_LRA := L_LRA.
+Abbreviation L_LRA := L_LRA.
 
-Notation lr0_start_stack_steps_accept := lr0_start_stack_steps_accept.
+Abbreviation lr0_start_stack_steps_accept := lr0_start_stack_steps_accept.
 
-Notation lr0_start_stack_steps_accept_exists := lr0_start_stack_steps_accept_exists.
+Abbreviation lr0_start_stack_steps_accept_exists := lr0_start_stack_steps_accept_exists.
 
-Notation lr0_shifted_input_to_start_stack_steps_accept := lr0_shifted_input_to_start_stack_steps_accept.
+Abbreviation lr0_shifted_input_to_start_stack_steps_accept := lr0_shifted_input_to_start_stack_steps_accept.
 
-Notation lr0_shifted_input_to_start_stack_steps_accept_exists := lr0_shifted_input_to_start_stack_steps_accept_exists.
+Abbreviation lr0_shifted_input_to_start_stack_steps_accept_exists := lr0_shifted_input_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_to_start_stack_steps_accept := lr0_accept_sentence_to_start_stack_steps_accept.
+Abbreviation lr0_accept_sentence_to_start_stack_steps_accept := lr0_accept_sentence_to_start_stack_steps_accept.
 
-Notation lr0_accept_sentence_to_start_stack_steps_accept_exists := lr0_accept_sentence_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_to_start_stack_steps_accept_exists := lr0_accept_sentence_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists := lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists := lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists.
 
-Notation lr0_init_prod_block_from_paths_to_sentential_steps := lr0_init_prod_block_from_paths_to_sentential_steps.
+Abbreviation lr0_init_prod_block_from_paths_to_sentential_steps := lr0_init_prod_block_from_paths_to_sentential_steps.
 
-Notation lr0_init_prod_block_from_source_path_to_sentential_steps := lr0_init_prod_block_from_source_path_to_sentential_steps.
+Abbreviation lr0_init_prod_block_from_source_path_to_sentential_steps := lr0_init_prod_block_from_source_path_to_sentential_steps.
 
-Notation lr0_init_rm_step_from_paths_to_sentential_steps := lr0_init_rm_step_from_paths_to_sentential_steps.
+Abbreviation lr0_init_rm_step_from_paths_to_sentential_steps := lr0_init_rm_step_from_paths_to_sentential_steps.
 
-Notation lr0_refined_rm_steps := lr0_refined_rm_steps.
+Abbreviation lr0_refined_rm_steps := lr0_refined_rm_steps.
 
-Notation lr0_refined_rm_steps_sound := lr0_refined_rm_steps_sound.
+Abbreviation lr0_refined_rm_steps_sound := lr0_refined_rm_steps_sound.
 
-Notation lr0_refined_rm_steps_progress := lr0_refined_rm_steps_progress.
+Abbreviation lr0_refined_rm_steps_progress := lr0_refined_rm_steps_progress.
 
-Notation lr0_refined_start_stack_steps_accept := lr0_refined_start_stack_steps_accept.
+Abbreviation lr0_refined_start_stack_steps_accept := lr0_refined_start_stack_steps_accept.
 
-Notation lr0_refined_start_stack_sound := lr0_refined_start_stack_sound.
+Abbreviation lr0_refined_start_stack_sound := lr0_refined_start_stack_sound.
 
-Notation lr0_split_refined_rm_steps := lr0_split_refined_rm_steps.
+Abbreviation lr0_split_refined_rm_steps := lr0_split_refined_rm_steps.
 
-Notation rm_step_target_word_decompose := rm_step_target_word_decompose.
+Abbreviation rm_step_target_word_decompose := rm_step_target_word_decompose.
 
-Notation lr0_split_refined_rm_steps_sound := lr0_split_refined_rm_steps_sound.
+Abbreviation lr0_split_refined_rm_steps_sound := lr0_split_refined_rm_steps_sound.
 
-Notation lr0_split_refined_rm_steps_progress := lr0_split_refined_rm_steps_progress.
+Abbreviation lr0_split_refined_rm_steps_progress := lr0_split_refined_rm_steps_progress.
 
-Notation lr0_split_refined_start_stack_steps_accept := lr0_split_refined_start_stack_steps_accept.
+Abbreviation lr0_split_refined_start_stack_steps_accept := lr0_split_refined_start_stack_steps_accept.
 
-Notation lr0_split_refined_start_stack_sound := lr0_split_refined_start_stack_sound.
+Abbreviation lr0_split_refined_start_stack_sound := lr0_split_refined_start_stack_sound.
 
-Notation lr0_rm_steps_split_refined := lr0_rm_steps_split_refined.
+Abbreviation lr0_rm_steps_split_refined := lr0_rm_steps_split_refined.
 
-Notation lr0_rm_steps_split_refined_bridge := lr0_rm_steps_split_refined_bridge.
+Abbreviation lr0_rm_steps_split_refined_bridge := lr0_rm_steps_split_refined_bridge.
 
-Notation lr0_start_rm_steps_accept_by_split_refined := lr0_start_rm_steps_accept_by_split_refined.
+Abbreviation lr0_start_rm_steps_accept_by_split_refined := lr0_start_rm_steps_accept_by_split_refined.
 
-Notation lr0_rm_steps_complete := lr0_rm_steps_complete.
+Abbreviation lr0_rm_steps_complete := lr0_rm_steps_complete.
 
-Notation lr0_rm_step_refined_tail_bridge := lr0_rm_step_refined_tail_bridge.
+Abbreviation lr0_rm_step_refined_tail_bridge := lr0_rm_step_refined_tail_bridge.
 
-Notation lr0_start_rm_step_refined_tail_correct := lr0_start_rm_step_refined_tail_correct.
+Abbreviation lr0_start_rm_step_refined_tail_correct := lr0_start_rm_step_refined_tail_correct.
 
-Notation lr0_rm_steps_refined_by_first_step := lr0_rm_steps_refined_by_first_step.
+Abbreviation lr0_rm_steps_refined_by_first_step := lr0_rm_steps_refined_by_first_step.
 
-Notation lr0_rm_steps_refined_by_target_path := lr0_rm_steps_refined_by_target_path.
+Abbreviation lr0_rm_steps_refined_by_target_path := lr0_rm_steps_refined_by_target_path.
 
-Notation lr0_start_rm_steps_accept_by_target_path := lr0_start_rm_steps_accept_by_target_path.
+Abbreviation lr0_start_rm_steps_accept_by_target_path := lr0_start_rm_steps_accept_by_target_path.
 
-Notation lr0_rm_steps_refined_by_handle_target_path := lr0_rm_steps_refined_by_handle_target_path.
+Abbreviation lr0_rm_steps_refined_by_handle_target_path := lr0_rm_steps_refined_by_handle_target_path.
 
-Notation lr0_start_rm_steps_accept_by_handle_target_path := lr0_start_rm_steps_accept_by_handle_target_path.
+Abbreviation lr0_start_rm_steps_accept_by_handle_target_path := lr0_start_rm_steps_accept_by_handle_target_path.
 
-Notation lr0_rm_steps_refined_by_handle_suffix_path := lr0_rm_steps_refined_by_handle_suffix_path.
+Abbreviation lr0_rm_steps_refined_by_handle_suffix_path := lr0_rm_steps_refined_by_handle_suffix_path.
 
-Notation lr0_start_rm_steps_accept_by_handle_suffix_path := lr0_start_rm_steps_accept_by_handle_suffix_path.
+Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path := lr0_start_rm_steps_accept_by_handle_suffix_path.
 
-Notation lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed := lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed.
+Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed := lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed.
 
-Notation lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed := lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed.
+Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed := lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed.
 
-Notation lr0_rm_steps_refined_by_handle_suffix_path_closed := lr0_rm_steps_refined_by_handle_suffix_path_closed.
+Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_closed := lr0_rm_steps_refined_by_handle_suffix_path_closed.
 
-Notation lr0_start_rm_steps_accept_by_handle_suffix_path_closed := lr0_start_rm_steps_accept_by_handle_suffix_path_closed.
+Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_closed := lr0_start_rm_steps_accept_by_handle_suffix_path_closed.
 
-Notation lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_sound_augmented := lr0_sound_augmented.
+Abbreviation lr0_sound_augmented := lr0_sound_augmented.
 
-Notation lr0_rm_steps_correct := lr0_rm_steps_correct.
+Abbreviation lr0_rm_steps_correct := lr0_rm_steps_correct.
 
-Notation lr0_sound_plain_augmented := lr0_sound_plain_augmented.
+Abbreviation lr0_sound_plain_augmented := lr0_sound_plain_augmented.
 
-Notation lr0_sound := lr0_sound.
+Abbreviation lr0_sound := lr0_sound.
 
-Notation lr0_complete := lr0_complete.
+Abbreviation lr0_complete := lr0_complete.
 
-Notation lr0_correct := lr0_correct.
+Abbreviation lr0_correct := lr0_correct.
 
 End Abs.
 
 Module Impl.
 
-Notation compute_states := compute_states.
+Abbreviation compute_states := compute_states.
 
-Notation all_state_lists := all_state_lists.
+Abbreviation all_state_lists := all_state_lists.
 
-Notation state_fuel := state_fuel.
+Abbreviation state_fuel := state_fuel.
 
-Notation state_successors := state_successors.
+Abbreviation state_successors := state_successors.
 
-Notation states_step := states_step.
+Abbreviation states_step := states_step.
 
-Notation delta := delta.
+Abbreviation delta := delta.
 
-Notation reduce := reduce.
+Abbreviation reduce := reduce.
 
 End Impl.
 
 Module Refine.
 
-Notation q0_in_Q_refines := q0_in_Q.
+Abbreviation q0_in_Q_refines := q0_in_Q.
 
-Notation nonempty_exists_refines := nonempty_exists.
+Abbreviation nonempty_exists_refines := nonempty_exists.
 
-Notation goto_nonempty_shift_refines := goto_nonempty_shift.
+Abbreviation goto_nonempty_shift_refines := goto_nonempty_shift.
 
-Notation delta_some_nonempty_refines := delta_some_nonempty.
+Abbreviation delta_some_nonempty_refines := delta_some_nonempty.
 
-Notation delta_some_parent_item_refines := delta_some_parent_item.
+Abbreviation delta_some_parent_item_refines := delta_some_parent_item.
 
-Notation q0_items_valid_refines := q0_items_valid.
+Abbreviation q0_items_valid_refines := q0_items_valid.
 
-Notation lr0_item_plain_viable_refines := lr0_item_plain_viable.
+Abbreviation lr0_item_plain_viable_refines := lr0_item_plain_viable.
 
-Notation lr0_closure_rel_item_plain_viable_refines := lr0_closure_rel_item_plain_viable.
+Abbreviation lr0_closure_rel_item_plain_viable_refines := lr0_closure_rel_item_plain_viable.
 
-Notation lr0_goto_kernel_item_plain_viable_refines := lr0_goto_kernel_item_plain_viable.
+Abbreviation lr0_goto_kernel_item_plain_viable_refines := lr0_goto_kernel_item_plain_viable.
 
-Notation lr0_goto_item_plain_viable_refines := lr0_goto_item_plain_viable.
+Abbreviation lr0_goto_item_plain_viable_refines := lr0_goto_item_plain_viable.
 
-Notation q0_item_plain_viable_refines := q0_item_plain_viable.
+Abbreviation q0_item_plain_viable_refines := q0_item_plain_viable.
 
-Notation lr0_item_valid_for_path_refines := lr0_item_valid_for_path.
+Abbreviation lr0_item_valid_for_path_refines := lr0_item_valid_for_path.
 
-Notation lr0_item_valid_for_path_realization_refines := lr0_item_valid_for_path_realization.
+Abbreviation lr0_item_valid_for_path_realization_refines := lr0_item_valid_for_path_realization.
 
-Notation lr0_closure_rel_item_valid_for_path_productive_refines := lr0_closure_rel_item_valid_for_path_productive.
+Abbreviation lr0_closure_rel_item_valid_for_path_productive_refines := lr0_closure_rel_item_valid_for_path_productive.
 
-Notation lr0_goto_kernel_item_valid_for_path_productive_refines := lr0_goto_kernel_item_valid_for_path_productive.
+Abbreviation lr0_goto_kernel_item_valid_for_path_productive_refines := lr0_goto_kernel_item_valid_for_path_productive.
 
-Notation lr0_goto_item_valid_for_path_productive_refines := lr0_goto_item_valid_for_path_productive.
+Abbreviation lr0_goto_item_valid_for_path_productive_refines := lr0_goto_item_valid_for_path_productive.
 
-Notation q0_item_valid_for_path_productive_refines := q0_item_valid_for_path_productive.
+Abbreviation q0_item_valid_for_path_productive_refines := q0_item_valid_for_path_productive.
 
-Notation lr0_path_items_valid_for_path_productive_from_refines := lr0_path_items_valid_for_path_productive_from.
+Abbreviation lr0_path_items_valid_for_path_productive_from_refines := lr0_path_items_valid_for_path_productive_from.
 
-Notation lr0_path_items_valid_for_path_productive_refines := lr0_path_items_valid_for_path_productive.
+Abbreviation lr0_path_items_valid_for_path_productive_refines := lr0_path_items_valid_for_path_productive.
 
-Notation lr0_path_productive_realization_refines := lr0_path_productive_realization.
+Abbreviation lr0_path_productive_realization_refines := lr0_path_productive_realization.
 
-Notation lr0_path_productive_viable_refines := lr0_path_productive_viable.
+Abbreviation lr0_path_productive_viable_refines := lr0_path_productive_viable.
 
-Notation state_successors_sound_refines := state_successors_sound.
+Abbreviation state_successors_sound_refines := state_successors_sound.
 
-Notation state_successors_complete_refines := state_successors_complete.
+Abbreviation state_successors_complete_refines := state_successors_complete.
 
-Notation state_successors_correct_refines := state_successors_correct.
+Abbreviation state_successors_correct_refines := state_successors_correct.
 
-Notation state_successors_valid_refines := state_successors_valid.
+Abbreviation state_successors_valid_refines := state_successors_valid.
 
-Notation states_step_valid_refines := states_step_valid.
+Abbreviation states_step_valid_refines := states_step_valid.
 
-Notation states_step_successor_refines := states_step_successor.
+Abbreviation states_step_successor_refines := states_step_successor.
 
-Notation states_step_monotone_refines := states_step_monotone.
+Abbreviation states_step_monotone_refines := states_step_monotone.
 
-Notation states_iter_valid_refines := states_iter_valid.
+Abbreviation states_iter_valid_refines := states_iter_valid.
 
-Notation states_iter_mono_fuel_refines := states_iter_mono_fuel.
+Abbreviation states_iter_mono_fuel_refines := states_iter_mono_fuel.
 
-Notation states_iter_successor_refines := states_iter_successor.
+Abbreviation states_iter_successor_refines := states_iter_successor.
 
-Notation lists_of_length_refines := lists_of_length.
+Abbreviation lists_of_length_refines := lists_of_length.
 
-Notation lists_upto_length_refines := lists_upto_length.
+Abbreviation lists_upto_length_refines := lists_upto_length.
 
-Notation all_state_lists_refines := all_state_lists.
+Abbreviation all_state_lists_refines := all_state_lists.
 
-Notation state_fuel_refines := state_fuel.
+Abbreviation state_fuel_refines := state_fuel.
 
-Notation lists_of_length_complete_refines := lists_of_length_complete.
+Abbreviation lists_of_length_complete_refines := lists_of_length_complete.
 
-Notation lists_upto_length_complete_refines := lists_upto_length_complete.
+Abbreviation lists_upto_length_complete_refines := lists_upto_length_complete.
 
-Notation all_items_nonempty_refines := all_items_nonempty.
+Abbreviation all_items_nonempty_refines := all_items_nonempty.
 
-Notation state_fuel_two_refines := state_fuel_two.
+Abbreviation state_fuel_two_refines := state_fuel_two.
 
-Notation q0_no_dup_refines := q0_no_dup.
+Abbreviation q0_no_dup_refines := q0_no_dup.
 
-Notation state_successors_state_no_dup_refines := state_successors_state_no_dup.
+Abbreviation state_successors_state_no_dup_refines := state_successors_state_no_dup.
 
-Notation states_step_state_no_dup_refines := states_step_state_no_dup.
+Abbreviation states_step_state_no_dup_refines := states_step_state_no_dup.
 
-Notation states_iter_state_no_dup_refines := states_iter_state_no_dup.
+Abbreviation states_iter_state_no_dup_refines := states_iter_state_no_dup.
 
-Notation states_iter_all_items_refines := states_iter_all_items.
+Abbreviation states_iter_all_items_refines := states_iter_all_items.
 
-Notation state_in_all_state_lists_refines := state_in_all_state_lists.
+Abbreviation state_in_all_state_lists_refines := state_in_all_state_lists.
 
-Notation states_iter_state_in_all_state_lists_refines := states_iter_state_in_all_state_lists.
+Abbreviation states_iter_state_in_all_state_lists_refines := states_iter_state_in_all_state_lists.
 
-Notation state_list_subsetb_refines := state_list_subsetb.
+Abbreviation state_list_subsetb_refines := state_list_subsetb.
 
-Notation state_list_subsetb_sound_refines := state_list_subsetb_sound.
+Abbreviation state_list_subsetb_sound_refines := state_list_subsetb_sound.
 
-Notation state_list_subsetb_complete_refines := state_list_subsetb_complete.
+Abbreviation state_list_subsetb_complete_refines := state_list_subsetb_complete.
 
-Notation state_list_subsetb_false_new_refines := state_list_subsetb_false_new.
+Abbreviation state_list_subsetb_false_new_refines := state_list_subsetb_false_new.
 
-Notation state_NoDup_incl_remove_length_lt_refines := state_NoDup_incl_remove_length_lt.
+Abbreviation state_NoDup_incl_remove_length_lt_refines := state_NoDup_incl_remove_length_lt.
 
-Notation states_step_no_dup_refines := states_step_no_dup.
+Abbreviation states_step_no_dup_refines := states_step_no_dup.
 
-Notation states_iter_no_dup_refines := states_iter_no_dup.
+Abbreviation states_iter_no_dup_refines := states_iter_no_dup.
 
-Notation states_step_length_if_not_subset_refines := states_step_length_if_not_subset.
+Abbreviation states_step_length_if_not_subset_refines := states_step_length_if_not_subset.
 
-Notation states_step_fixed_if_subset_refines := states_step_fixed_if_subset.
+Abbreviation states_step_fixed_if_subset_refines := states_step_fixed_if_subset.
 
-Notation states_iter_no_dup_from_start_refines := states_iter_no_dup_from_start.
+Abbreviation states_iter_no_dup_from_start_refines := states_iter_no_dup_from_start.
 
-Notation states_iter_length_bound_refines := states_iter_length_bound.
+Abbreviation states_iter_length_bound_refines := states_iter_length_bound.
 
-Notation states_not_fixed_length_lower_refines := states_not_fixed_length_lower.
+Abbreviation states_not_fixed_length_lower_refines := states_not_fixed_length_lower.
 
-Notation states_first_fixed_before_bound_refines := states_first_fixed_before_bound.
+Abbreviation states_first_fixed_before_bound_refines := states_first_fixed_before_bound.
 
-Notation states_iter_after_fixed_subset_refines := states_iter_after_fixed_subset.
+Abbreviation states_iter_after_fixed_subset_refines := states_iter_after_fixed_subset.
 
-Notation PT_step_closed_of_length_bound_refines := PT_step_closed_of_length_bound.
+Abbreviation PT_step_closed_of_length_bound_refines := PT_step_closed_of_length_bound.
 
-Notation PT_step_closed_refines := PT_step_closed.
+Abbreviation PT_step_closed_refines := PT_step_closed.
 
-Notation PT_items_valid_refines := PT_items_valid.
+Abbreviation PT_items_valid_refines := PT_items_valid.
 
-Notation Q_items_valid_refines := Q_items_valid.
+Abbreviation Q_items_valid_refines := Q_items_valid.
 
-Notation delta_start_prime_none_refines := delta_start_prime_none.
+Abbreviation delta_start_prime_none_refines := delta_start_prime_none.
 
-Notation q0_closed_refines := q0_closed.
+Abbreviation q0_closed_refines := q0_closed.
 
-Notation goto_closed_refines := goto_closed.
+Abbreviation goto_closed_refines := goto_closed.
 
-Notation state_successors_closed_refines := state_successors_closed.
+Abbreviation state_successors_closed_refines := state_successors_closed.
 
-Notation states_step_closed_refines := states_step_closed.
+Abbreviation states_step_closed_refines := states_step_closed.
 
-Notation states_iter_closed_refines := states_iter_closed.
+Abbreviation states_iter_closed_refines := states_iter_closed.
 
-Notation PT_closed_refines := PT_closed.
+Abbreviation PT_closed_refines := PT_closed.
 
-Notation Q_closed_refines := Q_closed.
+Abbreviation Q_closed_refines := Q_closed.
 
-Notation Q_closure_rel_complete_refines := Q_closure_rel_complete.
+Abbreviation Q_closure_rel_complete_refines := Q_closure_rel_complete.
 
-Notation Q_closure_seed_for_refines := Q_closure_seed_for.
+Abbreviation Q_closure_seed_for_refines := Q_closure_seed_for.
 
-Notation delta_nonterminal_seed_refines := delta_nonterminal_seed.
+Abbreviation delta_nonterminal_seed_refines := delta_nonterminal_seed.
 
-Notation delta_target_in_Q_of_PT_step_closed_refines := delta_target_in_Q_of_PT_step_closed.
+Abbreviation delta_target_in_Q_of_PT_step_closed_refines := delta_target_in_Q_of_PT_step_closed.
 
-Notation path_source_in_Q_refines := path_source_in_Q.
+Abbreviation path_source_in_Q_refines := path_source_in_Q.
 
-Notation path_target_in_Q_refines := path_target_in_Q.
+Abbreviation path_target_in_Q_refines := path_target_in_Q.
 
-Notation path_source_items_valid_refines := path_source_items_valid.
+Abbreviation path_source_items_valid_refines := path_source_items_valid.
 
-Notation path_target_items_valid_refines := path_target_items_valid.
+Abbreviation path_target_items_valid_refines := path_target_items_valid.
 
-Notation lr0_path_items_plain_viable_from_refines := lr0_path_items_plain_viable_from.
+Abbreviation lr0_path_items_plain_viable_from_refines := lr0_path_items_plain_viable_from.
 
-Notation lr0_path_plain_viable_prefix_refines := lr0_path_plain_viable_prefix.
+Abbreviation lr0_path_plain_viable_prefix_refines := lr0_path_plain_viable_prefix.
 
-Notation path_states_iter_refines := path_states_iter.
+Abbreviation path_states_iter_refines := path_states_iter.
 
-Notation path_from_q0_states_iter_refines := path_from_q0_states_iter.
+Abbreviation path_from_q0_states_iter_refines := path_from_q0_states_iter.
 
-Notation path_from_q0_in_PT_if_short_refines := path_from_q0_in_PT_if_short.
+Abbreviation path_from_q0_in_PT_if_short_refines := path_from_q0_in_PT_if_short.
 
-Notation states_iter_reachable_path_refines := states_iter_reachable_path.
+Abbreviation states_iter_reachable_path_refines := states_iter_reachable_path.
 
-Notation PT_reachable_path_refines := PT_reachable_path.
+Abbreviation PT_reachable_path_refines := PT_reachable_path.
 
-Notation Q_reachable_path_refines := Q_reachable_path.
+Abbreviation Q_reachable_path_refines := Q_reachable_path.
 
-Notation path_app_refines := path_app.
+Abbreviation path_app_refines := path_app.
 
-Notation path_app_inv_refines := path_app_inv.
+Abbreviation path_app_inv_refines := path_app_inv.
 
-Notation path_deterministic_refines := path_deterministic.
+Abbreviation path_deterministic_refines := path_deterministic.
 
-Notation lr0_path_factorization_refines := lr0_path_factorization.
+Abbreviation lr0_path_factorization_refines := lr0_path_factorization.
 
-Notation lr0_source_handle_prod_path_spec_refines := lr0_source_handle_prod_path_spec.
+Abbreviation lr0_source_handle_prod_path_spec_refines := lr0_source_handle_prod_path_spec.
 
-Notation lr0_source_handle_prod_path_refines := lr0_source_handle_prod_path.
+Abbreviation lr0_source_handle_prod_path_refines := lr0_source_handle_prod_path.
 
-Notation lr0_rm_step_source_handle_prod_path_spec_refines := lr0_rm_step_source_handle_prod_path_spec.
+Abbreviation lr0_rm_step_source_handle_prod_path_spec_refines := lr0_rm_step_source_handle_prod_path_spec.
 
-Notation lr0_rm_step_source_handle_prod_path_refines := lr0_rm_step_source_handle_prod_path.
+Abbreviation lr0_rm_step_source_handle_prod_path_refines := lr0_rm_step_source_handle_prod_path.
 
-Notation path_symbol_refines := path_symbol.
+Abbreviation path_symbol_refines := path_symbol.
 
-Notation path_snoc_refines := path_snoc.
+Abbreviation path_snoc_refines := path_snoc.
 
-Notation goto_shift_item_refines := goto_shift_item.
+Abbreviation goto_shift_item_refines := goto_shift_item.
 
-Notation lr0_item_suffix_path_under_delta_closed_refines := lr0_item_suffix_path_under_delta_closed.
+Abbreviation lr0_item_suffix_path_under_delta_closed_refines := lr0_item_suffix_path_under_delta_closed.
 
-Notation lr0_seed_item_prefix_path_under_delta_closed_refines := lr0_seed_item_prefix_path_under_delta_closed.
+Abbreviation lr0_seed_item_prefix_path_under_delta_closed_refines := lr0_seed_item_prefix_path_under_delta_closed.
 
-Notation lr0_path_item_invariant_refines := lr0_path_item_invariant.
+Abbreviation lr0_path_item_invariant_refines := lr0_path_item_invariant.
 
-Notation path_completed_item_refines := path_completed_item.
+Abbreviation path_completed_item_refines := path_completed_item.
 
-Notation reduce_sound_refines := reduce_sound.
+Abbreviation reduce_sound_refines := reduce_sound.
 
-Notation reduce_complete_refines := reduce_complete.
+Abbreviation reduce_complete_refines := reduce_complete.
 
-Notation lr0_reduce_completed_item_iff_refines := lr0_reduce_completed_item_iff.
+Abbreviation lr0_reduce_completed_item_iff_refines := lr0_reduce_completed_item_iff.
 
-Notation lr0_handle_reduce_core_refines := lr0_handle_reduce_core.
+Abbreviation lr0_handle_reduce_core_refines := lr0_handle_reduce_core.
 
-Notation lr0_handle_completed_item_and_reduce_refines := lr0_handle_completed_item_and_reduce.
+Abbreviation lr0_handle_completed_item_and_reduce_refines := lr0_handle_completed_item_and_reduce.
 
-Notation lr0_handle_reduce_from_parent_refines := lr0_handle_reduce_from_parent.
+Abbreviation lr0_handle_reduce_from_parent_refines := lr0_handle_reduce_from_parent.
 
-Notation lr0_handle_reduce_from_delta_prod_refines := lr0_handle_reduce_from_delta_prod.
+Abbreviation lr0_handle_reduce_from_delta_prod_refines := lr0_handle_reduce_from_delta_prod.
 
-Notation lr0_handle_from_parent_completed_item_and_reduce_refines := lr0_handle_from_parent_completed_item_and_reduce.
+Abbreviation lr0_handle_from_parent_completed_item_and_reduce_refines := lr0_handle_from_parent_completed_item_and_reduce.
 
-Notation lr0_path_handle_invariant_spec_refines := lr0_path_handle_invariant_spec.
+Abbreviation lr0_path_handle_invariant_spec_refines := lr0_path_handle_invariant_spec.
 
-Notation lr0_path_handle_invariant_refines := lr0_path_handle_invariant.
+Abbreviation lr0_path_handle_invariant_refines := lr0_path_handle_invariant.
 
-Notation lr0_shift_step_refines := lr0_shift_step.
+Abbreviation lr0_shift_step_refines := lr0_shift_step.
 
-Notation lr0_reduce_step_from_seed_refines := lr0_reduce_step_from_seed.
+Abbreviation lr0_reduce_step_from_seed_refines := lr0_reduce_step_from_seed.
 
-Notation lr0_reduce_step_from_parent_refines := lr0_reduce_step_from_parent.
+Abbreviation lr0_reduce_step_from_parent_refines := lr0_reduce_step_from_parent.
 
-Notation lr0_reduce_step_from_prod_refines := lr0_reduce_step_from_prod.
+Abbreviation lr0_reduce_step_from_prod_refines := lr0_reduce_step_from_prod.
 
-Notation lr0_steps_trans_refines := lr0_steps_trans.
+Abbreviation lr0_steps_trans_refines := lr0_steps_trans.
 
-Notation lr0_shift_steps_refines := lr0_shift_steps.
+Abbreviation lr0_shift_steps_refines := lr0_shift_steps.
 
-Notation lr0_shift_terminal_list_steps_refines := lr0_shift_terminal_list_steps.
+Abbreviation lr0_shift_terminal_list_steps_refines := lr0_shift_terminal_list_steps.
 
-Notation lr0_reduce_steps_from_seed_refines := lr0_reduce_steps_from_seed.
+Abbreviation lr0_reduce_steps_from_seed_refines := lr0_reduce_steps_from_seed.
 
-Notation lr0_reduce_steps_from_reduce_refines := lr0_reduce_steps_from_reduce.
+Abbreviation lr0_reduce_steps_from_reduce_refines := lr0_reduce_steps_from_reduce.
 
-Notation lr0_reduce_steps_from_completed_item_refines := lr0_reduce_steps_from_completed_item.
+Abbreviation lr0_reduce_steps_from_completed_item_refines := lr0_reduce_steps_from_completed_item.
 
-Notation lr0_reduce_steps_from_parent_refines := lr0_reduce_steps_from_parent.
+Abbreviation lr0_reduce_steps_from_parent_refines := lr0_reduce_steps_from_parent.
 
-Notation lr0_reduce_steps_from_prod_refines := lr0_reduce_steps_from_prod.
+Abbreviation lr0_reduce_steps_from_prod_refines := lr0_reduce_steps_from_prod.
 
-Notation lr0_reduce_then_shift_terminal_list_from_reduce_refines := lr0_reduce_then_shift_terminal_list_from_reduce.
+Abbreviation lr0_reduce_then_shift_terminal_list_from_reduce_refines := lr0_reduce_then_shift_terminal_list_from_reduce.
 
-Notation lr0_reduce_then_shift_terminal_list_from_completed_item_refines := lr0_reduce_then_shift_terminal_list_from_completed_item.
+Abbreviation lr0_reduce_then_shift_terminal_list_from_completed_item_refines := lr0_reduce_then_shift_terminal_list_from_completed_item.
 
-Notation lr0_reduce_then_shift_terminal_list_from_prod_refines := lr0_reduce_then_shift_terminal_list_from_prod.
+Abbreviation lr0_reduce_then_shift_terminal_list_from_prod_refines := lr0_reduce_then_shift_terminal_list_from_prod.
 
-Notation lr0_reduce_then_shift_terminal_list_from_parent_refines := lr0_reduce_then_shift_terminal_list_from_parent.
+Abbreviation lr0_reduce_then_shift_terminal_list_from_parent_refines := lr0_reduce_then_shift_terminal_list_from_parent.
 
-Notation lr0_parent_handle_completed_reduce_and_shift_terminal_list_refines := lr0_parent_handle_completed_reduce_and_shift_terminal_list.
+Abbreviation lr0_parent_handle_completed_reduce_and_shift_terminal_list_refines := lr0_parent_handle_completed_reduce_and_shift_terminal_list.
 
-Notation lr0_step_yield_invariant_refines := lr0_step_yield_invariant.
+Abbreviation lr0_step_yield_invariant_refines := lr0_step_yield_invariant.
 
-Notation lr0_steps_yield_invariant_refines := lr0_steps_yield_invariant.
+Abbreviation lr0_steps_yield_invariant_refines := lr0_steps_yield_invariant.
 
-Notation init_config_yield_refines := init_config_yield.
+Abbreviation init_config_yield_refines := init_config_yield.
 
-Notation accept_config_yield_refines := accept_config_yield.
+Abbreviation accept_config_yield_refines := accept_config_yield.
 
-Notation q_f_exists_refines := q_f_exists.
+Abbreviation q_f_exists_refines := q_f_exists.
 
-Notation q_f_accept_path_refines := q_f_accept_path.
+Abbreviation q_f_accept_path_refines := q_f_accept_path.
 
-Notation accept_path_q_f_refines := accept_path_q_f.
+Abbreviation accept_path_q_f_refines := accept_path_q_f.
 
-Notation q_f_accept_path_iff_refines := q_f_accept_path_iff.
+Abbreviation q_f_accept_path_iff_refines := q_f_accept_path_iff.
 
-Notation q_f_exists_path_refines := q_f_exists_path.
+Abbreviation q_f_exists_path_refines := q_f_exists_path.
 
-Notation lr0_final_eof_shift_steps_refines := lr0_final_eof_shift_steps.
+Abbreviation lr0_final_eof_shift_steps_refines := lr0_final_eof_shift_steps.
 
-Notation lr0_shift_input_eof_steps_refines := lr0_shift_input_eof_steps.
+Abbreviation lr0_shift_input_eof_steps_refines := lr0_shift_input_eof_steps.
 
-Notation lr0_shift_accept_sentence_steps_refines := lr0_shift_accept_sentence_steps.
+Abbreviation lr0_shift_accept_sentence_steps_refines := lr0_shift_accept_sentence_steps.
 
-Notation lr0_init_accept_sentence_prefix_steps_refines := lr0_init_accept_sentence_prefix_steps.
+Abbreviation lr0_init_accept_sentence_prefix_steps_refines := lr0_init_accept_sentence_prefix_steps.
 
-Notation lr0_start_stack_steps_accept_refines := lr0_start_stack_steps_accept.
+Abbreviation lr0_start_stack_steps_accept_refines := lr0_start_stack_steps_accept.
 
-Notation lr0_start_stack_steps_accept_exists_refines := lr0_start_stack_steps_accept_exists.
+Abbreviation lr0_start_stack_steps_accept_exists_refines := lr0_start_stack_steps_accept_exists.
 
-Notation lr0_shifted_input_to_start_stack_steps_accept_refines := lr0_shifted_input_to_start_stack_steps_accept.
+Abbreviation lr0_shifted_input_to_start_stack_steps_accept_refines := lr0_shifted_input_to_start_stack_steps_accept.
 
-Notation lr0_shifted_input_to_start_stack_steps_accept_exists_refines := lr0_shifted_input_to_start_stack_steps_accept_exists.
+Abbreviation lr0_shifted_input_to_start_stack_steps_accept_exists_refines := lr0_shifted_input_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_to_start_stack_steps_accept_refines := lr0_accept_sentence_to_start_stack_steps_accept.
+Abbreviation lr0_accept_sentence_to_start_stack_steps_accept_refines := lr0_accept_sentence_to_start_stack_steps_accept.
 
-Notation lr0_accept_sentence_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists.
 
-Notation lr0_init_prod_block_from_paths_to_sentential_steps_refines := lr0_init_prod_block_from_paths_to_sentential_steps.
+Abbreviation lr0_init_prod_block_from_paths_to_sentential_steps_refines := lr0_init_prod_block_from_paths_to_sentential_steps.
 
-Notation lr0_init_prod_block_from_source_path_to_sentential_steps_refines := lr0_init_prod_block_from_source_path_to_sentential_steps.
+Abbreviation lr0_init_prod_block_from_source_path_to_sentential_steps_refines := lr0_init_prod_block_from_source_path_to_sentential_steps.
 
-Notation lr0_init_rm_step_from_paths_to_sentential_steps_refines := lr0_init_rm_step_from_paths_to_sentential_steps.
+Abbreviation lr0_init_rm_step_from_paths_to_sentential_steps_refines := lr0_init_rm_step_from_paths_to_sentential_steps.
 
-Notation lr0_refined_rm_steps_refines := lr0_refined_rm_steps.
+Abbreviation lr0_refined_rm_steps_refines := lr0_refined_rm_steps.
 
-Notation lr0_refined_rm_steps_sound_refines := lr0_refined_rm_steps_sound.
+Abbreviation lr0_refined_rm_steps_sound_refines := lr0_refined_rm_steps_sound.
 
-Notation lr0_refined_rm_steps_progress_refines := lr0_refined_rm_steps_progress.
+Abbreviation lr0_refined_rm_steps_progress_refines := lr0_refined_rm_steps_progress.
 
-Notation lr0_refined_start_stack_steps_accept_refines := lr0_refined_start_stack_steps_accept.
+Abbreviation lr0_refined_start_stack_steps_accept_refines := lr0_refined_start_stack_steps_accept.
 
-Notation lr0_refined_start_stack_sound_refines := lr0_refined_start_stack_sound.
+Abbreviation lr0_refined_start_stack_sound_refines := lr0_refined_start_stack_sound.
 
-Notation lr0_split_refined_rm_steps_refines := lr0_split_refined_rm_steps.
+Abbreviation lr0_split_refined_rm_steps_refines := lr0_split_refined_rm_steps.
 
-Notation rm_step_target_word_decompose_refines := rm_step_target_word_decompose.
+Abbreviation rm_step_target_word_decompose_refines := rm_step_target_word_decompose.
 
-Notation lr0_split_refined_rm_steps_sound_refines := lr0_split_refined_rm_steps_sound.
+Abbreviation lr0_split_refined_rm_steps_sound_refines := lr0_split_refined_rm_steps_sound.
 
-Notation lr0_split_refined_rm_steps_progress_refines := lr0_split_refined_rm_steps_progress.
+Abbreviation lr0_split_refined_rm_steps_progress_refines := lr0_split_refined_rm_steps_progress.
 
-Notation lr0_split_refined_start_stack_steps_accept_refines := lr0_split_refined_start_stack_steps_accept.
+Abbreviation lr0_split_refined_start_stack_steps_accept_refines := lr0_split_refined_start_stack_steps_accept.
 
-Notation lr0_split_refined_start_stack_sound_refines := lr0_split_refined_start_stack_sound.
+Abbreviation lr0_split_refined_start_stack_sound_refines := lr0_split_refined_start_stack_sound.
 
-Notation lr0_rm_steps_split_refined_refines := lr0_rm_steps_split_refined.
+Abbreviation lr0_rm_steps_split_refined_refines := lr0_rm_steps_split_refined.
 
-Notation lr0_rm_steps_split_refined_bridge_refines := lr0_rm_steps_split_refined_bridge.
+Abbreviation lr0_rm_steps_split_refined_bridge_refines := lr0_rm_steps_split_refined_bridge.
 
-Notation lr0_start_rm_steps_accept_by_split_refined_refines := lr0_start_rm_steps_accept_by_split_refined.
+Abbreviation lr0_start_rm_steps_accept_by_split_refined_refines := lr0_start_rm_steps_accept_by_split_refined.
 
-Notation lr0_rm_steps_complete_refines := lr0_rm_steps_complete.
+Abbreviation lr0_rm_steps_complete_refines := lr0_rm_steps_complete.
 
-Notation lr0_rm_step_refined_tail_bridge_refines := lr0_rm_step_refined_tail_bridge.
+Abbreviation lr0_rm_step_refined_tail_bridge_refines := lr0_rm_step_refined_tail_bridge.
 
-Notation lr0_start_rm_step_refined_tail_correct_refines := lr0_start_rm_step_refined_tail_correct.
+Abbreviation lr0_start_rm_step_refined_tail_correct_refines := lr0_start_rm_step_refined_tail_correct.
 
-Notation lr0_rm_steps_refined_by_first_step_refines := lr0_rm_steps_refined_by_first_step.
+Abbreviation lr0_rm_steps_refined_by_first_step_refines := lr0_rm_steps_refined_by_first_step.
 
-Notation lr0_rm_steps_refined_by_target_path_refines := lr0_rm_steps_refined_by_target_path.
+Abbreviation lr0_rm_steps_refined_by_target_path_refines := lr0_rm_steps_refined_by_target_path.
 
-Notation lr0_start_rm_steps_accept_by_target_path_refines := lr0_start_rm_steps_accept_by_target_path.
+Abbreviation lr0_start_rm_steps_accept_by_target_path_refines := lr0_start_rm_steps_accept_by_target_path.
 
-Notation lr0_rm_steps_refined_by_handle_target_path_refines := lr0_rm_steps_refined_by_handle_target_path.
+Abbreviation lr0_rm_steps_refined_by_handle_target_path_refines := lr0_rm_steps_refined_by_handle_target_path.
 
-Notation lr0_start_rm_steps_accept_by_handle_target_path_refines := lr0_start_rm_steps_accept_by_handle_target_path.
+Abbreviation lr0_start_rm_steps_accept_by_handle_target_path_refines := lr0_start_rm_steps_accept_by_handle_target_path.
 
-Notation lr0_rm_steps_refined_by_handle_suffix_path_refines := lr0_rm_steps_refined_by_handle_suffix_path.
+Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_refines := lr0_rm_steps_refined_by_handle_suffix_path.
 
-Notation lr0_start_rm_steps_accept_by_handle_suffix_path_refines := lr0_start_rm_steps_accept_by_handle_suffix_path.
+Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_refines := lr0_start_rm_steps_accept_by_handle_suffix_path.
 
-Notation lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed_refines := lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed.
+Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed_refines := lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed.
 
-Notation lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed_refines := lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed.
+Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed_refines := lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed.
 
-Notation lr0_rm_steps_refined_by_handle_suffix_path_closed_refines := lr0_rm_steps_refined_by_handle_suffix_path_closed.
+Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_closed_refines := lr0_rm_steps_refined_by_handle_suffix_path_closed.
 
-Notation lr0_start_rm_steps_accept_by_handle_suffix_path_closed_refines := lr0_start_rm_steps_accept_by_handle_suffix_path_closed.
+Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_closed_refines := lr0_start_rm_steps_accept_by_handle_suffix_path_closed.
 
-Notation lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_sound_augmented_refines := lr0_sound_augmented.
+Abbreviation lr0_sound_augmented_refines := lr0_sound_augmented.
 
-Notation lr0_rm_steps_correct_refines := lr0_rm_steps_correct.
+Abbreviation lr0_rm_steps_correct_refines := lr0_rm_steps_correct.
 
-Notation lr0_sound_plain_augmented_refines := lr0_sound_plain_augmented.
+Abbreviation lr0_sound_plain_augmented_refines := lr0_sound_plain_augmented.
 
-Notation lr0_sound_refines := lr0_sound.
+Abbreviation lr0_sound_refines := lr0_sound.
 
-Notation lr0_complete_refines := lr0_complete.
+Abbreviation lr0_complete_refines := lr0_complete.
 
-Notation lr0_correct_refines := lr0_correct.
+Abbreviation lr0_correct_refines := lr0_correct.
 
 End Refine.
 
 Module API.
 
-Notation q0 := q0.
+Abbreviation q0 := q0.
 
-Notation PT := PT.
+Abbreviation PT := PT.
 
-Notation Q := Q.
+Abbreviation Q := Q.
 
-Notation compute_states := compute_states.
+Abbreviation compute_states := compute_states.
 
-Notation delta := delta.
+Abbreviation delta := delta.
 
-Notation nonempty_exists := nonempty_exists.
+Abbreviation nonempty_exists := nonempty_exists.
 
-Notation goto_nonempty_shift := goto_nonempty_shift.
+Abbreviation goto_nonempty_shift := goto_nonempty_shift.
 
-Notation delta_some_parent_item := delta_some_parent_item.
+Abbreviation delta_some_parent_item := delta_some_parent_item.
 
-Notation q0_items_valid := q0_items_valid.
+Abbreviation q0_items_valid := q0_items_valid.
 
-Notation lr0_item_plain_viable := lr0_item_plain_viable.
+Abbreviation lr0_item_plain_viable := lr0_item_plain_viable.
 
-Notation lr0_closure_rel_item_plain_viable := lr0_closure_rel_item_plain_viable.
+Abbreviation lr0_closure_rel_item_plain_viable := lr0_closure_rel_item_plain_viable.
 
-Notation lr0_goto_kernel_item_plain_viable := lr0_goto_kernel_item_plain_viable.
+Abbreviation lr0_goto_kernel_item_plain_viable := lr0_goto_kernel_item_plain_viable.
 
-Notation lr0_goto_item_plain_viable := lr0_goto_item_plain_viable.
+Abbreviation lr0_goto_item_plain_viable := lr0_goto_item_plain_viable.
 
-Notation q0_item_plain_viable := q0_item_plain_viable.
+Abbreviation q0_item_plain_viable := q0_item_plain_viable.
 
-Notation lr0_item_valid_for_path := lr0_item_valid_for_path.
+Abbreviation lr0_item_valid_for_path := lr0_item_valid_for_path.
 
-Notation lr0_item_valid_for_path_realization := lr0_item_valid_for_path_realization.
+Abbreviation lr0_item_valid_for_path_realization := lr0_item_valid_for_path_realization.
 
-Notation lr0_closure_rel_item_valid_for_path_productive := lr0_closure_rel_item_valid_for_path_productive.
+Abbreviation lr0_closure_rel_item_valid_for_path_productive := lr0_closure_rel_item_valid_for_path_productive.
 
-Notation lr0_goto_kernel_item_valid_for_path_productive := lr0_goto_kernel_item_valid_for_path_productive.
+Abbreviation lr0_goto_kernel_item_valid_for_path_productive := lr0_goto_kernel_item_valid_for_path_productive.
 
-Notation lr0_goto_item_valid_for_path_productive := lr0_goto_item_valid_for_path_productive.
+Abbreviation lr0_goto_item_valid_for_path_productive := lr0_goto_item_valid_for_path_productive.
 
-Notation q0_item_valid_for_path_productive := q0_item_valid_for_path_productive.
+Abbreviation q0_item_valid_for_path_productive := q0_item_valid_for_path_productive.
 
-Notation lr0_path_items_valid_for_path_productive_from := lr0_path_items_valid_for_path_productive_from.
+Abbreviation lr0_path_items_valid_for_path_productive_from := lr0_path_items_valid_for_path_productive_from.
 
-Notation lr0_path_items_valid_for_path_productive := lr0_path_items_valid_for_path_productive.
+Abbreviation lr0_path_items_valid_for_path_productive := lr0_path_items_valid_for_path_productive.
 
-Notation lr0_path_productive_realization := lr0_path_productive_realization.
+Abbreviation lr0_path_productive_realization := lr0_path_productive_realization.
 
-Notation lr0_path_productive_viable := lr0_path_productive_viable.
+Abbreviation lr0_path_productive_viable := lr0_path_productive_viable.
 
-Notation state_successors_sound := state_successors_sound.
+Abbreviation state_successors_sound := state_successors_sound.
 
-Notation state_successors_complete := state_successors_complete.
+Abbreviation state_successors_complete := state_successors_complete.
 
-Notation state_successors_correct := state_successors_correct.
+Abbreviation state_successors_correct := state_successors_correct.
 
-Notation state_successors_valid := state_successors_valid.
+Abbreviation state_successors_valid := state_successors_valid.
 
-Notation states_step_valid := states_step_valid.
+Abbreviation states_step_valid := states_step_valid.
 
-Notation states_step_successor := states_step_successor.
+Abbreviation states_step_successor := states_step_successor.
 
-Notation states_step_monotone := states_step_monotone.
+Abbreviation states_step_monotone := states_step_monotone.
 
-Notation states_iter_valid := states_iter_valid.
+Abbreviation states_iter_valid := states_iter_valid.
 
-Notation states_iter_mono_fuel := states_iter_mono_fuel.
+Abbreviation states_iter_mono_fuel := states_iter_mono_fuel.
 
-Notation states_iter_successor := states_iter_successor.
+Abbreviation states_iter_successor := states_iter_successor.
 
-Notation lists_of_length := lists_of_length.
+Abbreviation lists_of_length := lists_of_length.
 
-Notation lists_upto_length := lists_upto_length.
+Abbreviation lists_upto_length := lists_upto_length.
 
-Notation all_state_lists := all_state_lists.
+Abbreviation all_state_lists := all_state_lists.
 
-Notation state_fuel := state_fuel.
+Abbreviation state_fuel := state_fuel.
 
-Notation lists_of_length_complete := lists_of_length_complete.
+Abbreviation lists_of_length_complete := lists_of_length_complete.
 
-Notation lists_upto_length_complete := lists_upto_length_complete.
+Abbreviation lists_upto_length_complete := lists_upto_length_complete.
 
-Notation all_items_nonempty := all_items_nonempty.
+Abbreviation all_items_nonempty := all_items_nonempty.
 
-Notation state_fuel_two := state_fuel_two.
+Abbreviation state_fuel_two := state_fuel_two.
 
-Notation q0_no_dup := q0_no_dup.
+Abbreviation q0_no_dup := q0_no_dup.
 
-Notation state_successors_state_no_dup := state_successors_state_no_dup.
+Abbreviation state_successors_state_no_dup := state_successors_state_no_dup.
 
-Notation states_step_state_no_dup := states_step_state_no_dup.
+Abbreviation states_step_state_no_dup := states_step_state_no_dup.
 
-Notation states_iter_state_no_dup := states_iter_state_no_dup.
+Abbreviation states_iter_state_no_dup := states_iter_state_no_dup.
 
-Notation states_iter_all_items := states_iter_all_items.
+Abbreviation states_iter_all_items := states_iter_all_items.
 
-Notation state_in_all_state_lists := state_in_all_state_lists.
+Abbreviation state_in_all_state_lists := state_in_all_state_lists.
 
-Notation states_iter_state_in_all_state_lists := states_iter_state_in_all_state_lists.
+Abbreviation states_iter_state_in_all_state_lists := states_iter_state_in_all_state_lists.
 
-Notation state_list_subsetb := state_list_subsetb.
+Abbreviation state_list_subsetb := state_list_subsetb.
 
-Notation state_list_subsetb_sound := state_list_subsetb_sound.
+Abbreviation state_list_subsetb_sound := state_list_subsetb_sound.
 
-Notation state_list_subsetb_complete := state_list_subsetb_complete.
+Abbreviation state_list_subsetb_complete := state_list_subsetb_complete.
 
-Notation state_list_subsetb_false_new := state_list_subsetb_false_new.
+Abbreviation state_list_subsetb_false_new := state_list_subsetb_false_new.
 
-Notation state_NoDup_incl_remove_length_lt := state_NoDup_incl_remove_length_lt.
+Abbreviation state_NoDup_incl_remove_length_lt := state_NoDup_incl_remove_length_lt.
 
-Notation states_step_no_dup := states_step_no_dup.
+Abbreviation states_step_no_dup := states_step_no_dup.
 
-Notation states_iter_no_dup := states_iter_no_dup.
+Abbreviation states_iter_no_dup := states_iter_no_dup.
 
-Notation states_step_length_if_not_subset := states_step_length_if_not_subset.
+Abbreviation states_step_length_if_not_subset := states_step_length_if_not_subset.
 
-Notation states_step_fixed_if_subset := states_step_fixed_if_subset.
+Abbreviation states_step_fixed_if_subset := states_step_fixed_if_subset.
 
-Notation states_iter_no_dup_from_start := states_iter_no_dup_from_start.
+Abbreviation states_iter_no_dup_from_start := states_iter_no_dup_from_start.
 
-Notation states_iter_length_bound := states_iter_length_bound.
+Abbreviation states_iter_length_bound := states_iter_length_bound.
 
-Notation states_not_fixed_length_lower := states_not_fixed_length_lower.
+Abbreviation states_not_fixed_length_lower := states_not_fixed_length_lower.
 
-Notation states_first_fixed_before_bound := states_first_fixed_before_bound.
+Abbreviation states_first_fixed_before_bound := states_first_fixed_before_bound.
 
-Notation states_iter_after_fixed_subset := states_iter_after_fixed_subset.
+Abbreviation states_iter_after_fixed_subset := states_iter_after_fixed_subset.
 
-Notation PT_step_closed_of_length_bound := PT_step_closed_of_length_bound.
+Abbreviation PT_step_closed_of_length_bound := PT_step_closed_of_length_bound.
 
-Notation PT_step_closed := PT_step_closed.
+Abbreviation PT_step_closed := PT_step_closed.
 
-Notation PT_items_valid := PT_items_valid.
+Abbreviation PT_items_valid := PT_items_valid.
 
-Notation Q_items_valid := Q_items_valid.
+Abbreviation Q_items_valid := Q_items_valid.
 
-Notation delta_start_prime_none := delta_start_prime_none.
+Abbreviation delta_start_prime_none := delta_start_prime_none.
 
-Notation q0_closed := q0_closed.
+Abbreviation q0_closed := q0_closed.
 
-Notation goto_closed := goto_closed.
+Abbreviation goto_closed := goto_closed.
 
-Notation state_successors_closed := state_successors_closed.
+Abbreviation state_successors_closed := state_successors_closed.
 
-Notation states_step_closed := states_step_closed.
+Abbreviation states_step_closed := states_step_closed.
 
-Notation states_iter_closed := states_iter_closed.
+Abbreviation states_iter_closed := states_iter_closed.
 
-Notation PT_closed := PT_closed.
+Abbreviation PT_closed := PT_closed.
 
-Notation Q_closed := Q_closed.
+Abbreviation Q_closed := Q_closed.
 
-Notation Q_closure_rel_complete := Q_closure_rel_complete.
+Abbreviation Q_closure_rel_complete := Q_closure_rel_complete.
 
-Notation Q_closure_seed_for := Q_closure_seed_for.
+Abbreviation Q_closure_seed_for := Q_closure_seed_for.
 
-Notation delta_nonterminal_seed := delta_nonterminal_seed.
+Abbreviation delta_nonterminal_seed := delta_nonterminal_seed.
 
-Notation delta_target_in_Q_of_PT_step_closed := delta_target_in_Q_of_PT_step_closed.
+Abbreviation delta_target_in_Q_of_PT_step_closed := delta_target_in_Q_of_PT_step_closed.
 
-Notation path := path.
+Abbreviation path := path.
 
-Notation path_source_in_Q := path_source_in_Q.
+Abbreviation path_source_in_Q := path_source_in_Q.
 
-Notation path_target_in_Q := path_target_in_Q.
+Abbreviation path_target_in_Q := path_target_in_Q.
 
-Notation path_source_items_valid := path_source_items_valid.
+Abbreviation path_source_items_valid := path_source_items_valid.
 
-Notation path_target_items_valid := path_target_items_valid.
+Abbreviation path_target_items_valid := path_target_items_valid.
 
-Notation lr0_path_items_plain_viable_from := lr0_path_items_plain_viable_from.
+Abbreviation lr0_path_items_plain_viable_from := lr0_path_items_plain_viable_from.
 
-Notation lr0_path_plain_viable_prefix := lr0_path_plain_viable_prefix.
+Abbreviation lr0_path_plain_viable_prefix := lr0_path_plain_viable_prefix.
 
-Notation path_states_iter := path_states_iter.
+Abbreviation path_states_iter := path_states_iter.
 
-Notation path_from_q0_states_iter := path_from_q0_states_iter.
+Abbreviation path_from_q0_states_iter := path_from_q0_states_iter.
 
-Notation path_from_q0_in_PT_if_short := path_from_q0_in_PT_if_short.
+Abbreviation path_from_q0_in_PT_if_short := path_from_q0_in_PT_if_short.
 
-Notation states_iter_reachable_path := states_iter_reachable_path.
+Abbreviation states_iter_reachable_path := states_iter_reachable_path.
 
-Notation PT_reachable_path := PT_reachable_path.
+Abbreviation PT_reachable_path := PT_reachable_path.
 
-Notation Q_reachable_path := Q_reachable_path.
+Abbreviation Q_reachable_path := Q_reachable_path.
 
-Notation path_app := path_app.
+Abbreviation path_app := path_app.
 
-Notation path_app_inv := path_app_inv.
+Abbreviation path_app_inv := path_app_inv.
 
-Notation path_deterministic := path_deterministic.
+Abbreviation path_deterministic := path_deterministic.
 
-Notation lr0_path_factorization := lr0_path_factorization.
+Abbreviation lr0_path_factorization := lr0_path_factorization.
 
-Notation lr0_source_handle_prod_path_spec := lr0_source_handle_prod_path_spec.
+Abbreviation lr0_source_handle_prod_path_spec := lr0_source_handle_prod_path_spec.
 
-Notation lr0_source_handle_prod_path := lr0_source_handle_prod_path.
+Abbreviation lr0_source_handle_prod_path := lr0_source_handle_prod_path.
 
-Notation lr0_rm_step_source_handle_prod_path_spec := lr0_rm_step_source_handle_prod_path_spec.
+Abbreviation lr0_rm_step_source_handle_prod_path_spec := lr0_rm_step_source_handle_prod_path_spec.
 
-Notation lr0_rm_step_source_handle_prod_path := lr0_rm_step_source_handle_prod_path.
+Abbreviation lr0_rm_step_source_handle_prod_path := lr0_rm_step_source_handle_prod_path.
 
-Notation path_symbol := path_symbol.
+Abbreviation path_symbol := path_symbol.
 
-Notation path_snoc := path_snoc.
+Abbreviation path_snoc := path_snoc.
 
-Notation goto_shift_item := goto_shift_item.
+Abbreviation goto_shift_item := goto_shift_item.
 
-Notation lr0_item_suffix_path_under_delta_closed := lr0_item_suffix_path_under_delta_closed.
+Abbreviation lr0_item_suffix_path_under_delta_closed := lr0_item_suffix_path_under_delta_closed.
 
-Notation lr0_seed_item_prefix_path_under_delta_closed := lr0_seed_item_prefix_path_under_delta_closed.
+Abbreviation lr0_seed_item_prefix_path_under_delta_closed := lr0_seed_item_prefix_path_under_delta_closed.
 
-Notation lr0_path_item_invariant := lr0_path_item_invariant.
+Abbreviation lr0_path_item_invariant := lr0_path_item_invariant.
 
-Notation path_completed_item := path_completed_item.
+Abbreviation path_completed_item := path_completed_item.
 
-Notation config := config.
+Abbreviation config := config.
 
-Notation yield := yield.
+Abbreviation yield := yield.
 
-Notation reduce := reduce.
+Abbreviation reduce := reduce.
 
-Notation lr0_reduce_completed_item_iff := lr0_reduce_completed_item_iff.
+Abbreviation lr0_reduce_completed_item_iff := lr0_reduce_completed_item_iff.
 
-Notation lr0_handle_reduce_core := lr0_handle_reduce_core.
+Abbreviation lr0_handle_reduce_core := lr0_handle_reduce_core.
 
-Notation lr0_handle_completed_item_and_reduce := lr0_handle_completed_item_and_reduce.
+Abbreviation lr0_handle_completed_item_and_reduce := lr0_handle_completed_item_and_reduce.
 
-Notation lr0_handle_reduce_from_parent := lr0_handle_reduce_from_parent.
+Abbreviation lr0_handle_reduce_from_parent := lr0_handle_reduce_from_parent.
 
-Notation lr0_handle_reduce_from_delta_prod := lr0_handle_reduce_from_delta_prod.
+Abbreviation lr0_handle_reduce_from_delta_prod := lr0_handle_reduce_from_delta_prod.
 
-Notation lr0_handle_from_parent_completed_item_and_reduce := lr0_handle_from_parent_completed_item_and_reduce.
+Abbreviation lr0_handle_from_parent_completed_item_and_reduce := lr0_handle_from_parent_completed_item_and_reduce.
 
-Notation lr0_path_handle_invariant_spec := lr0_path_handle_invariant_spec.
+Abbreviation lr0_path_handle_invariant_spec := lr0_path_handle_invariant_spec.
 
-Notation lr0_path_handle_invariant := lr0_path_handle_invariant.
+Abbreviation lr0_path_handle_invariant := lr0_path_handle_invariant.
 
-Notation step := step.
+Abbreviation step := step.
 
-Notation lr0_shift_step := lr0_shift_step.
+Abbreviation lr0_shift_step := lr0_shift_step.
 
-Notation lr0_reduce_step_from_seed := lr0_reduce_step_from_seed.
+Abbreviation lr0_reduce_step_from_seed := lr0_reduce_step_from_seed.
 
-Notation lr0_reduce_step_from_parent := lr0_reduce_step_from_parent.
+Abbreviation lr0_reduce_step_from_parent := lr0_reduce_step_from_parent.
 
-Notation lr0_reduce_step_from_prod := lr0_reduce_step_from_prod.
+Abbreviation lr0_reduce_step_from_prod := lr0_reduce_step_from_prod.
 
-Notation steps := steps.
+Abbreviation steps := steps.
 
-Notation lr0_steps_trans := lr0_steps_trans.
+Abbreviation lr0_steps_trans := lr0_steps_trans.
 
-Notation lr0_shift_steps := lr0_shift_steps.
+Abbreviation lr0_shift_steps := lr0_shift_steps.
 
-Notation lr0_shift_terminal_list_steps := lr0_shift_terminal_list_steps.
+Abbreviation lr0_shift_terminal_list_steps := lr0_shift_terminal_list_steps.
 
-Notation lr0_reduce_steps_from_seed := lr0_reduce_steps_from_seed.
+Abbreviation lr0_reduce_steps_from_seed := lr0_reduce_steps_from_seed.
 
-Notation lr0_reduce_steps_from_reduce := lr0_reduce_steps_from_reduce.
+Abbreviation lr0_reduce_steps_from_reduce := lr0_reduce_steps_from_reduce.
 
-Notation lr0_reduce_steps_from_completed_item := lr0_reduce_steps_from_completed_item.
+Abbreviation lr0_reduce_steps_from_completed_item := lr0_reduce_steps_from_completed_item.
 
-Notation lr0_reduce_steps_from_parent := lr0_reduce_steps_from_parent.
+Abbreviation lr0_reduce_steps_from_parent := lr0_reduce_steps_from_parent.
 
-Notation lr0_reduce_steps_from_prod := lr0_reduce_steps_from_prod.
+Abbreviation lr0_reduce_steps_from_prod := lr0_reduce_steps_from_prod.
 
-Notation lr0_reduce_then_shift_terminal_list_from_reduce := lr0_reduce_then_shift_terminal_list_from_reduce.
+Abbreviation lr0_reduce_then_shift_terminal_list_from_reduce := lr0_reduce_then_shift_terminal_list_from_reduce.
 
-Notation lr0_reduce_then_shift_terminal_list_from_completed_item := lr0_reduce_then_shift_terminal_list_from_completed_item.
+Abbreviation lr0_reduce_then_shift_terminal_list_from_completed_item := lr0_reduce_then_shift_terminal_list_from_completed_item.
 
-Notation lr0_reduce_then_shift_terminal_list_from_prod := lr0_reduce_then_shift_terminal_list_from_prod.
+Abbreviation lr0_reduce_then_shift_terminal_list_from_prod := lr0_reduce_then_shift_terminal_list_from_prod.
 
-Notation lr0_reduce_then_shift_terminal_list_from_parent := lr0_reduce_then_shift_terminal_list_from_parent.
+Abbreviation lr0_reduce_then_shift_terminal_list_from_parent := lr0_reduce_then_shift_terminal_list_from_parent.
 
-Notation lr0_parent_handle_completed_reduce_and_shift_terminal_list := lr0_parent_handle_completed_reduce_and_shift_terminal_list.
+Abbreviation lr0_parent_handle_completed_reduce_and_shift_terminal_list := lr0_parent_handle_completed_reduce_and_shift_terminal_list.
 
-Notation yield_step_case := yield_step_case.
+Abbreviation yield_step_case := yield_step_case.
 
-Notation q_f := q_f.
+Abbreviation q_f := q_f.
 
-Notation q_f_exists := q_f_exists.
+Abbreviation q_f_exists := q_f_exists.
 
-Notation q_f_accept_path := q_f_accept_path.
+Abbreviation q_f_accept_path := q_f_accept_path.
 
-Notation accept_path_q_f := accept_path_q_f.
+Abbreviation accept_path_q_f := accept_path_q_f.
 
-Notation q_f_accept_path_iff := q_f_accept_path_iff.
+Abbreviation q_f_accept_path_iff := q_f_accept_path_iff.
 
-Notation q_f_exists_path := q_f_exists_path.
+Abbreviation q_f_exists_path := q_f_exists_path.
 
-Notation lr0_final_eof_shift_steps := lr0_final_eof_shift_steps.
+Abbreviation lr0_final_eof_shift_steps := lr0_final_eof_shift_steps.
 
-Notation lr0_shift_input_eof_steps := lr0_shift_input_eof_steps.
+Abbreviation lr0_shift_input_eof_steps := lr0_shift_input_eof_steps.
 
-Notation lr0_shift_accept_sentence_steps := lr0_shift_accept_sentence_steps.
+Abbreviation lr0_shift_accept_sentence_steps := lr0_shift_accept_sentence_steps.
 
-Notation lr0_init_accept_sentence_prefix_steps := lr0_init_accept_sentence_prefix_steps.
+Abbreviation lr0_init_accept_sentence_prefix_steps := lr0_init_accept_sentence_prefix_steps.
 
-Notation L_LRA := L_LRA.
+Abbreviation L_LRA := L_LRA.
 
-Notation lr0_start_stack_steps_accept := lr0_start_stack_steps_accept.
+Abbreviation lr0_start_stack_steps_accept := lr0_start_stack_steps_accept.
 
-Notation lr0_start_stack_steps_accept_exists := lr0_start_stack_steps_accept_exists.
+Abbreviation lr0_start_stack_steps_accept_exists := lr0_start_stack_steps_accept_exists.
 
-Notation lr0_shifted_input_to_start_stack_steps_accept := lr0_shifted_input_to_start_stack_steps_accept.
+Abbreviation lr0_shifted_input_to_start_stack_steps_accept := lr0_shifted_input_to_start_stack_steps_accept.
 
-Notation lr0_shifted_input_to_start_stack_steps_accept_exists := lr0_shifted_input_to_start_stack_steps_accept_exists.
+Abbreviation lr0_shifted_input_to_start_stack_steps_accept_exists := lr0_shifted_input_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_to_start_stack_steps_accept := lr0_accept_sentence_to_start_stack_steps_accept.
+Abbreviation lr0_accept_sentence_to_start_stack_steps_accept := lr0_accept_sentence_to_start_stack_steps_accept.
 
-Notation lr0_accept_sentence_to_start_stack_steps_accept_exists := lr0_accept_sentence_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_to_start_stack_steps_accept_exists := lr0_accept_sentence_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists := lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists := lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists.
 
-Notation lr0_init_prod_block_from_paths_to_sentential_steps := lr0_init_prod_block_from_paths_to_sentential_steps.
+Abbreviation lr0_init_prod_block_from_paths_to_sentential_steps := lr0_init_prod_block_from_paths_to_sentential_steps.
 
-Notation lr0_init_prod_block_from_source_path_to_sentential_steps := lr0_init_prod_block_from_source_path_to_sentential_steps.
+Abbreviation lr0_init_prod_block_from_source_path_to_sentential_steps := lr0_init_prod_block_from_source_path_to_sentential_steps.
 
-Notation lr0_init_rm_step_from_paths_to_sentential_steps := lr0_init_rm_step_from_paths_to_sentential_steps.
+Abbreviation lr0_init_rm_step_from_paths_to_sentential_steps := lr0_init_rm_step_from_paths_to_sentential_steps.
 
-Notation lr0_refined_rm_steps := lr0_refined_rm_steps.
+Abbreviation lr0_refined_rm_steps := lr0_refined_rm_steps.
 
-Notation lr0_refined_rm_steps_sound := lr0_refined_rm_steps_sound.
+Abbreviation lr0_refined_rm_steps_sound := lr0_refined_rm_steps_sound.
 
-Notation lr0_refined_rm_steps_progress := lr0_refined_rm_steps_progress.
+Abbreviation lr0_refined_rm_steps_progress := lr0_refined_rm_steps_progress.
 
-Notation lr0_refined_start_stack_steps_accept := lr0_refined_start_stack_steps_accept.
+Abbreviation lr0_refined_start_stack_steps_accept := lr0_refined_start_stack_steps_accept.
 
-Notation lr0_refined_start_stack_sound := lr0_refined_start_stack_sound.
+Abbreviation lr0_refined_start_stack_sound := lr0_refined_start_stack_sound.
 
-Notation lr0_split_refined_rm_steps := lr0_split_refined_rm_steps.
+Abbreviation lr0_split_refined_rm_steps := lr0_split_refined_rm_steps.
 
-Notation rm_step_target_word_decompose := rm_step_target_word_decompose.
+Abbreviation rm_step_target_word_decompose := rm_step_target_word_decompose.
 
-Notation lr0_split_refined_rm_steps_sound := lr0_split_refined_rm_steps_sound.
+Abbreviation lr0_split_refined_rm_steps_sound := lr0_split_refined_rm_steps_sound.
 
-Notation lr0_split_refined_rm_steps_progress := lr0_split_refined_rm_steps_progress.
+Abbreviation lr0_split_refined_rm_steps_progress := lr0_split_refined_rm_steps_progress.
 
-Notation lr0_split_refined_start_stack_steps_accept := lr0_split_refined_start_stack_steps_accept.
+Abbreviation lr0_split_refined_start_stack_steps_accept := lr0_split_refined_start_stack_steps_accept.
 
-Notation lr0_split_refined_start_stack_sound := lr0_split_refined_start_stack_sound.
+Abbreviation lr0_split_refined_start_stack_sound := lr0_split_refined_start_stack_sound.
 
-Notation lr0_rm_steps_split_refined := lr0_rm_steps_split_refined.
+Abbreviation lr0_rm_steps_split_refined := lr0_rm_steps_split_refined.
 
-Notation lr0_rm_steps_split_refined_bridge := lr0_rm_steps_split_refined_bridge.
+Abbreviation lr0_rm_steps_split_refined_bridge := lr0_rm_steps_split_refined_bridge.
 
-Notation lr0_start_rm_steps_accept_by_split_refined := lr0_start_rm_steps_accept_by_split_refined.
+Abbreviation lr0_start_rm_steps_accept_by_split_refined := lr0_start_rm_steps_accept_by_split_refined.
 
-Notation lr0_rm_steps_complete := lr0_rm_steps_complete.
+Abbreviation lr0_rm_steps_complete := lr0_rm_steps_complete.
 
-Notation lr0_rm_step_refined_tail_bridge := lr0_rm_step_refined_tail_bridge.
+Abbreviation lr0_rm_step_refined_tail_bridge := lr0_rm_step_refined_tail_bridge.
 
-Notation lr0_start_rm_step_refined_tail_correct := lr0_start_rm_step_refined_tail_correct.
+Abbreviation lr0_start_rm_step_refined_tail_correct := lr0_start_rm_step_refined_tail_correct.
 
-Notation lr0_rm_steps_refined_by_first_step := lr0_rm_steps_refined_by_first_step.
+Abbreviation lr0_rm_steps_refined_by_first_step := lr0_rm_steps_refined_by_first_step.
 
-Notation lr0_rm_steps_refined_by_target_path := lr0_rm_steps_refined_by_target_path.
+Abbreviation lr0_rm_steps_refined_by_target_path := lr0_rm_steps_refined_by_target_path.
 
-Notation lr0_start_rm_steps_accept_by_target_path := lr0_start_rm_steps_accept_by_target_path.
+Abbreviation lr0_start_rm_steps_accept_by_target_path := lr0_start_rm_steps_accept_by_target_path.
 
-Notation lr0_rm_steps_refined_by_handle_target_path := lr0_rm_steps_refined_by_handle_target_path.
+Abbreviation lr0_rm_steps_refined_by_handle_target_path := lr0_rm_steps_refined_by_handle_target_path.
 
-Notation lr0_start_rm_steps_accept_by_handle_target_path := lr0_start_rm_steps_accept_by_handle_target_path.
+Abbreviation lr0_start_rm_steps_accept_by_handle_target_path := lr0_start_rm_steps_accept_by_handle_target_path.
 
-Notation lr0_rm_steps_refined_by_handle_suffix_path := lr0_rm_steps_refined_by_handle_suffix_path.
+Abbreviation lr0_rm_steps_refined_by_handle_suffix_path := lr0_rm_steps_refined_by_handle_suffix_path.
 
-Notation lr0_start_rm_steps_accept_by_handle_suffix_path := lr0_start_rm_steps_accept_by_handle_suffix_path.
+Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path := lr0_start_rm_steps_accept_by_handle_suffix_path.
 
-Notation lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed := lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed.
+Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed := lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed.
 
-Notation lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed := lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed.
+Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed := lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed.
 
-Notation lr0_rm_steps_refined_by_handle_suffix_path_closed := lr0_rm_steps_refined_by_handle_suffix_path_closed.
+Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_closed := lr0_rm_steps_refined_by_handle_suffix_path_closed.
 
-Notation lr0_start_rm_steps_accept_by_handle_suffix_path_closed := lr0_start_rm_steps_accept_by_handle_suffix_path_closed.
+Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_closed := lr0_start_rm_steps_accept_by_handle_suffix_path_closed.
 
-Notation lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists.
+Abbreviation lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists.
 
-Notation lr0_sound_augmented := lr0_sound_augmented.
+Abbreviation lr0_sound_augmented := lr0_sound_augmented.
 
-Notation lr0_rm_steps_correct := lr0_rm_steps_correct.
+Abbreviation lr0_rm_steps_correct := lr0_rm_steps_correct.
 
-Notation lr0_sound_plain_augmented := lr0_sound_plain_augmented.
+Abbreviation lr0_sound_plain_augmented := lr0_sound_plain_augmented.
 
-Notation lr0_sound := lr0_sound.
+Abbreviation lr0_sound := lr0_sound.
 
-Notation lr0_complete := lr0_complete.
+Abbreviation lr0_complete := lr0_complete.
 
-Notation lr0_correct := lr0_correct.
+Abbreviation lr0_correct := lr0_correct.
 
 End API.
 
@@ -7647,309 +7647,309 @@ Qed.
 
 Module Abs.
 
-Notation num_states := num_states.
+Abbreviation num_states := num_states.
 
-Notation index_of := index_of.
+Abbreviation index_of := index_of.
 
-Notation state_of := state_of.
+Abbreviation state_of := state_of.
 
-Notation dN := dN.
+Abbreviation dN := dN.
 
-Notation npath := npath.
+Abbreviation npath := npath.
 
-Notation dN_star := dN_star.
+Abbreviation dN_star := dN_star.
 
-Notation npathb := npathb.
+Abbreviation npathb := npathb.
 
-Notation nq0 := nq0.
+Abbreviation nq0 := nq0.
 
-Notation nq_f := nq_f.
+Abbreviation nq_f := nq_f.
 
-Notation reduceN := reduceN.
+Abbreviation reduceN := reduceN.
 
-Notation reduceN_sound_prod := reduceN_sound_prod.
+Abbreviation reduceN_sound_prod := reduceN_sound_prod.
 
-Notation nconfig := nconfig.
+Abbreviation nconfig := nconfig.
 
-Notation nyield := nyield.
+Abbreviation nyield := nyield.
 
-Notation nstep := nstep.
+Abbreviation nstep := nstep.
 
-Notation nsteps := nsteps.
+Abbreviation nsteps := nsteps.
 
-Notation nyield_step_case := nyield_step_case.
+Abbreviation nyield_step_case := nyield_step_case.
 
-Notation L_LRA_N_spec := L_LRA_N_spec.
+Abbreviation L_LRA_N_spec := L_LRA_N_spec.
 
-Notation L_LRA_N := L_LRA_N.
+Abbreviation L_LRA_N := L_LRA_N.
 
 End Abs.
 
 Module Impl.
 
-Notation num_states := num_states.
+Abbreviation num_states := num_states.
 
-Notation index_of := index_of.
+Abbreviation index_of := index_of.
 
-Notation state_of := state_of.
+Abbreviation state_of := state_of.
 
-Notation dN := dN.
+Abbreviation dN := dN.
 
-Notation npath := npath.
+Abbreviation npath := npath.
 
-Notation dN_star := dN_star.
+Abbreviation dN_star := dN_star.
 
-Notation npathb := npathb.
+Abbreviation npathb := npathb.
 
-Notation nq0 := nq0.
+Abbreviation nq0 := nq0.
 
-Notation nq_f := nq_f.
+Abbreviation nq_f := nq_f.
 
-Notation reduceN := reduceN.
+Abbreviation reduceN := reduceN.
 
-Notation reduceN_sound_prod := reduceN_sound_prod.
+Abbreviation reduceN_sound_prod := reduceN_sound_prod.
 
-Notation nconfig := nconfig.
+Abbreviation nconfig := nconfig.
 
-Notation nyield := nyield.
+Abbreviation nyield := nyield.
 
-Notation nstep := nstep.
+Abbreviation nstep := nstep.
 
-Notation nsteps := nsteps.
+Abbreviation nsteps := nsteps.
 
-Notation nyield_step_case := nyield_step_case.
+Abbreviation nyield_step_case := nyield_step_case.
 
-Notation L_LRA_N := L_LRA_N.
+Abbreviation L_LRA_N := L_LRA_N.
 
 End Impl.
 
 Module Refine.
 
-Notation states_step_no_dup_refines := states_step_no_dup.
+Abbreviation states_step_no_dup_refines := states_step_no_dup.
 
-Notation PT_no_dup_refines := PT_no_dup.
+Abbreviation PT_no_dup_refines := PT_no_dup.
 
-Notation Q_no_dup_refines := Q_no_dup.
+Abbreviation Q_no_dup_refines := Q_no_dup.
 
-Notation state_of_state_index_nat_refines := state_of_state_index_nat.
+Abbreviation state_of_state_index_nat_refines := state_of_state_index_nat.
 
-Notation index_of_complete_refines := index_of_complete.
+Abbreviation index_of_complete_refines := index_of_complete.
 
-Notation index_of_sound_refines := index_of_sound.
+Abbreviation index_of_sound_refines := index_of_sound.
 
-Notation state_of_sound_refines := state_of_sound.
+Abbreviation state_of_sound_refines := state_of_sound.
 
-Notation state_of_no_dup_refines := state_of_no_dup.
+Abbreviation state_of_no_dup_refines := state_of_no_dup.
 
-Notation state_of_index_of_refines := state_of_index_of.
+Abbreviation state_of_index_of_refines := state_of_index_of.
 
-Notation index_of_state_of_refines := index_of_state_of.
+Abbreviation index_of_state_of_refines := index_of_state_of.
 
-Notation dN_index_of_refines := dN_index_of.
+Abbreviation dN_index_of_refines := dN_index_of.
 
-Notation dN_delta_some_refines := dN_delta_some.
+Abbreviation dN_delta_some_refines := dN_delta_some.
 
-Notation dN_start_prime_none_refines := dN_start_prime_none.
+Abbreviation dN_start_prime_none_refines := dN_start_prime_none.
 
-Notation dN_some_source_state_refines := dN_some_source_state.
+Abbreviation dN_some_source_state_refines := dN_some_source_state.
 
-Notation state_of_some_lt_refines := state_of_some_lt.
+Abbreviation state_of_some_lt_refines := state_of_some_lt.
 
-Notation dN_source_lt_refines := dN_source_lt.
+Abbreviation dN_source_lt_refines := dN_source_lt.
 
-Notation dN_some_target_state_refines := dN_some_target_state.
+Abbreviation dN_some_target_state_refines := dN_some_target_state.
 
-Notation dN_some_delta_refines := dN_some_delta.
+Abbreviation dN_some_delta_refines := dN_some_delta.
 
-Notation npath_singleton_refines := npath_singleton.
+Abbreviation npath_singleton_refines := npath_singleton.
 
-Notation dN_of_npath_singleton_refines := dN_of_npath_singleton.
+Abbreviation dN_of_npath_singleton_refines := dN_of_npath_singleton.
 
-Notation npath_app_refines := npath_app.
+Abbreviation npath_app_refines := npath_app.
 
-Notation npath_app_inv_refines := npath_app_inv.
+Abbreviation npath_app_inv_refines := npath_app_inv.
 
-Notation npath_source_state_refines := npath_source_state.
+Abbreviation npath_source_state_refines := npath_source_state.
 
-Notation npath_target_state_refines := npath_target_state.
+Abbreviation npath_target_state_refines := npath_target_state.
 
-Notation npath_of_path_refines := npath_of_path.
+Abbreviation npath_of_path_refines := npath_of_path.
 
-Notation path_of_npath_refines := path_of_npath.
+Abbreviation path_of_npath_refines := path_of_npath.
 
-Notation npath_item_invariant_from_source_refines := npath_item_invariant_from_source.
+Abbreviation npath_item_invariant_from_source_refines := npath_item_invariant_from_source.
 
-Notation npath_path_iff_refines := npath_path_iff.
+Abbreviation npath_path_iff_refines := npath_path_iff.
 
-Notation npath_of_dN_star_refines := npath_of_dN_star.
+Abbreviation npath_of_dN_star_refines := npath_of_dN_star.
 
-Notation dN_star_of_npath_refines := dN_star_of_npath.
+Abbreviation dN_star_of_npath_refines := dN_star_of_npath.
 
-Notation npath_deterministic_refines := npath_deterministic.
+Abbreviation npath_deterministic_refines := npath_deterministic.
 
-Notation npath_factorization_refines := npath_factorization.
+Abbreviation npath_factorization_refines := npath_factorization.
 
-Notation npath_common_prefix_suffix_refines := npath_common_prefix_suffix.
+Abbreviation npath_common_prefix_suffix_refines := npath_common_prefix_suffix.
 
-Notation reduceN_sound_prod_refines := reduceN_sound_prod.
+Abbreviation reduceN_sound_prod_refines := reduceN_sound_prod.
 
-Notation nstep_nyield_invariant_refines := nstep_nyield_invariant.
+Abbreviation nstep_nyield_invariant_refines := nstep_nyield_invariant.
 
-Notation nsteps_nyield_invariant_refines := nsteps_nyield_invariant.
+Abbreviation nsteps_nyield_invariant_refines := nsteps_nyield_invariant.
 
-Notation npathb_correct_refines := npathb_correct.
+Abbreviation npathb_correct_refines := npathb_correct.
 
-Notation nq0_state_refines := nq0_state.
+Abbreviation nq0_state_refines := nq0_state.
 
-Notation state_of_reachable_npath_refines := state_of_reachable_npath.
+Abbreviation state_of_reachable_npath_refines := state_of_reachable_npath.
 
-Notation state_of_valid_item_refines := state_of_valid_item.
+Abbreviation state_of_valid_item_refines := state_of_valid_item.
 
-Notation nq_f_complete_refines := nq_f_complete.
+Abbreviation nq_f_complete_refines := nq_f_complete.
 
-Notation nq_f_sound_refines := nq_f_sound.
+Abbreviation nq_f_sound_refines := nq_f_sound.
 
-Notation nq_f_accept_path_iff_refines := nq_f_accept_path_iff.
+Abbreviation nq_f_accept_path_iff_refines := nq_f_accept_path_iff.
 
-Notation nconfig_denotes_init_refines := nconfig_denotes_init.
+Abbreviation nconfig_denotes_init_refines := nconfig_denotes_init.
 
-Notation state_of_index_unique_refines := state_of_index_unique.
+Abbreviation state_of_index_unique_refines := state_of_index_unique.
 
-Notation nstep_of_step_denotes_refines := nstep_of_step_denotes.
+Abbreviation nstep_of_step_denotes_refines := nstep_of_step_denotes.
 
-Notation nsteps_of_steps_denotes_refines := nsteps_of_steps_denotes.
+Abbreviation nsteps_of_steps_denotes_refines := nsteps_of_steps_denotes.
 
-Notation step_of_nstep_denotes_refines := step_of_nstep_denotes.
+Abbreviation step_of_nstep_denotes_refines := step_of_nstep_denotes.
 
-Notation steps_of_nsteps_denotes_refines := steps_of_nsteps_denotes.
+Abbreviation steps_of_nsteps_denotes_refines := steps_of_nsteps_denotes.
 
-Notation L_LRA_N_spec_refines := L_LRA_N_spec.
+Abbreviation L_LRA_N_spec_refines := L_LRA_N_spec.
 
-Notation L_LRA_N_sound_refines := L_LRA_N_sound.
+Abbreviation L_LRA_N_sound_refines := L_LRA_N_sound.
 
-Notation L_LRA_N_complete_refines := L_LRA_N_complete.
+Abbreviation L_LRA_N_complete_refines := L_LRA_N_complete.
 
-Notation L_LRA_N_correct_refines := L_LRA_N_correct.
+Abbreviation L_LRA_N_correct_refines := L_LRA_N_correct.
 
 End Refine.
 
 Module API.
 
-Notation num_states := num_states.
+Abbreviation num_states := num_states.
 
-Notation index_of := index_of.
+Abbreviation index_of := index_of.
 
-Notation state_of := state_of.
+Abbreviation state_of := state_of.
 
-Notation dN := dN.
+Abbreviation dN := dN.
 
-Notation npath := npath.
+Abbreviation npath := npath.
 
-Notation dN_star := dN_star.
+Abbreviation dN_star := dN_star.
 
-Notation npathb := npathb.
+Abbreviation npathb := npathb.
 
-Notation nq0 := nq0.
+Abbreviation nq0 := nq0.
 
-Notation nq_f := nq_f.
+Abbreviation nq_f := nq_f.
 
-Notation reduceN := reduceN.
+Abbreviation reduceN := reduceN.
 
-Notation nconfig := nconfig.
+Abbreviation nconfig := nconfig.
 
-Notation nyield := nyield.
+Abbreviation nyield := nyield.
 
-Notation nstep := nstep.
+Abbreviation nstep := nstep.
 
-Notation nsteps := nsteps.
+Abbreviation nsteps := nsteps.
 
-Notation L_LRA_N := L_LRA_N.
+Abbreviation L_LRA_N := L_LRA_N.
 
-Notation state_of_index_of := state_of_index_of.
+Abbreviation state_of_index_of := state_of_index_of.
 
-Notation state_of_no_dup := state_of_no_dup.
+Abbreviation state_of_no_dup := state_of_no_dup.
 
-Notation index_of_state_of := index_of_state_of.
+Abbreviation index_of_state_of := index_of_state_of.
 
-Notation dN_index_of := dN_index_of.
+Abbreviation dN_index_of := dN_index_of.
 
-Notation dN_delta_some := dN_delta_some.
+Abbreviation dN_delta_some := dN_delta_some.
 
-Notation dN_start_prime_none := dN_start_prime_none.
+Abbreviation dN_start_prime_none := dN_start_prime_none.
 
-Notation state_of_some_lt := state_of_some_lt.
+Abbreviation state_of_some_lt := state_of_some_lt.
 
-Notation dN_source_lt := dN_source_lt.
+Abbreviation dN_source_lt := dN_source_lt.
 
-Notation dN_some_target_state := dN_some_target_state.
+Abbreviation dN_some_target_state := dN_some_target_state.
 
-Notation dN_some_delta := dN_some_delta.
+Abbreviation dN_some_delta := dN_some_delta.
 
-Notation npath_singleton := npath_singleton.
+Abbreviation npath_singleton := npath_singleton.
 
-Notation dN_of_npath_singleton := dN_of_npath_singleton.
+Abbreviation dN_of_npath_singleton := dN_of_npath_singleton.
 
-Notation npath_app := npath_app.
+Abbreviation npath_app := npath_app.
 
-Notation npath_app_inv := npath_app_inv.
+Abbreviation npath_app_inv := npath_app_inv.
 
-Notation npath_source_state := npath_source_state.
+Abbreviation npath_source_state := npath_source_state.
 
-Notation npath_target_state := npath_target_state.
+Abbreviation npath_target_state := npath_target_state.
 
-Notation npath_of_path := npath_of_path.
+Abbreviation npath_of_path := npath_of_path.
 
-Notation path_of_npath := path_of_npath.
+Abbreviation path_of_npath := path_of_npath.
 
-Notation npath_item_invariant_from_source := npath_item_invariant_from_source.
+Abbreviation npath_item_invariant_from_source := npath_item_invariant_from_source.
 
-Notation npath_path_iff := npath_path_iff.
+Abbreviation npath_path_iff := npath_path_iff.
 
-Notation npath_deterministic := npath_deterministic.
+Abbreviation npath_deterministic := npath_deterministic.
 
-Notation npath_factorization := npath_factorization.
+Abbreviation npath_factorization := npath_factorization.
 
-Notation npath_common_prefix_suffix := npath_common_prefix_suffix.
+Abbreviation npath_common_prefix_suffix := npath_common_prefix_suffix.
 
-Notation reduceN_sound_prod := reduceN_sound_prod.
+Abbreviation reduceN_sound_prod := reduceN_sound_prod.
 
-Notation nstep_nyield_invariant := nstep_nyield_invariant.
+Abbreviation nstep_nyield_invariant := nstep_nyield_invariant.
 
-Notation nsteps_nyield_invariant := nsteps_nyield_invariant.
+Abbreviation nsteps_nyield_invariant := nsteps_nyield_invariant.
 
-Notation npathb_correct := npathb_correct.
+Abbreviation npathb_correct := npathb_correct.
 
-Notation nq0_state := nq0_state.
+Abbreviation nq0_state := nq0_state.
 
-Notation state_of_reachable_npath := state_of_reachable_npath.
+Abbreviation state_of_reachable_npath := state_of_reachable_npath.
 
-Notation state_of_valid_item := state_of_valid_item.
+Abbreviation state_of_valid_item := state_of_valid_item.
 
-Notation nq_f_complete := nq_f_complete.
+Abbreviation nq_f_complete := nq_f_complete.
 
-Notation nq_f_sound := nq_f_sound.
+Abbreviation nq_f_sound := nq_f_sound.
 
-Notation nq_f_accept_path_iff := nq_f_accept_path_iff.
+Abbreviation nq_f_accept_path_iff := nq_f_accept_path_iff.
 
-Notation nconfig_denotes_init := nconfig_denotes_init.
+Abbreviation nconfig_denotes_init := nconfig_denotes_init.
 
-Notation state_of_index_unique := state_of_index_unique.
+Abbreviation state_of_index_unique := state_of_index_unique.
 
-Notation nstep_of_step_denotes := nstep_of_step_denotes.
+Abbreviation nstep_of_step_denotes := nstep_of_step_denotes.
 
-Notation nsteps_of_steps_denotes := nsteps_of_steps_denotes.
+Abbreviation nsteps_of_steps_denotes := nsteps_of_steps_denotes.
 
-Notation step_of_nstep_denotes := step_of_nstep_denotes.
+Abbreviation step_of_nstep_denotes := step_of_nstep_denotes.
 
-Notation steps_of_nsteps_denotes := steps_of_nsteps_denotes.
+Abbreviation steps_of_nsteps_denotes := steps_of_nsteps_denotes.
 
-Notation L_LRA_N_spec := L_LRA_N_spec.
+Abbreviation L_LRA_N_spec := L_LRA_N_spec.
 
-Notation L_LRA_N_sound := L_LRA_N_sound.
+Abbreviation L_LRA_N_sound := L_LRA_N_sound.
 
-Notation L_LRA_N_complete := L_LRA_N_complete.
+Abbreviation L_LRA_N_complete := L_LRA_N_complete.
 
-Notation L_LRA_N_correct := L_LRA_N_correct.
+Abbreviation L_LRA_N_correct := L_LRA_N_correct.
 
 End API.
 
@@ -8525,113 +8525,113 @@ Qed.
 
 Module Abs.
 
-Notation Null := Null.
+Abbreviation Null := Null.
 
-Notation NullStr := NullStr.
+Abbreviation NullStr := NullStr.
 
 End Abs.
 
 Module Impl.
 
-Notation nullable_symbol_in := nullable_symbol_in.
+Abbreviation nullable_symbol_in := nullable_symbol_in.
 
-Notation nullable_rhs_in := nullable_rhs_in.
+Abbreviation nullable_rhs_in := nullable_rhs_in.
 
-Notation nullable_prod_in := nullable_prod_in.
+Abbreviation nullable_prod_in := nullable_prod_in.
 
-Notation nullable_step := nullable_step.
+Abbreviation nullable_step := nullable_step.
 
-Notation nullable_fuel := nullable_fuel.
+Abbreviation nullable_fuel := nullable_fuel.
 
-Notation nullable_set := nullable_set.
+Abbreviation nullable_set := nullable_set.
 
-Notation nullableb := nullableb.
+Abbreviation nullableb := nullableb.
 
-Notation nullable_symbolb := nullable_symbolb.
+Abbreviation nullable_symbolb := nullable_symbolb.
 
-Notation nullable_strb := nullable_strb.
+Abbreviation nullable_strb := nullable_strb.
 
 End Impl.
 
 Module Refine.
 
-Notation nullable_step_contains_refines := nullable_step_contains.
+Abbreviation nullable_step_contains_refines := nullable_step_contains.
 
-Notation nullable_iter_contains_refines := nullable_iter_contains.
+Abbreviation nullable_iter_contains_refines := nullable_iter_contains.
 
-Notation nullable_step_sound_refines := nullable_step_sound.
+Abbreviation nullable_step_sound_refines := nullable_step_sound.
 
-Notation nullable_iter_sound_refines := nullable_iter_sound.
+Abbreviation nullable_iter_sound_refines := nullable_iter_sound.
 
-Notation nullableb_sound_refines := nullableb_sound.
+Abbreviation nullableb_sound_refines := nullableb_sound.
 
-Notation nullable_strb_sound_refines := nullable_strb_sound.
+Abbreviation nullable_strb_sound_refines := nullable_strb_sound.
 
-Notation nullable_step_monotone_refines := nullable_step_monotone.
+Abbreviation nullable_step_monotone_refines := nullable_step_monotone.
 
-Notation nullable_fixed_at_fuel_refines := nullable_fixed_at_fuel.
+Abbreviation nullable_fixed_at_fuel_refines := nullable_fixed_at_fuel.
 
-Notation nullableb_complete_refines := nullableb_complete.
+Abbreviation nullableb_complete_refines := nullableb_complete.
 
-Notation nullable_strb_complete_refines := nullable_strb_complete.
+Abbreviation nullable_strb_complete_refines := nullable_strb_complete.
 
-Notation nullableb_correct_refines := nullableb_correct.
+Abbreviation nullableb_correct_refines := nullableb_correct.
 
-Notation nullable_strb_correct_refines := nullable_strb_correct.
+Abbreviation nullable_strb_correct_refines := nullable_strb_correct.
 
-Notation plain_step_nullable_strb_backward_refines := plain_step_nullable_strb_backward.
+Abbreviation plain_step_nullable_strb_backward_refines := plain_step_nullable_strb_backward.
 
-Notation plain_steps_nullable_strb_backward_refines := plain_steps_nullable_strb_backward.
+Abbreviation plain_steps_nullable_strb_backward_refines := plain_steps_nullable_strb_backward.
 
-Notation plain_steps_empty_NullStr_refines := plain_steps_empty_NullStr.
+Abbreviation plain_steps_empty_NullStr_refines := plain_steps_empty_NullStr.
 
-Notation rm_steps_empty_NullStr_refines := rm_steps_empty_NullStr.
+Abbreviation rm_steps_empty_NullStr_refines := rm_steps_empty_NullStr.
 
-Notation NullStr_app_refines := NullStr_app.
+Abbreviation NullStr_app_refines := NullStr_app.
 
-Notation NullStr_single_nonterminal_inv_refines := NullStr_single_nonterminal_inv.
+Abbreviation NullStr_single_nonterminal_inv_refines := NullStr_single_nonterminal_inv.
 
-Notation Null_NullStr_rm_steps_empty_refines := Null_NullStr_rm_steps_empty.
+Abbreviation Null_NullStr_rm_steps_empty_refines := Null_NullStr_rm_steps_empty.
 
-Notation Null_rm_steps_empty_refines := Null_rm_steps_empty.
+Abbreviation Null_rm_steps_empty_refines := Null_rm_steps_empty.
 
-Notation NullStr_rm_steps_empty_refines := NullStr_rm_steps_empty.
+Abbreviation NullStr_rm_steps_empty_refines := NullStr_rm_steps_empty.
 
-Notation NullStr_rm_steps_empty_context_refines := NullStr_rm_steps_empty_context.
+Abbreviation NullStr_rm_steps_empty_context_refines := NullStr_rm_steps_empty_context.
 
 End Refine.
 
 Module API.
 
-Notation Null := Null.
+Abbreviation Null := Null.
 
-Notation NullStr := NullStr.
+Abbreviation NullStr := NullStr.
 
-Notation nullable_fuel := nullable_fuel.
+Abbreviation nullable_fuel := nullable_fuel.
 
-Notation nullable_set := nullable_set.
+Abbreviation nullable_set := nullable_set.
 
-Notation nullableb := nullableb.
+Abbreviation nullableb := nullableb.
 
-Notation nullable_strb := nullable_strb.
+Abbreviation nullable_strb := nullable_strb.
 
-Notation nullableb_correct := nullableb_correct.
+Abbreviation nullableb_correct := nullableb_correct.
 
-Notation nullable_strb_correct := nullable_strb_correct.
+Abbreviation nullable_strb_correct := nullable_strb_correct.
 
-Notation plain_steps_empty_NullStr := plain_steps_empty_NullStr.
+Abbreviation plain_steps_empty_NullStr := plain_steps_empty_NullStr.
 
-Notation rm_steps_empty_NullStr := rm_steps_empty_NullStr.
+Abbreviation rm_steps_empty_NullStr := rm_steps_empty_NullStr.
 
-Notation NullStr_app := NullStr_app.
+Abbreviation NullStr_app := NullStr_app.
 
-Notation NullStr_single_nonterminal_inv := NullStr_single_nonterminal_inv.
+Abbreviation NullStr_single_nonterminal_inv := NullStr_single_nonterminal_inv.
 
-Notation Null_rm_steps_empty := Null_rm_steps_empty.
+Abbreviation Null_rm_steps_empty := Null_rm_steps_empty.
 
-Notation NullStr_rm_steps_empty := NullStr_rm_steps_empty.
+Abbreviation NullStr_rm_steps_empty := NullStr_rm_steps_empty.
 
-Notation NullStr_rm_steps_empty_context := NullStr_rm_steps_empty_context.
+Abbreviation NullStr_rm_steps_empty_context := NullStr_rm_steps_empty_context.
 
 End API.
 
@@ -8922,133 +8922,133 @@ Qed.
 
 Module Abs.
 
-Notation read_node := read_node.
+Abbreviation read_node := read_node.
 
-Notation D := D.
+Abbreviation D := D.
 
-Notation DR := DR.
+Abbreviation DR := DR.
 
-Notation reads_deps := reads_deps.
+Abbreviation reads_deps := reads_deps.
 
-Notation Read_closure := Read_closure.
+Abbreviation Read_closure := Read_closure.
 
-Notation Read := Read.
+Abbreviation Read := Read.
 
-Notation Read_bang := Read_bang.
+Abbreviation Read_bang := Read_bang.
 
 End Abs.
 
 Module Impl.
 
-Notation read_domain_entry := read_domain_entry.
+Abbreviation read_domain_entry := read_domain_entry.
 
-Notation read_domain_raw := read_domain_raw.
+Abbreviation read_domain_raw := read_domain_raw.
 
-Notation D := D.
+Abbreviation D := D.
 
-Notation DR := DR.
+Abbreviation DR := DR.
 
-Notation reads_deps := reads_deps.
+Abbreviation reads_deps := reads_deps.
 
-Notation Read_bang := Read_bang.
+Abbreviation Read_bang := Read_bang.
 
 End Impl.
 
 Module Refine.
 
-Notation read_domain_sound_refines := read_domain_sound.
+Abbreviation read_domain_sound_refines := read_domain_sound.
 
-Notation read_domain_complete_refines := read_domain_complete.
+Abbreviation read_domain_complete_refines := read_domain_complete.
 
-Notation read_domain_from_npath_singleton_refines := read_domain_from_npath_singleton.
+Abbreviation read_domain_from_npath_singleton_refines := read_domain_from_npath_singleton.
 
-Notation read_domain_from_npath_prefix_symbol_refines := read_domain_from_npath_prefix_symbol.
+Abbreviation read_domain_from_npath_prefix_symbol_refines := read_domain_from_npath_prefix_symbol.
 
-Notation read_domain_no_start_prime_refines := read_domain_no_start_prime.
+Abbreviation read_domain_no_start_prime_refines := read_domain_no_start_prime.
 
-Notation read_domain_no_dup_refines := read_domain_no_dup.
+Abbreviation read_domain_no_dup_refines := read_domain_no_dup.
 
-Notation DR_sound_refines := DR_sound.
+Abbreviation DR_sound_refines := DR_sound.
 
-Notation DR_complete_refines := DR_complete.
+Abbreviation DR_complete_refines := DR_complete.
 
-Notation reads_deps_sound_refines := reads_deps_sound.
+Abbreviation reads_deps_sound_refines := reads_deps_sound.
 
-Notation reads_deps_complete_refines := reads_deps_complete.
+Abbreviation reads_deps_complete_refines := reads_deps_complete.
 
-Notation reads_deps_closed_refines := reads_deps_closed.
+Abbreviation reads_deps_closed_refines := reads_deps_closed.
 
-Notation Read_from_nullable_path_refines := Read_from_nullable_path.
+Abbreviation Read_from_nullable_path_refines := Read_from_nullable_path.
 
-Notation Read_direct_refines := Read_direct.
+Abbreviation Read_direct_refines := Read_direct.
 
-Notation Read_bang_sound_refines := Read_bang_sound.
+Abbreviation Read_bang_sound_refines := Read_bang_sound.
 
-Notation Read_bang_complete_refines := Read_bang_complete.
+Abbreviation Read_bang_complete_refines := Read_bang_complete.
 
-Notation Read_bang_correct_refines := Read_bang_correct.
+Abbreviation Read_bang_correct_refines := Read_bang_correct.
 
-Notation Read_closure_to_semantic_refines := Read_closure_to_semantic.
+Abbreviation Read_closure_to_semantic_refines := Read_closure_to_semantic.
 
-Notation Read_semantic_to_closure_refines := Read_semantic_to_closure.
+Abbreviation Read_semantic_to_closure_refines := Read_semantic_to_closure.
 
-Notation Read_semantic_fixed_point_refines := Read_semantic_fixed_point.
+Abbreviation Read_semantic_fixed_point_refines := Read_semantic_fixed_point.
 
-Notation Read_impl_to_abs_refines := Read_impl_to_abs.
+Abbreviation Read_impl_to_abs_refines := Read_impl_to_abs.
 
-Notation Read_abs_to_impl_refines := Read_abs_to_impl.
+Abbreviation Read_abs_to_impl_refines := Read_abs_to_impl.
 
-Notation Read_refines := Read_refines.
+Abbreviation Read_refines := Read_refines.
 
 End Refine.
 
 Module API.
 
-Notation read_node := read_node.
+Abbreviation read_node := read_node.
 
-Notation D := D.
+Abbreviation D := D.
 
-Notation DR := DR.
+Abbreviation DR := DR.
 
-Notation reads_deps := reads_deps.
+Abbreviation reads_deps := reads_deps.
 
-Notation Read_closure := Read_closure.
+Abbreviation Read_closure := Read_closure.
 
-Notation Read := Read.
+Abbreviation Read := Read.
 
-Notation Read_bang := Read_bang.
+Abbreviation Read_bang := Read_bang.
 
-Notation Read_from_nullable_path := Read_from_nullable_path.
+Abbreviation Read_from_nullable_path := Read_from_nullable_path.
 
-Notation Read_direct := Read_direct.
+Abbreviation Read_direct := Read_direct.
 
-Notation read_domain_sound := read_domain_sound.
+Abbreviation read_domain_sound := read_domain_sound.
 
-Notation read_domain_no_start_prime := read_domain_no_start_prime.
+Abbreviation read_domain_no_start_prime := read_domain_no_start_prime.
 
-Notation read_domain_complete := read_domain_complete.
+Abbreviation read_domain_complete := read_domain_complete.
 
-Notation read_domain_from_npath_singleton := read_domain_from_npath_singleton.
+Abbreviation read_domain_from_npath_singleton := read_domain_from_npath_singleton.
 
-Notation read_domain_from_npath_prefix_symbol := read_domain_from_npath_prefix_symbol.
+Abbreviation read_domain_from_npath_prefix_symbol := read_domain_from_npath_prefix_symbol.
 
-Notation DR_sound := DR_sound.
+Abbreviation DR_sound := DR_sound.
 
-Notation DR_complete := DR_complete.
+Abbreviation DR_complete := DR_complete.
 
-Notation reads_deps_sound := reads_deps_sound.
+Abbreviation reads_deps_sound := reads_deps_sound.
 
-Notation reads_deps_complete := reads_deps_complete.
+Abbreviation reads_deps_complete := reads_deps_complete.
 
-Notation Read_bang_correct := Read_bang_correct.
+Abbreviation Read_bang_correct := Read_bang_correct.
 
-Notation Read_semantic_fixed_point := Read_semantic_fixed_point.
+Abbreviation Read_semantic_fixed_point := Read_semantic_fixed_point.
 
-Notation Read_impl_to_abs := Read_impl_to_abs.
+Abbreviation Read_impl_to_abs := Read_impl_to_abs.
 
-Notation Read_abs_to_impl := Read_abs_to_impl.
+Abbreviation Read_abs_to_impl := Read_abs_to_impl.
 
-Notation Read_refines := Read_refines.
+Abbreviation Read_refines := Read_refines.
 
 End API.
 
@@ -11153,725 +11153,725 @@ Qed.
 
 Module Abs.
 
-Notation incl_deps := incl_deps.
+Abbreviation incl_deps := incl_deps.
 
-Notation Follow_closure := Follow_closure.
+Abbreviation Follow_closure := Follow_closure.
 
-Notation Follow_sem := Follow_sem.
+Abbreviation Follow_sem := Follow_sem.
 
-Notation Follow_read_seed_path_spec := Follow_read_seed_path_spec.
+Abbreviation Follow_read_seed_path_spec := Follow_read_seed_path_spec.
 
-Notation Follow_read_seed_context_spec := Follow_read_seed_context_spec.
+Abbreviation Follow_read_seed_context_spec := Follow_read_seed_context_spec.
 
-Notation Follow_read_seed_lr0_context_spec := Follow_read_seed_lr0_context_spec.
+Abbreviation Follow_read_seed_lr0_context_spec := Follow_read_seed_lr0_context_spec.
 
-Notation lr0_item_next_symbol_transition_spec := lr0_item_next_symbol_transition_spec.
+Abbreviation lr0_item_next_symbol_transition_spec := lr0_item_next_symbol_transition_spec.
 
-Notation lr0_item_prefix_transition_spec := lr0_item_prefix_transition_spec.
+Abbreviation lr0_item_prefix_transition_spec := lr0_item_prefix_transition_spec.
 
-Notation lr0_item_terminal_read_path_spec := lr0_item_terminal_read_path_spec.
+Abbreviation lr0_item_terminal_read_path_spec := lr0_item_terminal_read_path_spec.
 
-Notation Follow := Follow.
+Abbreviation Follow := Follow.
 
-Notation marked_rm := marked_rm.
+Abbreviation marked_rm := marked_rm.
 
-Notation marked_follow := marked_follow.
+Abbreviation marked_follow := marked_follow.
 
-Notation marked_rm_derivation_spec := marked_rm_derivation_spec.
+Abbreviation marked_rm_derivation_spec := marked_rm_derivation_spec.
 
-Notation marked_follow_derivation_spec := marked_follow_derivation_spec.
+Abbreviation marked_follow_derivation_spec := marked_follow_derivation_spec.
 
-Notation marked_follow_derivation_after_start_spec := marked_follow_derivation_after_start_spec.
+Abbreviation marked_follow_derivation_after_start_spec := marked_follow_derivation_after_start_spec.
 
-Notation marked_follow_derivation_after_start_last_step_spec := marked_follow_derivation_after_start_last_step_spec.
+Abbreviation marked_follow_derivation_after_start_last_step_spec := marked_follow_derivation_after_start_last_step_spec.
 
-Notation marked_follow_derivation_after_start_birth_split_spec := marked_follow_derivation_after_start_birth_split_spec.
+Abbreviation marked_follow_derivation_after_start_birth_split_spec := marked_follow_derivation_after_start_birth_split_spec.
 
-Notation marked_follow_derivation_after_start_birth_image_spec := marked_follow_derivation_after_start_birth_image_spec.
+Abbreviation marked_follow_derivation_after_start_birth_image_spec := marked_follow_derivation_after_start_birth_image_spec.
 
-Notation rm_steps_n_suffix_terminal_image_spec := rm_steps_n_suffix_terminal_image_spec.
+Abbreviation rm_steps_n_suffix_terminal_image_spec := rm_steps_n_suffix_terminal_image_spec.
 
-Notation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain.
+Abbreviation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain.
 
-Notation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih.
+Abbreviation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih.
 
-Notation marked_follow_derivation_after_start_birth_semantic_spec := marked_follow_derivation_after_start_birth_semantic_spec.
+Abbreviation marked_follow_derivation_after_start_birth_semantic_spec := marked_follow_derivation_after_start_birth_semantic_spec.
 
-Notation marked_follow_derivation_after_start_suffix_spec := marked_follow_derivation_after_start_suffix_spec.
+Abbreviation marked_follow_derivation_after_start_suffix_spec := marked_follow_derivation_after_start_suffix_spec.
 
-Notation marked_follow_derivation_after_start_suffix_root_to_closure := marked_follow_derivation_after_start_suffix_root_to_closure.
+Abbreviation marked_follow_derivation_after_start_suffix_root_to_closure := marked_follow_derivation_after_start_suffix_root_to_closure.
 
-Notation marked_follow_derivation_after_start_occurrence_root_npath := marked_follow_derivation_after_start_occurrence_root_npath.
+Abbreviation marked_follow_derivation_after_start_occurrence_root_npath := marked_follow_derivation_after_start_occurrence_root_npath.
 
-Notation marked_follow_derivation_after_start_occurrence_npath := marked_follow_derivation_after_start_occurrence_npath.
+Abbreviation marked_follow_derivation_after_start_occurrence_npath := marked_follow_derivation_after_start_occurrence_npath.
 
-Notation marked_follow_derivation_after_start_parent_shift_resolver := marked_follow_derivation_after_start_parent_shift_resolver.
+Abbreviation marked_follow_derivation_after_start_parent_shift_resolver := marked_follow_derivation_after_start_parent_shift_resolver.
 
-Notation marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver := marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver.
+Abbreviation marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver := marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver.
 
-Notation Follow_sem_to_closure_by_suffix_parent_shift_resolver := Follow_sem_to_closure_by_suffix_parent_shift_resolver.
+Abbreviation Follow_sem_to_closure_by_suffix_parent_shift_resolver := Follow_sem_to_closure_by_suffix_parent_shift_resolver.
 
-Notation Follow_sem_to_impl_by_suffix_parent_shift_resolver := Follow_sem_to_impl_by_suffix_parent_shift_resolver.
+Abbreviation Follow_sem_to_impl_by_suffix_parent_shift_resolver := Follow_sem_to_impl_by_suffix_parent_shift_resolver.
 
-Notation Follow_sem_to_closure_by_occurrence_path := Follow_sem_to_closure_by_occurrence_path.
+Abbreviation Follow_sem_to_closure_by_occurrence_path := Follow_sem_to_closure_by_occurrence_path.
 
-Notation Follow_sem_to_impl_by_occurrence_path := Follow_sem_to_impl_by_occurrence_path.
+Abbreviation Follow_sem_to_impl_by_occurrence_path := Follow_sem_to_impl_by_occurrence_path.
 
-Notation marked_follow_derivation_after_start_birth_domain_spec := marked_follow_derivation_after_start_birth_domain_spec.
+Abbreviation marked_follow_derivation_after_start_birth_domain_spec := marked_follow_derivation_after_start_birth_domain_spec.
 
-Notation marked_follow_derivation_after_start_birth_parent_shift_spec := marked_follow_derivation_after_start_birth_parent_shift_spec.
+Abbreviation marked_follow_derivation_after_start_birth_parent_shift_spec := marked_follow_derivation_after_start_birth_parent_shift_spec.
 
-Notation Follow_bang := Follow_bang.
+Abbreviation Follow_bang := Follow_bang.
 
-Notation Follow_productive_viable := Follow_productive_viable.
+Abbreviation Follow_productive_viable := Follow_productive_viable.
 
-Notation Follow_closure_to_sem_productive := Follow_closure_to_sem_productive.
+Abbreviation Follow_closure_to_sem_productive := Follow_closure_to_sem_productive.
 
-Notation Follow_impl_to_sem_productive := Follow_impl_to_sem_productive.
+Abbreviation Follow_impl_to_sem_productive := Follow_impl_to_sem_productive.
 
-Notation Follow_closure_sem_correct_productive := Follow_closure_sem_correct_productive.
+Abbreviation Follow_closure_sem_correct_productive := Follow_closure_sem_correct_productive.
 
-Notation Follow_bang_sem_correct_productive := Follow_bang_sem_correct_productive.
+Abbreviation Follow_bang_sem_correct_productive := Follow_bang_sem_correct_productive.
 
 End Abs.
 
 Module Impl.
 
-Notation incl_candidate_from_item := incl_candidate_from_item.
+Abbreviation incl_candidate_from_item := incl_candidate_from_item.
 
-Notation incl_item_deps := incl_item_deps.
+Abbreviation incl_item_deps := incl_item_deps.
 
-Notation incl_deps := incl_deps.
+Abbreviation incl_deps := incl_deps.
 
-Notation Follow_bang := Follow_bang.
+Abbreviation Follow_bang := Follow_bang.
 
 End Impl.
 
 Module Refine.
 
-Notation incl_candidate_from_item_sound_spec_refines := incl_candidate_from_item_sound_spec.
+Abbreviation incl_candidate_from_item_sound_spec_refines := incl_candidate_from_item_sound_spec.
 
-Notation incl_candidate_from_item_sound_refines := incl_candidate_from_item_sound.
+Abbreviation incl_candidate_from_item_sound_refines := incl_candidate_from_item_sound.
 
-Notation incl_candidate_from_item_complete_refines := incl_candidate_from_item_complete.
+Abbreviation incl_candidate_from_item_complete_refines := incl_candidate_from_item_complete.
 
-Notation incl_item_deps_sound_spec_refines := incl_item_deps_sound_spec.
+Abbreviation incl_item_deps_sound_spec_refines := incl_item_deps_sound_spec.
 
-Notation incl_item_deps_sound_refines := incl_item_deps_sound.
+Abbreviation incl_item_deps_sound_refines := incl_item_deps_sound.
 
-Notation incl_item_deps_complete_refines := incl_item_deps_complete.
+Abbreviation incl_item_deps_complete_refines := incl_item_deps_complete.
 
-Notation incl_deps_sound_spec_refines := incl_deps_sound_spec.
+Abbreviation incl_deps_sound_spec_refines := incl_deps_sound_spec.
 
-Notation incl_deps_sound_refines := incl_deps_sound.
+Abbreviation incl_deps_sound_refines := incl_deps_sound.
 
-Notation incl_deps_complete_refines := incl_deps_complete.
+Abbreviation incl_deps_complete_refines := incl_deps_complete.
 
-Notation incl_deps_closed_refines := incl_deps_closed.
+Abbreviation incl_deps_closed_refines := incl_deps_closed.
 
-Notation Follow_bang_sound_refines := Follow_bang_sound.
+Abbreviation Follow_bang_sound_refines := Follow_bang_sound.
 
-Notation Follow_bang_complete_refines := Follow_bang_complete.
+Abbreviation Follow_bang_complete_refines := Follow_bang_complete.
 
-Notation Follow_bang_correct_refines := Follow_bang_correct.
+Abbreviation Follow_bang_correct_refines := Follow_bang_correct.
 
-Notation Follow_sem_nullable_suffix_refines := Follow_sem_nullable_suffix.
+Abbreviation Follow_sem_nullable_suffix_refines := Follow_sem_nullable_suffix.
 
-Notation Follow_read_seed_path_spec_refines := Follow_read_seed_path_spec.
+Abbreviation Follow_read_seed_path_spec_refines := Follow_read_seed_path_spec.
 
-Notation Follow_read_seed_path_refines := Follow_read_seed_path.
+Abbreviation Follow_read_seed_path_refines := Follow_read_seed_path.
 
-Notation Follow_read_seed_context_spec_refines := Follow_read_seed_context_spec.
+Abbreviation Follow_read_seed_context_spec_refines := Follow_read_seed_context_spec.
 
-Notation Follow_read_seed_context_refines := Follow_read_seed_context.
+Abbreviation Follow_read_seed_context_refines := Follow_read_seed_context.
 
-Notation Follow_read_seed_lr0_context_spec_refines := Follow_read_seed_lr0_context_spec.
+Abbreviation Follow_read_seed_lr0_context_spec_refines := Follow_read_seed_lr0_context_spec.
 
-Notation Follow_read_seed_lr0_context_refines := Follow_read_seed_lr0_context.
+Abbreviation Follow_read_seed_lr0_context_refines := Follow_read_seed_lr0_context.
 
-Notation Follow_read_seed_path_to_sem_refines := Follow_read_seed_path_to_sem.
+Abbreviation Follow_read_seed_path_to_sem_refines := Follow_read_seed_path_to_sem.
 
-Notation Follow_read_seed_lr0_context_to_sem_refines := Follow_read_seed_lr0_context_to_sem.
+Abbreviation Follow_read_seed_lr0_context_to_sem_refines := Follow_read_seed_lr0_context_to_sem.
 
-Notation Follow_read_bang_to_closure_refines := Follow_read_bang_to_closure.
+Abbreviation Follow_read_bang_to_closure_refines := Follow_read_bang_to_closure.
 
-Notation Follow_read_to_closure_refines := Follow_read_to_closure.
+Abbreviation Follow_read_to_closure_refines := Follow_read_to_closure.
 
-Notation read_domain_seed_item_refines := read_domain_seed_item.
+Abbreviation read_domain_seed_item_refines := read_domain_seed_item.
 
-Notation read_domain_birth_item_refines := read_domain_birth_item.
+Abbreviation read_domain_birth_item_refines := read_domain_birth_item.
 
-Notation lr0_item_next_symbol_transition_spec_refines := lr0_item_next_symbol_transition_spec.
+Abbreviation lr0_item_next_symbol_transition_spec_refines := lr0_item_next_symbol_transition_spec.
 
-Notation lr0_item_next_symbol_transition_refines := lr0_item_next_symbol_transition.
+Abbreviation lr0_item_next_symbol_transition_refines := lr0_item_next_symbol_transition.
 
-Notation lr0_item_prefix_transition_spec_refines := lr0_item_prefix_transition_spec.
+Abbreviation lr0_item_prefix_transition_spec_refines := lr0_item_prefix_transition_spec.
 
-Notation lr0_item_prefix_transition_refines := lr0_item_prefix_transition.
+Abbreviation lr0_item_prefix_transition_refines := lr0_item_prefix_transition.
 
-Notation Read_from_lr0_item_nullable_prefix_terminal_refines := Read_from_lr0_item_nullable_prefix_terminal.
+Abbreviation Read_from_lr0_item_nullable_prefix_terminal_refines := Read_from_lr0_item_nullable_prefix_terminal.
 
-Notation lr0_item_terminal_read_path_spec_refines := lr0_item_terminal_read_path_spec.
+Abbreviation lr0_item_terminal_read_path_spec_refines := lr0_item_terminal_read_path_spec.
 
-Notation lr0_item_plain_terminal_image_path_bounded_refines := lr0_item_plain_terminal_image_path_bounded.
+Abbreviation lr0_item_plain_terminal_image_path_bounded_refines := lr0_item_plain_terminal_image_path_bounded.
 
-Notation lr0_item_plain_terminal_image_path_refines := lr0_item_plain_terminal_image_path.
+Abbreviation lr0_item_plain_terminal_image_path_refines := lr0_item_plain_terminal_image_path.
 
-Notation Read_from_lr0_item_plain_terminal_image_refines := Read_from_lr0_item_plain_terminal_image.
+Abbreviation Read_from_lr0_item_plain_terminal_image_refines := Read_from_lr0_item_plain_terminal_image.
 
-Notation Read_from_lr0_item_rm_terminal_image_refines := Read_from_lr0_item_rm_terminal_image.
+Abbreviation Read_from_lr0_item_rm_terminal_image_refines := Read_from_lr0_item_rm_terminal_image.
 
-Notation Read_from_lr0_item_next_terminal_refines := Read_from_lr0_item_next_terminal.
+Abbreviation Read_from_lr0_item_next_terminal_refines := Read_from_lr0_item_next_terminal.
 
-Notation Follow_read_from_lr0_item_next_terminal_to_closure_refines := Follow_read_from_lr0_item_next_terminal_to_closure.
+Abbreviation Follow_read_from_lr0_item_next_terminal_to_closure_refines := Follow_read_from_lr0_item_next_terminal_to_closure.
 
-Notation Follow_includes_from_lr0_item_empty_to_closure_refines := Follow_includes_from_lr0_item_empty_to_closure.
+Abbreviation Follow_includes_from_lr0_item_empty_to_closure_refines := Follow_includes_from_lr0_item_empty_to_closure.
 
-Notation Follow_includes_from_lr0_item_nullable_to_closure_refines := Follow_includes_from_lr0_item_nullable_to_closure.
+Abbreviation Follow_includes_from_lr0_item_nullable_to_closure_refines := Follow_includes_from_lr0_item_nullable_to_closure.
 
-Notation Follow_read_birth_from_read_domain_to_closure_refines := Follow_read_birth_from_read_domain_to_closure.
+Abbreviation Follow_read_birth_from_read_domain_to_closure_refines := Follow_read_birth_from_read_domain_to_closure.
 
-Notation Follow_read_nullable_birth_from_read_domain_to_closure_refines := Follow_read_nullable_birth_from_read_domain_to_closure.
+Abbreviation Follow_read_nullable_birth_from_read_domain_to_closure_refines := Follow_read_nullable_birth_from_read_domain_to_closure.
 
-Notation Follow_read_rm_birth_from_read_domain_to_closure_refines := Follow_read_rm_birth_from_read_domain_to_closure.
+Abbreviation Follow_read_rm_birth_from_read_domain_to_closure_refines := Follow_read_rm_birth_from_read_domain_to_closure.
 
-Notation Follow_empty_birth_from_read_domain_to_closure_refines := Follow_empty_birth_from_read_domain_to_closure.
+Abbreviation Follow_empty_birth_from_read_domain_to_closure_refines := Follow_empty_birth_from_read_domain_to_closure.
 
-Notation Follow_nullable_birth_from_read_domain_to_closure_refines := Follow_nullable_birth_from_read_domain_to_closure.
+Abbreviation Follow_nullable_birth_from_read_domain_to_closure_refines := Follow_nullable_birth_from_read_domain_to_closure.
 
-Notation marked_follow_derivation_after_start_birth_image_read_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_image_read_to_closure_by_domain.
+Abbreviation marked_follow_derivation_after_start_birth_image_read_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_image_read_to_closure_by_domain.
 
-Notation marked_follow_derivation_after_start_birth_nullable_read_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_nullable_read_to_closure_by_domain.
+Abbreviation marked_follow_derivation_after_start_birth_nullable_read_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_nullable_read_to_closure_by_domain.
 
-Notation marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain.
+Abbreviation marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain.
 
-Notation marked_follow_derivation_after_start_birth_image_empty_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_image_empty_to_closure_by_domain.
+Abbreviation marked_follow_derivation_after_start_birth_image_empty_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_image_empty_to_closure_by_domain.
 
-Notation marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain.
+Abbreviation marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain.
 
-Notation Follow_sem_parent_from_after_start_derivation_refines := Follow_sem_parent_from_after_start_derivation.
+Abbreviation Follow_sem_parent_from_after_start_derivation_refines := Follow_sem_parent_from_after_start_derivation.
 
-Notation Follow_closure_parent_from_after_start_derivation_refines := Follow_closure_parent_from_after_start_derivation.
+Abbreviation Follow_closure_parent_from_after_start_derivation_refines := Follow_closure_parent_from_after_start_derivation.
 
-Notation Follow_includes_to_closure_refines := Follow_includes_to_closure.
+Abbreviation Follow_includes_to_closure_refines := Follow_includes_to_closure.
 
-Notation Follow_augmented_start_to_closure_refines := Follow_augmented_start_to_closure.
+Abbreviation Follow_augmented_start_to_closure_refines := Follow_augmented_start_to_closure.
 
-Notation marked_follow_derivation_after_start_birth_image_root_to_closure_refines := marked_follow_derivation_after_start_birth_image_root_to_closure.
+Abbreviation marked_follow_derivation_after_start_birth_image_root_to_closure_refines := marked_follow_derivation_after_start_birth_image_root_to_closure.
 
-Notation rm_steps_n_suffix_terminal_image_spec_refines := rm_steps_n_suffix_terminal_image_spec.
+Abbreviation rm_steps_n_suffix_terminal_image_spec_refines := rm_steps_n_suffix_terminal_image_spec.
 
-Notation rm_steps_n_suffix_terminal_image_refines := rm_steps_n_suffix_terminal_image.
+Abbreviation rm_steps_n_suffix_terminal_image_refines := rm_steps_n_suffix_terminal_image.
 
-Notation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain.
+Abbreviation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain.
 
-Notation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih_refines := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih.
+Abbreviation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih_refines := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih.
 
-Notation marked_follow_derivation_after_start_birth_semantic_spec_refines := marked_follow_derivation_after_start_birth_semantic_spec.
+Abbreviation marked_follow_derivation_after_start_birth_semantic_spec_refines := marked_follow_derivation_after_start_birth_semantic_spec.
 
-Notation marked_follow_derivation_after_start_birth_semantic_to_sem_refines := marked_follow_derivation_after_start_birth_semantic_to_sem.
+Abbreviation marked_follow_derivation_after_start_birth_semantic_to_sem_refines := marked_follow_derivation_after_start_birth_semantic_to_sem.
 
-Notation marked_follow_derivation_after_start_birth_semantic_to_closure_refines := marked_follow_derivation_after_start_birth_semantic_to_closure.
+Abbreviation marked_follow_derivation_after_start_birth_semantic_to_closure_refines := marked_follow_derivation_after_start_birth_semantic_to_closure.
 
-Notation marked_follow_derivation_after_start_birth_semantic_refines := marked_follow_derivation_after_start_birth_semantic_refines.
+Abbreviation marked_follow_derivation_after_start_birth_semantic_refines := marked_follow_derivation_after_start_birth_semantic_refines.
 
-Notation Follow_sem_includes_step_refines := Follow_sem_includes_step.
+Abbreviation Follow_sem_includes_step_refines := Follow_sem_includes_step.
 
-Notation Follow_closure_to_sem_by_viable_refines := Follow_closure_to_sem_by_viable.
+Abbreviation Follow_closure_to_sem_by_viable_refines := Follow_closure_to_sem_by_viable.
 
-Notation Follow_impl_to_sem_by_viable_refines := Follow_impl_to_sem_by_viable.
+Abbreviation Follow_impl_to_sem_by_viable_refines := Follow_impl_to_sem_by_viable.
 
-Notation Follow_closure_to_sem_by_lr0_viable_refines := Follow_closure_to_sem_by_lr0_viable.
+Abbreviation Follow_closure_to_sem_by_lr0_viable_refines := Follow_closure_to_sem_by_lr0_viable.
 
-Notation Follow_impl_to_sem_by_lr0_viable_refines := Follow_impl_to_sem_by_lr0_viable.
+Abbreviation Follow_impl_to_sem_by_lr0_viable_refines := Follow_impl_to_sem_by_lr0_viable.
 
-Notation Follow_productive_viable_refines := Follow_productive_viable.
+Abbreviation Follow_productive_viable_refines := Follow_productive_viable.
 
-Notation Follow_closure_to_sem_productive_refines := Follow_closure_to_sem_productive.
+Abbreviation Follow_closure_to_sem_productive_refines := Follow_closure_to_sem_productive.
 
-Notation Follow_impl_to_sem_productive_refines := Follow_impl_to_sem_productive.
+Abbreviation Follow_impl_to_sem_productive_refines := Follow_impl_to_sem_productive.
 
-Notation Follow_closure_sem_correct_productive_refines := Follow_closure_sem_correct_productive.
+Abbreviation Follow_closure_sem_correct_productive_refines := Follow_closure_sem_correct_productive.
 
-Notation Follow_bang_sem_correct_productive_refines := Follow_bang_sem_correct_productive.
+Abbreviation Follow_bang_sem_correct_productive_refines := Follow_bang_sem_correct_productive.
 
-Notation marked_rm_to_rm_steps_refines := marked_rm_to_rm_steps.
+Abbreviation marked_rm_to_rm_steps_refines := marked_rm_to_rm_steps.
 
-Notation rm_steps_to_marked_rm_refines := rm_steps_to_marked_rm.
+Abbreviation rm_steps_to_marked_rm_refines := rm_steps_to_marked_rm.
 
-Notation marked_rm_nullable_suffix_refines := marked_rm_nullable_suffix.
+Abbreviation marked_rm_nullable_suffix_refines := marked_rm_nullable_suffix.
 
-Notation Follow_sem_to_marked_follow_refines := Follow_sem_to_marked_follow.
+Abbreviation Follow_sem_to_marked_follow_refines := Follow_sem_to_marked_follow.
 
-Notation marked_follow_to_Follow_sem_refines := marked_follow_to_Follow_sem.
+Abbreviation marked_follow_to_Follow_sem_refines := marked_follow_to_Follow_sem.
 
-Notation marked_follow_correct_refines := marked_follow_correct.
+Abbreviation marked_follow_correct_refines := marked_follow_correct.
 
-Notation marked_rm_derivation_spec_refines := marked_rm_derivation_spec.
+Abbreviation marked_rm_derivation_spec_refines := marked_rm_derivation_spec.
 
-Notation marked_rm_derivation_refines := marked_rm_derivation.
+Abbreviation marked_rm_derivation_refines := marked_rm_derivation.
 
-Notation marked_rm_derivation_to_marked_refines := marked_rm_derivation_to_marked.
+Abbreviation marked_rm_derivation_to_marked_refines := marked_rm_derivation_to_marked.
 
-Notation marked_rm_derivation_correct_refines := marked_rm_derivation_correct.
+Abbreviation marked_rm_derivation_correct_refines := marked_rm_derivation_correct.
 
-Notation marked_follow_derivation_spec_refines := marked_follow_derivation_spec.
+Abbreviation marked_follow_derivation_spec_refines := marked_follow_derivation_spec.
 
-Notation marked_follow_derivation_refines := marked_follow_derivation.
+Abbreviation marked_follow_derivation_refines := marked_follow_derivation.
 
-Notation marked_follow_derivation_to_marked_refines := marked_follow_derivation_to_marked.
+Abbreviation marked_follow_derivation_to_marked_refines := marked_follow_derivation_to_marked.
 
-Notation marked_follow_derivation_to_sem_refines := marked_follow_derivation_to_sem.
+Abbreviation marked_follow_derivation_to_sem_refines := marked_follow_derivation_to_sem.
 
-Notation marked_follow_derivation_correct_refines := marked_follow_derivation_correct.
+Abbreviation marked_follow_derivation_correct_refines := marked_follow_derivation_correct.
 
-Notation Follow_sem_derivation_refines := Follow_sem_derivation.
+Abbreviation Follow_sem_derivation_refines := Follow_sem_derivation.
 
-Notation marked_follow_derivation_after_start_spec_refines := marked_follow_derivation_after_start_spec.
+Abbreviation marked_follow_derivation_after_start_spec_refines := marked_follow_derivation_after_start_spec.
 
-Notation marked_follow_derivation_after_start_refines := marked_follow_derivation_after_start.
+Abbreviation marked_follow_derivation_after_start_refines := marked_follow_derivation_after_start.
 
-Notation Follow_sem_derivation_after_start_refines := Follow_sem_derivation_after_start.
+Abbreviation Follow_sem_derivation_after_start_refines := Follow_sem_derivation_after_start.
 
-Notation marked_follow_derivation_after_start_to_sem_refines := marked_follow_derivation_after_start_to_sem.
+Abbreviation marked_follow_derivation_after_start_to_sem_refines := marked_follow_derivation_after_start_to_sem.
 
-Notation marked_follow_derivation_after_start_correct_refines := marked_follow_derivation_after_start_correct.
+Abbreviation marked_follow_derivation_after_start_correct_refines := marked_follow_derivation_after_start_correct.
 
-Notation marked_follow_derivation_after_start_last_step_spec_refines := marked_follow_derivation_after_start_last_step_spec.
+Abbreviation marked_follow_derivation_after_start_last_step_spec_refines := marked_follow_derivation_after_start_last_step_spec.
 
-Notation marked_follow_derivation_after_start_last_step_refines := marked_follow_derivation_after_start_last_step.
+Abbreviation marked_follow_derivation_after_start_last_step_refines := marked_follow_derivation_after_start_last_step.
 
-Notation marked_follow_derivation_after_start_last_step_to_sem_refines := marked_follow_derivation_after_start_last_step_to_sem.
+Abbreviation marked_follow_derivation_after_start_last_step_to_sem_refines := marked_follow_derivation_after_start_last_step_to_sem.
 
-Notation Follow_sem_derivation_after_start_last_step_refines := Follow_sem_derivation_after_start_last_step.
+Abbreviation Follow_sem_derivation_after_start_last_step_refines := Follow_sem_derivation_after_start_last_step.
 
-Notation marked_follow_derivation_after_start_last_step_correct_refines := marked_follow_derivation_after_start_last_step_correct.
+Abbreviation marked_follow_derivation_after_start_last_step_correct_refines := marked_follow_derivation_after_start_last_step_correct.
 
-Notation marked_follow_derivation_after_start_birth_split_spec_refines := marked_follow_derivation_after_start_birth_split_spec.
+Abbreviation marked_follow_derivation_after_start_birth_split_spec_refines := marked_follow_derivation_after_start_birth_split_spec.
 
-Notation marked_follow_derivation_after_start_birth_split_refines := marked_follow_derivation_after_start_birth_split.
+Abbreviation marked_follow_derivation_after_start_birth_split_refines := marked_follow_derivation_after_start_birth_split.
 
-Notation marked_follow_derivation_after_start_birth_split_to_last_step_refines := marked_follow_derivation_after_start_birth_split_to_last_step.
+Abbreviation marked_follow_derivation_after_start_birth_split_to_last_step_refines := marked_follow_derivation_after_start_birth_split_to_last_step.
 
-Notation marked_follow_derivation_after_start_birth_split_to_sem_refines := marked_follow_derivation_after_start_birth_split_to_sem.
+Abbreviation marked_follow_derivation_after_start_birth_split_to_sem_refines := marked_follow_derivation_after_start_birth_split_to_sem.
 
-Notation Follow_sem_derivation_after_start_birth_split_refines := Follow_sem_derivation_after_start_birth_split.
+Abbreviation Follow_sem_derivation_after_start_birth_split_refines := Follow_sem_derivation_after_start_birth_split.
 
-Notation marked_follow_derivation_after_start_birth_split_correct_refines := marked_follow_derivation_after_start_birth_split_correct.
+Abbreviation marked_follow_derivation_after_start_birth_split_correct_refines := marked_follow_derivation_after_start_birth_split_correct.
 
-Notation marked_follow_derivation_after_start_birth_image_spec_refines := marked_follow_derivation_after_start_birth_image_spec.
+Abbreviation marked_follow_derivation_after_start_birth_image_spec_refines := marked_follow_derivation_after_start_birth_image_spec.
 
-Notation marked_follow_derivation_after_start_birth_image_refines := marked_follow_derivation_after_start_birth_image.
+Abbreviation marked_follow_derivation_after_start_birth_image_refines := marked_follow_derivation_after_start_birth_image.
 
-Notation marked_follow_derivation_after_start_birth_image_to_birth_split_refines := marked_follow_derivation_after_start_birth_image_to_birth_split.
+Abbreviation marked_follow_derivation_after_start_birth_image_to_birth_split_refines := marked_follow_derivation_after_start_birth_image_to_birth_split.
 
-Notation marked_follow_derivation_after_start_birth_image_to_sem_refines := marked_follow_derivation_after_start_birth_image_to_sem.
+Abbreviation marked_follow_derivation_after_start_birth_image_to_sem_refines := marked_follow_derivation_after_start_birth_image_to_sem.
 
-Notation Follow_sem_derivation_after_start_birth_image_refines := Follow_sem_derivation_after_start_birth_image.
+Abbreviation Follow_sem_derivation_after_start_birth_image_refines := Follow_sem_derivation_after_start_birth_image.
 
-Notation marked_follow_derivation_after_start_birth_image_correct_refines := marked_follow_derivation_after_start_birth_image_correct.
+Abbreviation marked_follow_derivation_after_start_birth_image_correct_refines := marked_follow_derivation_after_start_birth_image_correct.
 
-Notation marked_follow_derivation_after_start_suffix_spec_refines := marked_follow_derivation_after_start_suffix_spec.
+Abbreviation marked_follow_derivation_after_start_suffix_spec_refines := marked_follow_derivation_after_start_suffix_spec.
 
-Notation marked_follow_derivation_after_start_suffix_to_sem_refines := marked_follow_derivation_after_start_suffix_to_sem.
+Abbreviation marked_follow_derivation_after_start_suffix_to_sem_refines := marked_follow_derivation_after_start_suffix_to_sem.
 
-Notation Follow_sem_to_marked_follow_derivation_after_start_suffix_refines := Follow_sem_to_marked_follow_derivation_after_start_suffix.
+Abbreviation Follow_sem_to_marked_follow_derivation_after_start_suffix_refines := Follow_sem_to_marked_follow_derivation_after_start_suffix.
 
-Notation marked_follow_derivation_after_start_suffix_correct_refines := marked_follow_derivation_after_start_suffix_correct.
+Abbreviation marked_follow_derivation_after_start_suffix_correct_refines := marked_follow_derivation_after_start_suffix_correct.
 
-Notation marked_follow_derivation_after_start_suffix_root_to_closure_refines := marked_follow_derivation_after_start_suffix_root_to_closure.
+Abbreviation marked_follow_derivation_after_start_suffix_root_to_closure_refines := marked_follow_derivation_after_start_suffix_root_to_closure.
 
-Notation marked_follow_derivation_after_start_occurrence_root_npath_refines := marked_follow_derivation_after_start_occurrence_root_npath.
+Abbreviation marked_follow_derivation_after_start_occurrence_root_npath_refines := marked_follow_derivation_after_start_occurrence_root_npath.
 
-Notation marked_follow_derivation_after_start_occurrence_npath_refines := marked_follow_derivation_after_start_occurrence_npath.
+Abbreviation marked_follow_derivation_after_start_occurrence_npath_refines := marked_follow_derivation_after_start_occurrence_npath.
 
-Notation marked_follow_derivation_after_start_parent_shift_resolver_refines := marked_follow_derivation_after_start_parent_shift_resolver.
+Abbreviation marked_follow_derivation_after_start_parent_shift_resolver_refines := marked_follow_derivation_after_start_parent_shift_resolver.
 
-Notation marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver_refines := marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver.
+Abbreviation marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver_refines := marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver.
 
-Notation Follow_sem_to_closure_by_suffix_parent_shift_resolver_refines := Follow_sem_to_closure_by_suffix_parent_shift_resolver.
+Abbreviation Follow_sem_to_closure_by_suffix_parent_shift_resolver_refines := Follow_sem_to_closure_by_suffix_parent_shift_resolver.
 
-Notation Follow_sem_to_impl_by_suffix_parent_shift_resolver_refines := Follow_sem_to_impl_by_suffix_parent_shift_resolver.
+Abbreviation Follow_sem_to_impl_by_suffix_parent_shift_resolver_refines := Follow_sem_to_impl_by_suffix_parent_shift_resolver.
 
-Notation Follow_sem_to_closure_by_occurrence_path_refines := Follow_sem_to_closure_by_occurrence_path.
+Abbreviation Follow_sem_to_closure_by_occurrence_path_refines := Follow_sem_to_closure_by_occurrence_path.
 
-Notation Follow_sem_to_impl_by_occurrence_path_refines := Follow_sem_to_impl_by_occurrence_path.
+Abbreviation Follow_sem_to_impl_by_occurrence_path_refines := Follow_sem_to_impl_by_occurrence_path.
 
-Notation marked_follow_derivation_after_start_birth_image_parent_to_suffix_refines := marked_follow_derivation_after_start_birth_image_parent_to_suffix.
+Abbreviation marked_follow_derivation_after_start_birth_image_parent_to_suffix_refines := marked_follow_derivation_after_start_birth_image_parent_to_suffix.
 
-Notation marked_follow_derivation_after_start_birth_image_parent_resolver_from_suffix_complete_refines := marked_follow_derivation_after_start_birth_image_parent_resolver_from_suffix_complete.
+Abbreviation marked_follow_derivation_after_start_birth_image_parent_resolver_from_suffix_complete_refines := marked_follow_derivation_after_start_birth_image_parent_resolver_from_suffix_complete.
 
-Notation marked_follow_derivation_after_start_birth_domain_spec_refines := marked_follow_derivation_after_start_birth_domain_spec.
+Abbreviation marked_follow_derivation_after_start_birth_domain_spec_refines := marked_follow_derivation_after_start_birth_domain_spec.
 
-Notation marked_follow_derivation_after_start_birth_domain_to_image_refines := marked_follow_derivation_after_start_birth_domain_to_image.
+Abbreviation marked_follow_derivation_after_start_birth_domain_to_image_refines := marked_follow_derivation_after_start_birth_domain_to_image.
 
-Notation marked_follow_derivation_after_start_birth_domain_to_sem_refines := marked_follow_derivation_after_start_birth_domain_to_sem.
+Abbreviation marked_follow_derivation_after_start_birth_domain_to_sem_refines := marked_follow_derivation_after_start_birth_domain_to_sem.
 
-Notation marked_follow_derivation_after_start_birth_domain_to_closure_refines := marked_follow_derivation_after_start_birth_domain_to_closure.
+Abbreviation marked_follow_derivation_after_start_birth_domain_to_closure_refines := marked_follow_derivation_after_start_birth_domain_to_closure.
 
-Notation marked_follow_derivation_after_start_birth_domain_refines := marked_follow_derivation_after_start_birth_domain_refines.
+Abbreviation marked_follow_derivation_after_start_birth_domain_refines := marked_follow_derivation_after_start_birth_domain_refines.
 
-Notation marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers_refines := marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers.
+Abbreviation marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers_refines := marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers.
 
-Notation marked_follow_derivation_after_start_birth_image_empty_resolver_from_parent_shift_refines := marked_follow_derivation_after_start_birth_image_empty_resolver_from_parent_shift.
+Abbreviation marked_follow_derivation_after_start_birth_image_empty_resolver_from_parent_shift_refines := marked_follow_derivation_after_start_birth_image_empty_resolver_from_parent_shift.
 
-Notation marked_follow_derivation_after_start_birth_image_read_resolver_from_parent_shift_refines := marked_follow_derivation_after_start_birth_image_read_resolver_from_parent_shift.
+Abbreviation marked_follow_derivation_after_start_birth_image_read_resolver_from_parent_shift_refines := marked_follow_derivation_after_start_birth_image_read_resolver_from_parent_shift.
 
-Notation marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift_resolvers_refines := marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift_resolvers.
+Abbreviation marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift_resolvers_refines := marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift_resolvers.
 
-Notation Follow_sem_to_birth_domain_by_parent_shift_resolvers_refines := Follow_sem_to_birth_domain_by_parent_shift_resolvers.
+Abbreviation Follow_sem_to_birth_domain_by_parent_shift_resolvers_refines := Follow_sem_to_birth_domain_by_parent_shift_resolvers.
 
-Notation Follow_sem_to_closure_by_parent_shift_resolvers_refines := Follow_sem_to_closure_by_parent_shift_resolvers.
+Abbreviation Follow_sem_to_closure_by_parent_shift_resolvers_refines := Follow_sem_to_closure_by_parent_shift_resolvers.
 
-Notation Follow_sem_to_impl_by_parent_shift_resolvers_refines := Follow_sem_to_impl_by_parent_shift_resolvers.
+Abbreviation Follow_sem_to_impl_by_parent_shift_resolvers_refines := Follow_sem_to_impl_by_parent_shift_resolvers.
 
-Notation marked_follow_derivation_after_start_birth_parent_shift_spec_refines := marked_follow_derivation_after_start_birth_parent_shift_spec.
+Abbreviation marked_follow_derivation_after_start_birth_parent_shift_spec_refines := marked_follow_derivation_after_start_birth_parent_shift_spec.
 
-Notation marked_follow_derivation_after_start_birth_parent_shift_to_image_refines := marked_follow_derivation_after_start_birth_parent_shift_to_image.
+Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_image_refines := marked_follow_derivation_after_start_birth_parent_shift_to_image.
 
-Notation marked_follow_derivation_after_start_birth_parent_shift_to_domain_refines := marked_follow_derivation_after_start_birth_parent_shift_to_domain.
+Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_domain_refines := marked_follow_derivation_after_start_birth_parent_shift_to_domain.
 
-Notation marked_follow_derivation_after_start_birth_parent_shift_to_sem_refines := marked_follow_derivation_after_start_birth_parent_shift_to_sem.
+Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_sem_refines := marked_follow_derivation_after_start_birth_parent_shift_to_sem.
 
-Notation marked_follow_derivation_after_start_birth_parent_shift_to_closure_refines := marked_follow_derivation_after_start_birth_parent_shift_to_closure.
+Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_closure_refines := marked_follow_derivation_after_start_birth_parent_shift_to_closure.
 
-Notation marked_follow_derivation_after_start_birth_parent_shift_refines := marked_follow_derivation_after_start_birth_parent_shift_refines.
+Abbreviation marked_follow_derivation_after_start_birth_parent_shift_refines := marked_follow_derivation_after_start_birth_parent_shift_refines.
 
-Notation marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolvers_refines := marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolvers.
+Abbreviation marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolvers_refines := marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolvers.
 
-Notation Follow_sem_to_birth_parent_shift_by_resolvers_refines := Follow_sem_to_birth_parent_shift_by_resolvers.
+Abbreviation Follow_sem_to_birth_parent_shift_by_resolvers_refines := Follow_sem_to_birth_parent_shift_by_resolvers.
 
-Notation Follow_sem_to_closure_by_birth_parent_shift_resolvers_refines := Follow_sem_to_closure_by_birth_parent_shift_resolvers.
+Abbreviation Follow_sem_to_closure_by_birth_parent_shift_resolvers_refines := Follow_sem_to_closure_by_birth_parent_shift_resolvers.
 
-Notation Follow_sem_to_impl_by_birth_parent_shift_resolvers_refines := Follow_sem_to_impl_by_birth_parent_shift_resolvers.
+Abbreviation Follow_sem_to_impl_by_birth_parent_shift_resolvers_refines := Follow_sem_to_impl_by_birth_parent_shift_resolvers.
 
-Notation Follow_sem_to_birth_parent_shift_by_suffix_complete_and_resolvers_refines := Follow_sem_to_birth_parent_shift_by_suffix_complete_and_resolvers.
+Abbreviation Follow_sem_to_birth_parent_shift_by_suffix_complete_and_resolvers_refines := Follow_sem_to_birth_parent_shift_by_suffix_complete_and_resolvers.
 
-Notation Follow_sem_to_closure_by_suffix_complete_and_resolvers_refines := Follow_sem_to_closure_by_suffix_complete_and_resolvers.
+Abbreviation Follow_sem_to_closure_by_suffix_complete_and_resolvers_refines := Follow_sem_to_closure_by_suffix_complete_and_resolvers.
 
-Notation Follow_sem_to_impl_by_suffix_complete_and_resolvers_refines := Follow_sem_to_impl_by_suffix_complete_and_resolvers.
+Abbreviation Follow_sem_to_impl_by_suffix_complete_and_resolvers_refines := Follow_sem_to_impl_by_suffix_complete_and_resolvers.
 
-Notation Follow_closure_to_marked_by_lr0_viable_refines := Follow_closure_to_marked_by_lr0_viable.
+Abbreviation Follow_closure_to_marked_by_lr0_viable_refines := Follow_closure_to_marked_by_lr0_viable.
 
-Notation Follow_impl_to_marked_by_lr0_viable_refines := Follow_impl_to_marked_by_lr0_viable.
+Abbreviation Follow_impl_to_marked_by_lr0_viable_refines := Follow_impl_to_marked_by_lr0_viable.
 
-Notation Follow_impl_to_abs_refines := Follow_impl_to_abs.
+Abbreviation Follow_impl_to_abs_refines := Follow_impl_to_abs.
 
-Notation Follow_abs_to_impl_refines := Follow_abs_to_impl.
+Abbreviation Follow_abs_to_impl_refines := Follow_abs_to_impl.
 
-Notation Follow_refines := Follow_refines.
+Abbreviation Follow_refines := Follow_refines.
 
 End Refine.
 
 Module API.
 
-Notation incl_deps := incl_deps.
+Abbreviation incl_deps := incl_deps.
 
-Notation Follow_closure := Follow_closure.
+Abbreviation Follow_closure := Follow_closure.
 
-Notation Follow_sem := Follow_sem.
+Abbreviation Follow_sem := Follow_sem.
 
-Notation Follow_read_seed_path_spec := Follow_read_seed_path_spec.
+Abbreviation Follow_read_seed_path_spec := Follow_read_seed_path_spec.
 
-Notation Follow_read_seed_context_spec := Follow_read_seed_context_spec.
+Abbreviation Follow_read_seed_context_spec := Follow_read_seed_context_spec.
 
-Notation Follow_read_seed_lr0_context_spec := Follow_read_seed_lr0_context_spec.
+Abbreviation Follow_read_seed_lr0_context_spec := Follow_read_seed_lr0_context_spec.
 
-Notation lr0_item_next_symbol_transition_spec := lr0_item_next_symbol_transition_spec.
+Abbreviation lr0_item_next_symbol_transition_spec := lr0_item_next_symbol_transition_spec.
 
-Notation lr0_item_prefix_transition_spec := lr0_item_prefix_transition_spec.
+Abbreviation lr0_item_prefix_transition_spec := lr0_item_prefix_transition_spec.
 
-Notation lr0_item_terminal_read_path_spec := lr0_item_terminal_read_path_spec.
+Abbreviation lr0_item_terminal_read_path_spec := lr0_item_terminal_read_path_spec.
 
-Notation Follow := Follow.
+Abbreviation Follow := Follow.
 
-Notation marked_rm := marked_rm.
+Abbreviation marked_rm := marked_rm.
 
-Notation marked_follow := marked_follow.
+Abbreviation marked_follow := marked_follow.
 
-Notation marked_rm_derivation_spec := marked_rm_derivation_spec.
+Abbreviation marked_rm_derivation_spec := marked_rm_derivation_spec.
 
-Notation marked_follow_derivation_spec := marked_follow_derivation_spec.
+Abbreviation marked_follow_derivation_spec := marked_follow_derivation_spec.
 
-Notation marked_follow_derivation_after_start_last_step_spec := marked_follow_derivation_after_start_last_step_spec.
+Abbreviation marked_follow_derivation_after_start_last_step_spec := marked_follow_derivation_after_start_last_step_spec.
 
-Notation marked_follow_derivation_after_start_birth_split_spec := marked_follow_derivation_after_start_birth_split_spec.
+Abbreviation marked_follow_derivation_after_start_birth_split_spec := marked_follow_derivation_after_start_birth_split_spec.
 
-Notation marked_follow_derivation_after_start_birth_image_spec := marked_follow_derivation_after_start_birth_image_spec.
+Abbreviation marked_follow_derivation_after_start_birth_image_spec := marked_follow_derivation_after_start_birth_image_spec.
 
-Notation rm_steps_n_suffix_terminal_image_spec := rm_steps_n_suffix_terminal_image_spec.
+Abbreviation rm_steps_n_suffix_terminal_image_spec := rm_steps_n_suffix_terminal_image_spec.
 
-Notation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain.
+Abbreviation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain.
 
-Notation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih.
+Abbreviation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih.
 
-Notation marked_follow_derivation_after_start_birth_semantic_spec := marked_follow_derivation_after_start_birth_semantic_spec.
+Abbreviation marked_follow_derivation_after_start_birth_semantic_spec := marked_follow_derivation_after_start_birth_semantic_spec.
 
-Notation marked_follow_derivation_after_start_suffix_spec := marked_follow_derivation_after_start_suffix_spec.
+Abbreviation marked_follow_derivation_after_start_suffix_spec := marked_follow_derivation_after_start_suffix_spec.
 
-Notation marked_follow_derivation_after_start_birth_domain_spec := marked_follow_derivation_after_start_birth_domain_spec.
+Abbreviation marked_follow_derivation_after_start_birth_domain_spec := marked_follow_derivation_after_start_birth_domain_spec.
 
-Notation marked_follow_derivation_after_start_birth_parent_shift_spec := marked_follow_derivation_after_start_birth_parent_shift_spec.
+Abbreviation marked_follow_derivation_after_start_birth_parent_shift_spec := marked_follow_derivation_after_start_birth_parent_shift_spec.
 
-Notation Follow_bang := Follow_bang.
+Abbreviation Follow_bang := Follow_bang.
 
-Notation incl_candidate_from_item_sound_spec := incl_candidate_from_item_sound_spec.
+Abbreviation incl_candidate_from_item_sound_spec := incl_candidate_from_item_sound_spec.
 
-Notation incl_item_deps_sound_spec := incl_item_deps_sound_spec.
+Abbreviation incl_item_deps_sound_spec := incl_item_deps_sound_spec.
 
-Notation incl_deps_sound_spec := incl_deps_sound_spec.
+Abbreviation incl_deps_sound_spec := incl_deps_sound_spec.
 
-Notation incl_deps_sound := incl_deps_sound.
+Abbreviation incl_deps_sound := incl_deps_sound.
 
-Notation incl_deps_complete := incl_deps_complete.
+Abbreviation incl_deps_complete := incl_deps_complete.
 
-Notation Follow_bang_correct := Follow_bang_correct.
+Abbreviation Follow_bang_correct := Follow_bang_correct.
 
-Notation Follow_sem_nullable_suffix := Follow_sem_nullable_suffix.
+Abbreviation Follow_sem_nullable_suffix := Follow_sem_nullable_suffix.
 
-Notation Follow_read_seed_path := Follow_read_seed_path.
+Abbreviation Follow_read_seed_path := Follow_read_seed_path.
 
-Notation Follow_read_seed_context := Follow_read_seed_context.
+Abbreviation Follow_read_seed_context := Follow_read_seed_context.
 
-Notation Follow_read_seed_lr0_context := Follow_read_seed_lr0_context.
+Abbreviation Follow_read_seed_lr0_context := Follow_read_seed_lr0_context.
 
-Notation Follow_read_seed_path_to_sem := Follow_read_seed_path_to_sem.
+Abbreviation Follow_read_seed_path_to_sem := Follow_read_seed_path_to_sem.
 
-Notation Follow_read_seed_lr0_context_to_sem := Follow_read_seed_lr0_context_to_sem.
+Abbreviation Follow_read_seed_lr0_context_to_sem := Follow_read_seed_lr0_context_to_sem.
 
-Notation Follow_read_bang_to_closure := Follow_read_bang_to_closure.
+Abbreviation Follow_read_bang_to_closure := Follow_read_bang_to_closure.
 
-Notation Follow_read_to_closure := Follow_read_to_closure.
+Abbreviation Follow_read_to_closure := Follow_read_to_closure.
 
-Notation read_domain_seed_item := read_domain_seed_item.
+Abbreviation read_domain_seed_item := read_domain_seed_item.
 
-Notation read_domain_birth_item := read_domain_birth_item.
+Abbreviation read_domain_birth_item := read_domain_birth_item.
 
-Notation lr0_item_next_symbol_transition := lr0_item_next_symbol_transition.
+Abbreviation lr0_item_next_symbol_transition := lr0_item_next_symbol_transition.
 
-Notation lr0_item_prefix_transition := lr0_item_prefix_transition.
+Abbreviation lr0_item_prefix_transition := lr0_item_prefix_transition.
 
-Notation Read_from_lr0_item_nullable_prefix_terminal := Read_from_lr0_item_nullable_prefix_terminal.
+Abbreviation Read_from_lr0_item_nullable_prefix_terminal := Read_from_lr0_item_nullable_prefix_terminal.
 
-Notation lr0_item_plain_terminal_image_path := lr0_item_plain_terminal_image_path.
+Abbreviation lr0_item_plain_terminal_image_path := lr0_item_plain_terminal_image_path.
 
-Notation Read_from_lr0_item_plain_terminal_image := Read_from_lr0_item_plain_terminal_image.
+Abbreviation Read_from_lr0_item_plain_terminal_image := Read_from_lr0_item_plain_terminal_image.
 
-Notation Read_from_lr0_item_rm_terminal_image := Read_from_lr0_item_rm_terminal_image.
+Abbreviation Read_from_lr0_item_rm_terminal_image := Read_from_lr0_item_rm_terminal_image.
 
-Notation Read_from_lr0_item_next_terminal := Read_from_lr0_item_next_terminal.
+Abbreviation Read_from_lr0_item_next_terminal := Read_from_lr0_item_next_terminal.
 
-Notation Follow_read_from_lr0_item_next_terminal_to_closure := Follow_read_from_lr0_item_next_terminal_to_closure.
+Abbreviation Follow_read_from_lr0_item_next_terminal_to_closure := Follow_read_from_lr0_item_next_terminal_to_closure.
 
-Notation Follow_includes_from_lr0_item_empty_to_closure := Follow_includes_from_lr0_item_empty_to_closure.
+Abbreviation Follow_includes_from_lr0_item_empty_to_closure := Follow_includes_from_lr0_item_empty_to_closure.
 
-Notation Follow_includes_from_lr0_item_nullable_to_closure := Follow_includes_from_lr0_item_nullable_to_closure.
+Abbreviation Follow_includes_from_lr0_item_nullable_to_closure := Follow_includes_from_lr0_item_nullable_to_closure.
 
-Notation Follow_read_birth_from_read_domain_to_closure := Follow_read_birth_from_read_domain_to_closure.
+Abbreviation Follow_read_birth_from_read_domain_to_closure := Follow_read_birth_from_read_domain_to_closure.
 
-Notation Follow_read_nullable_birth_from_read_domain_to_closure := Follow_read_nullable_birth_from_read_domain_to_closure.
+Abbreviation Follow_read_nullable_birth_from_read_domain_to_closure := Follow_read_nullable_birth_from_read_domain_to_closure.
 
-Notation Follow_read_rm_birth_from_read_domain_to_closure := Follow_read_rm_birth_from_read_domain_to_closure.
+Abbreviation Follow_read_rm_birth_from_read_domain_to_closure := Follow_read_rm_birth_from_read_domain_to_closure.
 
-Notation Follow_empty_birth_from_read_domain_to_closure := Follow_empty_birth_from_read_domain_to_closure.
+Abbreviation Follow_empty_birth_from_read_domain_to_closure := Follow_empty_birth_from_read_domain_to_closure.
 
-Notation Follow_nullable_birth_from_read_domain_to_closure := Follow_nullable_birth_from_read_domain_to_closure.
+Abbreviation Follow_nullable_birth_from_read_domain_to_closure := Follow_nullable_birth_from_read_domain_to_closure.
 
-Notation marked_follow_derivation_after_start_birth_image_read_to_closure_by_domain := marked_follow_derivation_after_start_birth_image_read_to_closure_by_domain.
+Abbreviation marked_follow_derivation_after_start_birth_image_read_to_closure_by_domain := marked_follow_derivation_after_start_birth_image_read_to_closure_by_domain.
 
-Notation marked_follow_derivation_after_start_birth_nullable_read_to_closure_by_domain := marked_follow_derivation_after_start_birth_nullable_read_to_closure_by_domain.
+Abbreviation marked_follow_derivation_after_start_birth_nullable_read_to_closure_by_domain := marked_follow_derivation_after_start_birth_nullable_read_to_closure_by_domain.
 
-Notation marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain := marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain.
+Abbreviation marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain := marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain.
 
-Notation marked_follow_derivation_after_start_birth_image_empty_to_closure_by_domain := marked_follow_derivation_after_start_birth_image_empty_to_closure_by_domain.
+Abbreviation marked_follow_derivation_after_start_birth_image_empty_to_closure_by_domain := marked_follow_derivation_after_start_birth_image_empty_to_closure_by_domain.
 
-Notation marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain := marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain.
+Abbreviation marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain := marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain.
 
-Notation Follow_sem_parent_from_after_start_derivation := Follow_sem_parent_from_after_start_derivation.
+Abbreviation Follow_sem_parent_from_after_start_derivation := Follow_sem_parent_from_after_start_derivation.
 
-Notation Follow_closure_parent_from_after_start_derivation := Follow_closure_parent_from_after_start_derivation.
+Abbreviation Follow_closure_parent_from_after_start_derivation := Follow_closure_parent_from_after_start_derivation.
 
-Notation Follow_includes_to_closure := Follow_includes_to_closure.
+Abbreviation Follow_includes_to_closure := Follow_includes_to_closure.
 
-Notation Follow_augmented_start_to_closure := Follow_augmented_start_to_closure.
+Abbreviation Follow_augmented_start_to_closure := Follow_augmented_start_to_closure.
 
-Notation marked_follow_derivation_after_start_birth_image_root_to_closure := marked_follow_derivation_after_start_birth_image_root_to_closure.
+Abbreviation marked_follow_derivation_after_start_birth_image_root_to_closure := marked_follow_derivation_after_start_birth_image_root_to_closure.
 
-Notation marked_follow_derivation_after_start_birth_semantic_to_sem := marked_follow_derivation_after_start_birth_semantic_to_sem.
+Abbreviation marked_follow_derivation_after_start_birth_semantic_to_sem := marked_follow_derivation_after_start_birth_semantic_to_sem.
 
-Notation marked_follow_derivation_after_start_birth_semantic_to_closure := marked_follow_derivation_after_start_birth_semantic_to_closure.
+Abbreviation marked_follow_derivation_after_start_birth_semantic_to_closure := marked_follow_derivation_after_start_birth_semantic_to_closure.
 
-Notation marked_follow_derivation_after_start_birth_semantic_refines := marked_follow_derivation_after_start_birth_semantic_refines.
+Abbreviation marked_follow_derivation_after_start_birth_semantic_refines := marked_follow_derivation_after_start_birth_semantic_refines.
 
-Notation marked_follow_derivation_after_start_suffix_to_sem := marked_follow_derivation_after_start_suffix_to_sem.
+Abbreviation marked_follow_derivation_after_start_suffix_to_sem := marked_follow_derivation_after_start_suffix_to_sem.
 
-Notation Follow_sem_to_marked_follow_derivation_after_start_suffix := Follow_sem_to_marked_follow_derivation_after_start_suffix.
+Abbreviation Follow_sem_to_marked_follow_derivation_after_start_suffix := Follow_sem_to_marked_follow_derivation_after_start_suffix.
 
-Notation marked_follow_derivation_after_start_suffix_correct := marked_follow_derivation_after_start_suffix_correct.
+Abbreviation marked_follow_derivation_after_start_suffix_correct := marked_follow_derivation_after_start_suffix_correct.
 
-Notation marked_follow_derivation_after_start_suffix_root_to_closure := marked_follow_derivation_after_start_suffix_root_to_closure.
+Abbreviation marked_follow_derivation_after_start_suffix_root_to_closure := marked_follow_derivation_after_start_suffix_root_to_closure.
 
-Notation marked_follow_derivation_after_start_occurrence_root_npath := marked_follow_derivation_after_start_occurrence_root_npath.
+Abbreviation marked_follow_derivation_after_start_occurrence_root_npath := marked_follow_derivation_after_start_occurrence_root_npath.
 
-Notation marked_follow_derivation_after_start_occurrence_npath := marked_follow_derivation_after_start_occurrence_npath.
+Abbreviation marked_follow_derivation_after_start_occurrence_npath := marked_follow_derivation_after_start_occurrence_npath.
 
-Notation marked_follow_derivation_after_start_parent_shift_resolver := marked_follow_derivation_after_start_parent_shift_resolver.
+Abbreviation marked_follow_derivation_after_start_parent_shift_resolver := marked_follow_derivation_after_start_parent_shift_resolver.
 
-Notation marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver := marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver.
+Abbreviation marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver := marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver.
 
-Notation Follow_sem_to_closure_by_suffix_parent_shift_resolver := Follow_sem_to_closure_by_suffix_parent_shift_resolver.
+Abbreviation Follow_sem_to_closure_by_suffix_parent_shift_resolver := Follow_sem_to_closure_by_suffix_parent_shift_resolver.
 
-Notation Follow_sem_to_impl_by_suffix_parent_shift_resolver := Follow_sem_to_impl_by_suffix_parent_shift_resolver.
+Abbreviation Follow_sem_to_impl_by_suffix_parent_shift_resolver := Follow_sem_to_impl_by_suffix_parent_shift_resolver.
 
-Notation Follow_sem_to_closure_by_occurrence_path := Follow_sem_to_closure_by_occurrence_path.
+Abbreviation Follow_sem_to_closure_by_occurrence_path := Follow_sem_to_closure_by_occurrence_path.
 
-Notation Follow_sem_to_impl_by_occurrence_path := Follow_sem_to_impl_by_occurrence_path.
+Abbreviation Follow_sem_to_impl_by_occurrence_path := Follow_sem_to_impl_by_occurrence_path.
 
-Notation marked_follow_derivation_after_start_birth_image_parent_to_suffix := marked_follow_derivation_after_start_birth_image_parent_to_suffix.
+Abbreviation marked_follow_derivation_after_start_birth_image_parent_to_suffix := marked_follow_derivation_after_start_birth_image_parent_to_suffix.
 
-Notation marked_follow_derivation_after_start_birth_image_parent_resolver_from_suffix_complete := marked_follow_derivation_after_start_birth_image_parent_resolver_from_suffix_complete.
+Abbreviation marked_follow_derivation_after_start_birth_image_parent_resolver_from_suffix_complete := marked_follow_derivation_after_start_birth_image_parent_resolver_from_suffix_complete.
 
-Notation Follow_sem_includes_step := Follow_sem_includes_step.
+Abbreviation Follow_sem_includes_step := Follow_sem_includes_step.
 
-Notation Follow_closure_to_sem_by_viable := Follow_closure_to_sem_by_viable.
+Abbreviation Follow_closure_to_sem_by_viable := Follow_closure_to_sem_by_viable.
 
-Notation Follow_impl_to_sem_by_viable := Follow_impl_to_sem_by_viable.
+Abbreviation Follow_impl_to_sem_by_viable := Follow_impl_to_sem_by_viable.
 
-Notation Follow_closure_to_sem_by_lr0_viable := Follow_closure_to_sem_by_lr0_viable.
+Abbreviation Follow_closure_to_sem_by_lr0_viable := Follow_closure_to_sem_by_lr0_viable.
 
-Notation Follow_impl_to_sem_by_lr0_viable := Follow_impl_to_sem_by_lr0_viable.
+Abbreviation Follow_impl_to_sem_by_lr0_viable := Follow_impl_to_sem_by_lr0_viable.
 
-Notation Follow_productive_viable := Follow_productive_viable.
+Abbreviation Follow_productive_viable := Follow_productive_viable.
 
-Notation Follow_closure_to_sem_productive := Follow_closure_to_sem_productive.
+Abbreviation Follow_closure_to_sem_productive := Follow_closure_to_sem_productive.
 
-Notation Follow_impl_to_sem_productive := Follow_impl_to_sem_productive.
+Abbreviation Follow_impl_to_sem_productive := Follow_impl_to_sem_productive.
 
-Notation Follow_closure_sem_correct_productive := Follow_closure_sem_correct_productive.
+Abbreviation Follow_closure_sem_correct_productive := Follow_closure_sem_correct_productive.
 
-Notation Follow_bang_sem_correct_productive := Follow_bang_sem_correct_productive.
+Abbreviation Follow_bang_sem_correct_productive := Follow_bang_sem_correct_productive.
 
-Notation marked_rm_to_rm_steps := marked_rm_to_rm_steps.
+Abbreviation marked_rm_to_rm_steps := marked_rm_to_rm_steps.
 
-Notation rm_steps_to_marked_rm := rm_steps_to_marked_rm.
+Abbreviation rm_steps_to_marked_rm := rm_steps_to_marked_rm.
 
-Notation marked_rm_nullable_suffix := marked_rm_nullable_suffix.
+Abbreviation marked_rm_nullable_suffix := marked_rm_nullable_suffix.
 
-Notation Follow_sem_to_marked_follow := Follow_sem_to_marked_follow.
+Abbreviation Follow_sem_to_marked_follow := Follow_sem_to_marked_follow.
 
-Notation marked_follow_to_Follow_sem := marked_follow_to_Follow_sem.
+Abbreviation marked_follow_to_Follow_sem := marked_follow_to_Follow_sem.
 
-Notation marked_follow_correct := marked_follow_correct.
+Abbreviation marked_follow_correct := marked_follow_correct.
 
-Notation marked_rm_derivation := marked_rm_derivation.
+Abbreviation marked_rm_derivation := marked_rm_derivation.
 
-Notation marked_rm_derivation_to_marked := marked_rm_derivation_to_marked.
+Abbreviation marked_rm_derivation_to_marked := marked_rm_derivation_to_marked.
 
-Notation marked_rm_derivation_correct := marked_rm_derivation_correct.
+Abbreviation marked_rm_derivation_correct := marked_rm_derivation_correct.
 
-Notation marked_follow_derivation := marked_follow_derivation.
+Abbreviation marked_follow_derivation := marked_follow_derivation.
 
-Notation marked_follow_derivation_to_marked := marked_follow_derivation_to_marked.
+Abbreviation marked_follow_derivation_to_marked := marked_follow_derivation_to_marked.
 
-Notation marked_follow_derivation_to_sem := marked_follow_derivation_to_sem.
+Abbreviation marked_follow_derivation_to_sem := marked_follow_derivation_to_sem.
 
-Notation marked_follow_derivation_correct := marked_follow_derivation_correct.
+Abbreviation marked_follow_derivation_correct := marked_follow_derivation_correct.
 
-Notation Follow_sem_derivation := Follow_sem_derivation.
+Abbreviation Follow_sem_derivation := Follow_sem_derivation.
 
-Notation marked_follow_derivation_after_start_spec := marked_follow_derivation_after_start_spec.
+Abbreviation marked_follow_derivation_after_start_spec := marked_follow_derivation_after_start_spec.
 
-Notation marked_follow_derivation_after_start := marked_follow_derivation_after_start.
+Abbreviation marked_follow_derivation_after_start := marked_follow_derivation_after_start.
 
-Notation Follow_sem_derivation_after_start := Follow_sem_derivation_after_start.
+Abbreviation Follow_sem_derivation_after_start := Follow_sem_derivation_after_start.
 
-Notation marked_follow_derivation_after_start_to_sem := marked_follow_derivation_after_start_to_sem.
+Abbreviation marked_follow_derivation_after_start_to_sem := marked_follow_derivation_after_start_to_sem.
 
-Notation marked_follow_derivation_after_start_correct := marked_follow_derivation_after_start_correct.
+Abbreviation marked_follow_derivation_after_start_correct := marked_follow_derivation_after_start_correct.
 
-Notation marked_follow_derivation_after_start_last_step := marked_follow_derivation_after_start_last_step.
+Abbreviation marked_follow_derivation_after_start_last_step := marked_follow_derivation_after_start_last_step.
 
-Notation marked_follow_derivation_after_start_last_step_to_sem := marked_follow_derivation_after_start_last_step_to_sem.
+Abbreviation marked_follow_derivation_after_start_last_step_to_sem := marked_follow_derivation_after_start_last_step_to_sem.
 
-Notation Follow_sem_derivation_after_start_last_step := Follow_sem_derivation_after_start_last_step.
+Abbreviation Follow_sem_derivation_after_start_last_step := Follow_sem_derivation_after_start_last_step.
 
-Notation marked_follow_derivation_after_start_last_step_correct := marked_follow_derivation_after_start_last_step_correct.
+Abbreviation marked_follow_derivation_after_start_last_step_correct := marked_follow_derivation_after_start_last_step_correct.
 
-Notation marked_follow_derivation_after_start_birth_split := marked_follow_derivation_after_start_birth_split.
+Abbreviation marked_follow_derivation_after_start_birth_split := marked_follow_derivation_after_start_birth_split.
 
-Notation marked_follow_derivation_after_start_birth_split_to_last_step := marked_follow_derivation_after_start_birth_split_to_last_step.
+Abbreviation marked_follow_derivation_after_start_birth_split_to_last_step := marked_follow_derivation_after_start_birth_split_to_last_step.
 
-Notation marked_follow_derivation_after_start_birth_split_to_sem := marked_follow_derivation_after_start_birth_split_to_sem.
+Abbreviation marked_follow_derivation_after_start_birth_split_to_sem := marked_follow_derivation_after_start_birth_split_to_sem.
 
-Notation Follow_sem_derivation_after_start_birth_split := Follow_sem_derivation_after_start_birth_split.
+Abbreviation Follow_sem_derivation_after_start_birth_split := Follow_sem_derivation_after_start_birth_split.
 
-Notation marked_follow_derivation_after_start_birth_split_correct := marked_follow_derivation_after_start_birth_split_correct.
+Abbreviation marked_follow_derivation_after_start_birth_split_correct := marked_follow_derivation_after_start_birth_split_correct.
 
-Notation marked_follow_derivation_after_start_birth_image := marked_follow_derivation_after_start_birth_image.
+Abbreviation marked_follow_derivation_after_start_birth_image := marked_follow_derivation_after_start_birth_image.
 
-Notation marked_follow_derivation_after_start_birth_image_to_birth_split := marked_follow_derivation_after_start_birth_image_to_birth_split.
+Abbreviation marked_follow_derivation_after_start_birth_image_to_birth_split := marked_follow_derivation_after_start_birth_image_to_birth_split.
 
-Notation marked_follow_derivation_after_start_birth_image_to_sem := marked_follow_derivation_after_start_birth_image_to_sem.
+Abbreviation marked_follow_derivation_after_start_birth_image_to_sem := marked_follow_derivation_after_start_birth_image_to_sem.
 
-Notation Follow_sem_derivation_after_start_birth_image := Follow_sem_derivation_after_start_birth_image.
+Abbreviation Follow_sem_derivation_after_start_birth_image := Follow_sem_derivation_after_start_birth_image.
 
-Notation marked_follow_derivation_after_start_birth_image_correct := marked_follow_derivation_after_start_birth_image_correct.
+Abbreviation marked_follow_derivation_after_start_birth_image_correct := marked_follow_derivation_after_start_birth_image_correct.
 
-Notation marked_follow_derivation_after_start_birth_domain_to_image := marked_follow_derivation_after_start_birth_domain_to_image.
+Abbreviation marked_follow_derivation_after_start_birth_domain_to_image := marked_follow_derivation_after_start_birth_domain_to_image.
 
-Notation marked_follow_derivation_after_start_birth_domain_to_sem := marked_follow_derivation_after_start_birth_domain_to_sem.
+Abbreviation marked_follow_derivation_after_start_birth_domain_to_sem := marked_follow_derivation_after_start_birth_domain_to_sem.
 
-Notation marked_follow_derivation_after_start_birth_domain_to_closure := marked_follow_derivation_after_start_birth_domain_to_closure.
+Abbreviation marked_follow_derivation_after_start_birth_domain_to_closure := marked_follow_derivation_after_start_birth_domain_to_closure.
 
-Notation marked_follow_derivation_after_start_birth_domain_refines := marked_follow_derivation_after_start_birth_domain_refines.
+Abbreviation marked_follow_derivation_after_start_birth_domain_refines := marked_follow_derivation_after_start_birth_domain_refines.
 
-Notation marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers := marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers.
+Abbreviation marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers := marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers.
 
-Notation marked_follow_derivation_after_start_birth_image_empty_resolver_from_parent_shift := marked_follow_derivation_after_start_birth_image_empty_resolver_from_parent_shift.
+Abbreviation marked_follow_derivation_after_start_birth_image_empty_resolver_from_parent_shift := marked_follow_derivation_after_start_birth_image_empty_resolver_from_parent_shift.
 
-Notation marked_follow_derivation_after_start_birth_image_read_resolver_from_parent_shift := marked_follow_derivation_after_start_birth_image_read_resolver_from_parent_shift.
+Abbreviation marked_follow_derivation_after_start_birth_image_read_resolver_from_parent_shift := marked_follow_derivation_after_start_birth_image_read_resolver_from_parent_shift.
 
-Notation marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift_resolvers := marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift_resolvers.
+Abbreviation marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift_resolvers := marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift_resolvers.
 
-Notation Follow_sem_to_birth_domain_by_parent_shift_resolvers := Follow_sem_to_birth_domain_by_parent_shift_resolvers.
+Abbreviation Follow_sem_to_birth_domain_by_parent_shift_resolvers := Follow_sem_to_birth_domain_by_parent_shift_resolvers.
 
-Notation Follow_sem_to_closure_by_parent_shift_resolvers := Follow_sem_to_closure_by_parent_shift_resolvers.
+Abbreviation Follow_sem_to_closure_by_parent_shift_resolvers := Follow_sem_to_closure_by_parent_shift_resolvers.
 
-Notation Follow_sem_to_impl_by_parent_shift_resolvers := Follow_sem_to_impl_by_parent_shift_resolvers.
+Abbreviation Follow_sem_to_impl_by_parent_shift_resolvers := Follow_sem_to_impl_by_parent_shift_resolvers.
 
-Notation marked_follow_derivation_after_start_birth_parent_shift_to_image := marked_follow_derivation_after_start_birth_parent_shift_to_image.
+Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_image := marked_follow_derivation_after_start_birth_parent_shift_to_image.
 
-Notation marked_follow_derivation_after_start_birth_parent_shift_to_domain := marked_follow_derivation_after_start_birth_parent_shift_to_domain.
+Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_domain := marked_follow_derivation_after_start_birth_parent_shift_to_domain.
 
-Notation marked_follow_derivation_after_start_birth_parent_shift_to_sem := marked_follow_derivation_after_start_birth_parent_shift_to_sem.
+Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_sem := marked_follow_derivation_after_start_birth_parent_shift_to_sem.
 
-Notation marked_follow_derivation_after_start_birth_parent_shift_to_closure := marked_follow_derivation_after_start_birth_parent_shift_to_closure.
+Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_closure := marked_follow_derivation_after_start_birth_parent_shift_to_closure.
 
-Notation marked_follow_derivation_after_start_birth_parent_shift_refines := marked_follow_derivation_after_start_birth_parent_shift_refines.
+Abbreviation marked_follow_derivation_after_start_birth_parent_shift_refines := marked_follow_derivation_after_start_birth_parent_shift_refines.
 
-Notation marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolvers := marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolvers.
+Abbreviation marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolvers := marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolvers.
 
-Notation Follow_sem_to_birth_parent_shift_by_resolvers := Follow_sem_to_birth_parent_shift_by_resolvers.
+Abbreviation Follow_sem_to_birth_parent_shift_by_resolvers := Follow_sem_to_birth_parent_shift_by_resolvers.
 
-Notation Follow_sem_to_closure_by_birth_parent_shift_resolvers := Follow_sem_to_closure_by_birth_parent_shift_resolvers.
+Abbreviation Follow_sem_to_closure_by_birth_parent_shift_resolvers := Follow_sem_to_closure_by_birth_parent_shift_resolvers.
 
-Notation Follow_sem_to_impl_by_birth_parent_shift_resolvers := Follow_sem_to_impl_by_birth_parent_shift_resolvers.
+Abbreviation Follow_sem_to_impl_by_birth_parent_shift_resolvers := Follow_sem_to_impl_by_birth_parent_shift_resolvers.
 
-Notation Follow_sem_to_birth_parent_shift_by_suffix_complete_and_resolvers := Follow_sem_to_birth_parent_shift_by_suffix_complete_and_resolvers.
+Abbreviation Follow_sem_to_birth_parent_shift_by_suffix_complete_and_resolvers := Follow_sem_to_birth_parent_shift_by_suffix_complete_and_resolvers.
 
-Notation Follow_sem_to_closure_by_suffix_complete_and_resolvers := Follow_sem_to_closure_by_suffix_complete_and_resolvers.
+Abbreviation Follow_sem_to_closure_by_suffix_complete_and_resolvers := Follow_sem_to_closure_by_suffix_complete_and_resolvers.
 
-Notation Follow_sem_to_impl_by_suffix_complete_and_resolvers := Follow_sem_to_impl_by_suffix_complete_and_resolvers.
+Abbreviation Follow_sem_to_impl_by_suffix_complete_and_resolvers := Follow_sem_to_impl_by_suffix_complete_and_resolvers.
 
-Notation Follow_closure_to_marked_by_lr0_viable := Follow_closure_to_marked_by_lr0_viable.
+Abbreviation Follow_closure_to_marked_by_lr0_viable := Follow_closure_to_marked_by_lr0_viable.
 
-Notation Follow_impl_to_marked_by_lr0_viable := Follow_impl_to_marked_by_lr0_viable.
+Abbreviation Follow_impl_to_marked_by_lr0_viable := Follow_impl_to_marked_by_lr0_viable.
 
-Notation Follow_impl_to_abs := Follow_impl_to_abs.
+Abbreviation Follow_impl_to_abs := Follow_impl_to_abs.
 
-Notation Follow_abs_to_impl := Follow_abs_to_impl.
+Abbreviation Follow_abs_to_impl := Follow_abs_to_impl.
 
-Notation Follow_refines := Follow_refines.
+Abbreviation Follow_refines := Follow_refines.
 
 End API.
 
@@ -11983,7 +11983,7 @@ Qed.
 
 Lemma LA_impl_no_start_prime_lhs q it t
   (IN : t ∈ LA_impl q it)
-  : it.(i_lhs) <> start_prime.
+  : it.(i_lhs) ≠ start_prime.
 Proof.
   intros EQ_LHS. pose proof (LA_impl_sound q it t IN) as (p & A & IN_D & LHS & PATH & IN_FOLLOW).
   rewrite <- LHS in IN_D. rewrite EQ_LHS in IN_D.
@@ -12369,213 +12369,213 @@ Qed.
 
 Module Abs.
 
-Notation LB := LB.
+Abbreviation LB := LB.
 
-Notation LA_closure := LA_closure.
+Abbreviation LA_closure := LA_closure.
 
-Notation LA_sem := LA_sem.
+Abbreviation LA_sem := LA_sem.
 
-Notation LA_marked := LA_marked.
+Abbreviation LA_marked := LA_marked.
 
-Notation LA := LA.
+Abbreviation LA := LA.
 
-Notation LA_sem_witness_spec := LA_sem_witness_spec.
+Abbreviation LA_sem_witness_spec := LA_sem_witness_spec.
 
-Notation LA_marked_witness_spec := LA_marked_witness_spec.
+Abbreviation LA_marked_witness_spec := LA_marked_witness_spec.
 
-Notation LA_marked_derivation_spec := LA_marked_derivation_spec.
+Abbreviation LA_marked_derivation_spec := LA_marked_derivation_spec.
 
-Notation LA_marked_derivation_after_start_spec := LA_marked_derivation_after_start_spec.
+Abbreviation LA_marked_derivation_after_start_spec := LA_marked_derivation_after_start_spec.
 
-Notation LA_impl := LA_impl.
+Abbreviation LA_impl := LA_impl.
 
 End Abs.
 
 Module Impl.
 
-Notation LB_candidate := LB_candidate.
+Abbreviation LB_candidate := LB_candidate.
 
-Notation LB := LB.
+Abbreviation LB := LB.
 
-Notation LA_impl := LA_impl.
+Abbreviation LA_impl := LA_impl.
 
 End Impl.
 
 Module Refine.
 
-Notation LB_candidate_sound_refines := LB_candidate_sound.
+Abbreviation LB_candidate_sound_refines := LB_candidate_sound.
 
-Notation LB_candidate_complete_refines := LB_candidate_complete.
+Abbreviation LB_candidate_complete_refines := LB_candidate_complete.
 
-Notation LB_sound_refines := LB_sound.
+Abbreviation LB_sound_refines := LB_sound.
 
-Notation LB_complete_refines := LB_complete.
+Abbreviation LB_complete_refines := LB_complete.
 
-Notation LA_impl_sound_refines := LA_impl_sound.
+Abbreviation LA_impl_sound_refines := LA_impl_sound.
 
-Notation LA_impl_complete_refines := LA_impl_complete.
+Abbreviation LA_impl_complete_refines := LA_impl_complete.
 
-Notation LA_impl_no_start_prime_lhs_refines := LA_impl_no_start_prime_lhs.
+Abbreviation LA_impl_no_start_prime_lhs_refines := LA_impl_no_start_prime_lhs.
 
-Notation LA_impl_correct_refines := LA_impl_correct.
+Abbreviation LA_impl_correct_refines := LA_impl_correct.
 
-Notation LA_impl_to_abs_refines := LA_impl_to_abs.
+Abbreviation LA_impl_to_abs_refines := LA_impl_to_abs.
 
-Notation LA_abs_to_impl_refines := LA_abs_to_impl.
+Abbreviation LA_abs_to_impl_refines := LA_abs_to_impl.
 
-Notation LA_refines := LA_refines.
+Abbreviation LA_refines := LA_refines.
 
-Notation LA_sem_witness_spec_refines := LA_sem_witness_spec.
+Abbreviation LA_sem_witness_spec_refines := LA_sem_witness_spec.
 
-Notation LA_sem_witness_refines := LA_sem_witness.
+Abbreviation LA_sem_witness_refines := LA_sem_witness.
 
-Notation LA_marked_witness_spec_refines := LA_marked_witness_spec.
+Abbreviation LA_marked_witness_spec_refines := LA_marked_witness_spec.
 
-Notation LA_marked_witness_refines := LA_marked_witness.
+Abbreviation LA_marked_witness_refines := LA_marked_witness.
 
-Notation LA_marked_witness_to_marked_refines := LA_marked_witness_to_marked.
+Abbreviation LA_marked_witness_to_marked_refines := LA_marked_witness_to_marked.
 
-Notation LA_marked_witness_to_sem_refines := LA_marked_witness_to_sem.
+Abbreviation LA_marked_witness_to_sem_refines := LA_marked_witness_to_sem.
 
-Notation LA_marked_witness_correct_refines := LA_marked_witness_correct.
+Abbreviation LA_marked_witness_correct_refines := LA_marked_witness_correct.
 
-Notation LA_marked_derivation_spec_refines := LA_marked_derivation_spec.
+Abbreviation LA_marked_derivation_spec_refines := LA_marked_derivation_spec.
 
-Notation LA_marked_derivation_refines := LA_marked_derivation.
+Abbreviation LA_marked_derivation_refines := LA_marked_derivation.
 
-Notation LA_marked_derivation_to_witness_refines := LA_marked_derivation_to_witness.
+Abbreviation LA_marked_derivation_to_witness_refines := LA_marked_derivation_to_witness.
 
-Notation LA_marked_derivation_to_marked_refines := LA_marked_derivation_to_marked.
+Abbreviation LA_marked_derivation_to_marked_refines := LA_marked_derivation_to_marked.
 
-Notation LA_marked_derivation_to_sem_refines := LA_marked_derivation_to_sem.
+Abbreviation LA_marked_derivation_to_sem_refines := LA_marked_derivation_to_sem.
 
-Notation LA_marked_derivation_correct_refines := LA_marked_derivation_correct.
+Abbreviation LA_marked_derivation_correct_refines := LA_marked_derivation_correct.
 
-Notation LA_marked_derivation_after_start_spec_refines := LA_marked_derivation_after_start_spec.
+Abbreviation LA_marked_derivation_after_start_spec_refines := LA_marked_derivation_after_start_spec.
 
-Notation LA_marked_derivation_after_start_refines := LA_marked_derivation_after_start.
+Abbreviation LA_marked_derivation_after_start_refines := LA_marked_derivation_after_start.
 
-Notation LA_sem_derivation_after_start_refines := LA_sem_derivation_after_start.
+Abbreviation LA_sem_derivation_after_start_refines := LA_sem_derivation_after_start.
 
-Notation LA_marked_derivation_after_start_to_sem_refines := LA_marked_derivation_after_start_to_sem.
+Abbreviation LA_marked_derivation_after_start_to_sem_refines := LA_marked_derivation_after_start_to_sem.
 
-Notation LA_marked_derivation_after_start_correct_refines := LA_marked_derivation_after_start_correct.
+Abbreviation LA_marked_derivation_after_start_correct_refines := LA_marked_derivation_after_start_correct.
 
-Notation LA_closure_to_sem_by_follow_sem_refines := LA_closure_to_sem_by_follow_sem.
+Abbreviation LA_closure_to_sem_by_follow_sem_refines := LA_closure_to_sem_by_follow_sem.
 
-Notation LA_sem_to_closure_by_follow_sem_refines := LA_sem_to_closure_by_follow_sem.
+Abbreviation LA_sem_to_closure_by_follow_sem_refines := LA_sem_to_closure_by_follow_sem.
 
-Notation LA_impl_to_sem_by_follow_sem_refines := LA_impl_to_sem_by_follow_sem.
+Abbreviation LA_impl_to_sem_by_follow_sem_refines := LA_impl_to_sem_by_follow_sem.
 
-Notation LA_sem_to_impl_by_follow_sem_refines := LA_sem_to_impl_by_follow_sem.
+Abbreviation LA_sem_to_impl_by_follow_sem_refines := LA_sem_to_impl_by_follow_sem.
 
-Notation LA_sem_to_closure_refines := LA_sem_to_closure.
+Abbreviation LA_sem_to_closure_refines := LA_sem_to_closure.
 
-Notation LA_sem_to_impl_refines := LA_sem_to_impl.
+Abbreviation LA_sem_to_impl_refines := LA_sem_to_impl.
 
-Notation LA_impl_to_sem_by_lr0_viable_refines := LA_impl_to_sem_by_lr0_viable.
+Abbreviation LA_impl_to_sem_by_lr0_viable_refines := LA_impl_to_sem_by_lr0_viable.
 
-Notation LA_impl_to_sem_productive_refines := LA_impl_to_sem_productive.
+Abbreviation LA_impl_to_sem_productive_refines := LA_impl_to_sem_productive.
 
-Notation LA_sem_refines_productive_refines := LA_sem_refines_productive.
+Abbreviation LA_sem_refines_productive_refines := LA_sem_refines_productive.
 
-Notation LA_sem_refines_by_follow_sem_refines := LA_sem_refines_by_follow_sem.
+Abbreviation LA_sem_refines_by_follow_sem_refines := LA_sem_refines_by_follow_sem.
 
-Notation LA_sem_to_marked_refines := LA_sem_to_marked.
+Abbreviation LA_sem_to_marked_refines := LA_sem_to_marked.
 
-Notation LA_marked_to_sem_refines := LA_marked_to_sem.
+Abbreviation LA_marked_to_sem_refines := LA_marked_to_sem.
 
-Notation LA_marked_correct_refines := LA_marked_correct.
+Abbreviation LA_marked_correct_refines := LA_marked_correct.
 
-Notation LA_impl_to_marked_by_lr0_viable_refines := LA_impl_to_marked_by_lr0_viable.
+Abbreviation LA_impl_to_marked_by_lr0_viable_refines := LA_impl_to_marked_by_lr0_viable.
 
 End Refine.
 
 Module API.
 
-Notation LB := LB.
+Abbreviation LB := LB.
 
-Notation LA_closure := LA_closure.
+Abbreviation LA_closure := LA_closure.
 
-Notation LA_sem := LA_sem.
+Abbreviation LA_sem := LA_sem.
 
-Notation LA_marked := LA_marked.
+Abbreviation LA_marked := LA_marked.
 
-Notation LA := LA.
+Abbreviation LA := LA.
 
-Notation LA_impl := LA_impl.
+Abbreviation LA_impl := LA_impl.
 
-Notation LB_sound := LB_sound.
+Abbreviation LB_sound := LB_sound.
 
-Notation LB_complete := LB_complete.
+Abbreviation LB_complete := LB_complete.
 
-Notation LA_impl_correct := LA_impl_correct.
+Abbreviation LA_impl_correct := LA_impl_correct.
 
-Notation LA_impl_no_start_prime_lhs := LA_impl_no_start_prime_lhs.
+Abbreviation LA_impl_no_start_prime_lhs := LA_impl_no_start_prime_lhs.
 
-Notation LA_impl_to_abs := LA_impl_to_abs.
+Abbreviation LA_impl_to_abs := LA_impl_to_abs.
 
-Notation LA_abs_to_impl := LA_abs_to_impl.
+Abbreviation LA_abs_to_impl := LA_abs_to_impl.
 
-Notation LA_refines := LA_refines.
+Abbreviation LA_refines := LA_refines.
 
-Notation LA_sem_witness := LA_sem_witness.
+Abbreviation LA_sem_witness := LA_sem_witness.
 
-Notation LA_marked_witness := LA_marked_witness.
+Abbreviation LA_marked_witness := LA_marked_witness.
 
-Notation LA_marked_witness_to_marked := LA_marked_witness_to_marked.
+Abbreviation LA_marked_witness_to_marked := LA_marked_witness_to_marked.
 
-Notation LA_marked_witness_to_sem := LA_marked_witness_to_sem.
+Abbreviation LA_marked_witness_to_sem := LA_marked_witness_to_sem.
 
-Notation LA_marked_witness_correct := LA_marked_witness_correct.
+Abbreviation LA_marked_witness_correct := LA_marked_witness_correct.
 
-Notation LA_marked_derivation := LA_marked_derivation.
+Abbreviation LA_marked_derivation := LA_marked_derivation.
 
-Notation LA_marked_derivation_to_witness := LA_marked_derivation_to_witness.
+Abbreviation LA_marked_derivation_to_witness := LA_marked_derivation_to_witness.
 
-Notation LA_marked_derivation_to_marked := LA_marked_derivation_to_marked.
+Abbreviation LA_marked_derivation_to_marked := LA_marked_derivation_to_marked.
 
-Notation LA_marked_derivation_to_sem := LA_marked_derivation_to_sem.
+Abbreviation LA_marked_derivation_to_sem := LA_marked_derivation_to_sem.
 
-Notation LA_marked_derivation_correct := LA_marked_derivation_correct.
+Abbreviation LA_marked_derivation_correct := LA_marked_derivation_correct.
 
-Notation LA_marked_derivation_after_start_spec := LA_marked_derivation_after_start_spec.
+Abbreviation LA_marked_derivation_after_start_spec := LA_marked_derivation_after_start_spec.
 
-Notation LA_marked_derivation_after_start := LA_marked_derivation_after_start.
+Abbreviation LA_marked_derivation_after_start := LA_marked_derivation_after_start.
 
-Notation LA_sem_derivation_after_start := LA_sem_derivation_after_start.
+Abbreviation LA_sem_derivation_after_start := LA_sem_derivation_after_start.
 
-Notation LA_marked_derivation_after_start_to_sem := LA_marked_derivation_after_start_to_sem.
+Abbreviation LA_marked_derivation_after_start_to_sem := LA_marked_derivation_after_start_to_sem.
 
-Notation LA_marked_derivation_after_start_correct := LA_marked_derivation_after_start_correct.
+Abbreviation LA_marked_derivation_after_start_correct := LA_marked_derivation_after_start_correct.
 
-Notation LA_closure_to_sem_by_follow_sem := LA_closure_to_sem_by_follow_sem.
+Abbreviation LA_closure_to_sem_by_follow_sem := LA_closure_to_sem_by_follow_sem.
 
-Notation LA_sem_to_closure_by_follow_sem := LA_sem_to_closure_by_follow_sem.
+Abbreviation LA_sem_to_closure_by_follow_sem := LA_sem_to_closure_by_follow_sem.
 
-Notation LA_impl_to_sem_by_follow_sem := LA_impl_to_sem_by_follow_sem.
+Abbreviation LA_impl_to_sem_by_follow_sem := LA_impl_to_sem_by_follow_sem.
 
-Notation LA_sem_to_impl_by_follow_sem := LA_sem_to_impl_by_follow_sem.
+Abbreviation LA_sem_to_impl_by_follow_sem := LA_sem_to_impl_by_follow_sem.
 
-Notation LA_sem_to_closure := LA_sem_to_closure.
+Abbreviation LA_sem_to_closure := LA_sem_to_closure.
 
-Notation LA_sem_to_impl := LA_sem_to_impl.
+Abbreviation LA_sem_to_impl := LA_sem_to_impl.
 
-Notation LA_impl_to_sem_by_lr0_viable := LA_impl_to_sem_by_lr0_viable.
+Abbreviation LA_impl_to_sem_by_lr0_viable := LA_impl_to_sem_by_lr0_viable.
 
-Notation LA_impl_to_sem_productive := LA_impl_to_sem_productive.
+Abbreviation LA_impl_to_sem_productive := LA_impl_to_sem_productive.
 
-Notation LA_sem_refines_productive := LA_sem_refines_productive.
+Abbreviation LA_sem_refines_productive := LA_sem_refines_productive.
 
-Notation LA_sem_refines_by_follow_sem := LA_sem_refines_by_follow_sem.
+Abbreviation LA_sem_refines_by_follow_sem := LA_sem_refines_by_follow_sem.
 
-Notation LA_sem_to_marked := LA_sem_to_marked.
+Abbreviation LA_sem_to_marked := LA_sem_to_marked.
 
-Notation LA_marked_to_sem := LA_marked_to_sem.
+Abbreviation LA_marked_to_sem := LA_marked_to_sem.
 
-Notation LA_marked_correct := LA_marked_correct.
+Abbreviation LA_marked_correct := LA_marked_correct.
 
-Notation LA_impl_to_marked_by_lr0_viable := LA_impl_to_marked_by_lr0_viable.
+Abbreviation LA_impl_to_marked_by_lr0_viable := LA_impl_to_marked_by_lr0_viable.
 
 End API.
 
@@ -13020,7 +13020,7 @@ Qed.
 
 Lemma reduce_LA_no_start_prime_lhs q t pr
   (IN : pr ∈ reduce_LA q t)
-  : pr.(p_lhs) <> start_prime.
+  : pr.(p_lhs) ≠ start_prime.
 Proof.
   intros EQ_LHS. pose proof (reduce_LA_sound q t pr IN) as SOUND.
   destruct SOUND as [st it IN_REDUCE STATE IN_IT DONE EQ_PR PROD IN_LA].
@@ -13903,7 +13903,7 @@ Qed.
 Lemma actions_head_distinct q t st act1 act2 rest
   (STATE : state_of q = Some st)
   (ACTIONS : actions q t = act1 :: act2 :: rest)
-  : act1 <> act2.
+  : act1 ≠ act2.
 Proof.
   pose proof (actions_NoDup q t st STATE) as NO_DUP.
   rewrite ACTIONS in NO_DUP. inversion NO_DUP as [ | act1' tail NOTIN NO_DUP_TAIL]; subst.
@@ -13943,533 +13943,533 @@ Qed.
 
 Module Abs.
 
-Notation action := action.
+Abbreviation action := action.
 
-Notation reduce_LA := reduce_LA.
+Abbreviation reduce_LA := reduce_LA.
 
-Notation reduce_LA_sound_spec := reduce_LA_sound_spec.
+Abbreviation reduce_LA_sound_spec := reduce_LA_sound_spec.
 
-Notation reduce_LA_sem_sound_spec := reduce_LA_sem_sound_spec.
+Abbreviation reduce_LA_sem_sound_spec := reduce_LA_sem_sound_spec.
 
-Notation reduce_LA_marked_sound_spec := reduce_LA_marked_sound_spec.
+Abbreviation reduce_LA_marked_sound_spec := reduce_LA_marked_sound_spec.
 
-Notation reduce_LA_marked_witness_spec := reduce_LA_marked_witness_spec.
+Abbreviation reduce_LA_marked_witness_spec := reduce_LA_marked_witness_spec.
 
-Notation reduce_LA_marked_derivation_spec := reduce_LA_marked_derivation_spec.
+Abbreviation reduce_LA_marked_derivation_spec := reduce_LA_marked_derivation_spec.
 
-Notation reduce_LA_marked_derivation_after_start_spec := reduce_LA_marked_derivation_after_start_spec.
+Abbreviation reduce_LA_marked_derivation_after_start_spec := reduce_LA_marked_derivation_after_start_spec.
 
-Notation reduce_LA_sound_sem_productive := reduce_LA_sound_sem_productive.
+Abbreviation reduce_LA_sound_sem_productive := reduce_LA_sound_sem_productive.
 
-Notation reduce_LA_sound_marked_productive := reduce_LA_sound_marked_productive.
+Abbreviation reduce_LA_sound_marked_productive := reduce_LA_sound_marked_productive.
 
-Notation reduce_LA_marked_witness_productive := reduce_LA_marked_witness_productive.
+Abbreviation reduce_LA_marked_witness_productive := reduce_LA_marked_witness_productive.
 
-Notation reduce_LA_marked_derivation_productive := reduce_LA_marked_derivation_productive.
+Abbreviation reduce_LA_marked_derivation_productive := reduce_LA_marked_derivation_productive.
 
-Notation reduce_LA_marked_derivation_after_start_productive := reduce_LA_marked_derivation_after_start_productive.
+Abbreviation reduce_LA_marked_derivation_after_start_productive := reduce_LA_marked_derivation_after_start_productive.
 
-Notation actions := actions.
+Abbreviation actions := actions.
 
-Notation table := table.
+Abbreviation table := table.
 
-Notation certified_table := certified_table.
+Abbreviation certified_table := certified_table.
 
-Notation certified_table_rank := certified_table_rank.
+Abbreviation certified_table_rank := certified_table_rank.
 
-Notation build_table := build_table.
+Abbreviation build_table := build_table.
 
-Notation build_certified_table := build_certified_table.
+Abbreviation build_certified_table := build_certified_table.
 
-Notation conflict_free := conflict_free.
+Abbreviation conflict_free := conflict_free.
 
-Notation build_table_complete := build_table_complete.
+Abbreviation build_table_complete := build_table_complete.
 
-Notation parser_termination_certb_complete := parser_termination_certb_complete.
+Abbreviation parser_termination_certb_complete := parser_termination_certb_complete.
 
-Notation build_certified_table_complete := build_certified_table_complete.
+Abbreviation build_certified_table_complete := build_certified_table_complete.
 
-Notation build_certified_table_complete_from_rank := build_certified_table_complete_from_rank.
+Abbreviation build_certified_table_complete_from_rank := build_certified_table_complete_from_rank.
 
-Notation reduce_edge := reduce_edge.
+Abbreviation reduce_edge := reduce_edge.
 
-Notation reduce_edge_entry := reduce_edge_entry.
+Abbreviation reduce_edge_entry := reduce_edge_entry.
 
-Notation reduce_edge_entries := reduce_edge_entries.
+Abbreviation reduce_edge_entries := reduce_edge_entries.
 
-Notation reduce_edge_ensemble := reduce_edge_ensemble.
+Abbreviation reduce_edge_ensemble := reduce_edge_ensemble.
 
-Notation parser_rank := parser_rank.
+Abbreviation parser_rank := parser_rank.
 
-Notation parser_termination_certificate := parser_termination_certificate.
+Abbreviation parser_termination_certificate := parser_termination_certificate.
 
-Notation parser_measure := parser_measure.
+Abbreviation parser_measure := parser_measure.
 
-Notation parser_measure_key := parser_measure_key.
+Abbreviation parser_measure_key := parser_measure_key.
 
-Notation parser_measure_lt := parser_measure_lt.
+Abbreviation parser_measure_lt := parser_measure_lt.
 
-Notation parser_lookahead := parser_lookahead.
+Abbreviation parser_lookahead := parser_lookahead.
 
-Notation parser_step_lt := parser_step_lt.
+Abbreviation parser_step_lt := parser_step_lt.
 
-Notation parser_termination_cert := parser_termination_cert.
+Abbreviation parser_termination_cert := parser_termination_cert.
 
-Notation parser_termination_certb := parser_termination_certb.
+Abbreviation parser_termination_certb := parser_termination_certb.
 
-Notation parser_termination_certificate_valid := parser_termination_certificate_valid.
+Abbreviation parser_termination_certificate_valid := parser_termination_certificate_valid.
 
 End Abs.
 
 Module Impl.
 
-Notation reduce_LA_item := reduce_LA_item.
+Abbreviation reduce_LA_item := reduce_LA_item.
 
-Notation reduce_LA := reduce_LA.
+Abbreviation reduce_LA := reduce_LA.
 
-Notation shift_action := shift_action.
+Abbreviation shift_action := shift_action.
 
-Notation reduce_actions := reduce_actions.
+Abbreviation reduce_actions := reduce_actions.
 
-Notation accept_action := accept_action.
+Abbreviation accept_action := accept_action.
 
-Notation actions := actions.
+Abbreviation actions := actions.
 
-Notation table := table.
+Abbreviation table := table.
 
-Notation action_of := action_of.
+Abbreviation action_of := action_of.
 
-Notation action_conflictb := action_conflictb.
+Abbreviation action_conflictb := action_conflictb.
 
-Notation action_conflict_error := action_conflict_error.
+Abbreviation action_conflict_error := action_conflict_error.
 
-Notation check_action := check_action.
+Abbreviation check_action := check_action.
 
-Notation table_entries := table_entries.
+Abbreviation table_entries := table_entries.
 
-Notation check_table_entries := check_table_entries.
+Abbreviation check_table_entries := check_table_entries.
 
-Notation build_table := build_table.
+Abbreviation build_table := build_table.
 
-Notation conflict_free := conflict_free.
+Abbreviation conflict_free := conflict_free.
 
-Notation reduce_edge := reduce_edge.
+Abbreviation reduce_edge := reduce_edge.
 
-Notation reduce_edge_entry := reduce_edge_entry.
+Abbreviation reduce_edge_entry := reduce_edge_entry.
 
-Notation reduce_edge_targets_from_prod := reduce_edge_targets_from_prod.
+Abbreviation reduce_edge_targets_from_prod := reduce_edge_targets_from_prod.
 
-Notation reduce_edge_targets := reduce_edge_targets.
+Abbreviation reduce_edge_targets := reduce_edge_targets.
 
-Notation reduce_edge_entries_at := reduce_edge_entries_at.
+Abbreviation reduce_edge_entries_at := reduce_edge_entries_at.
 
-Notation reduce_edge_entries := reduce_edge_entries.
+Abbreviation reduce_edge_entries := reduce_edge_entries.
 
-Notation reduce_edge_ensemble := reduce_edge_ensemble.
+Abbreviation reduce_edge_ensemble := reduce_edge_ensemble.
 
-Notation rank_decreases_edgeb := rank_decreases_edgeb.
+Abbreviation rank_decreases_edgeb := rank_decreases_edgeb.
 
-Notation parser_rank := parser_rank.
+Abbreviation parser_rank := parser_rank.
 
-Notation parser_termination_certificate := parser_termination_certificate.
+Abbreviation parser_termination_certificate := parser_termination_certificate.
 
-Notation certified_table := certified_table.
+Abbreviation certified_table := certified_table.
 
-Notation certified_table_rank := certified_table_rank.
+Abbreviation certified_table_rank := certified_table_rank.
 
-Notation parser_measure := parser_measure.
+Abbreviation parser_measure := parser_measure.
 
-Notation parser_measure_key := parser_measure_key.
+Abbreviation parser_measure_key := parser_measure_key.
 
-Notation parser_measure_lt := parser_measure_lt.
+Abbreviation parser_measure_lt := parser_measure_lt.
 
-Notation parser_lookahead := parser_lookahead.
+Abbreviation parser_lookahead := parser_lookahead.
 
-Notation parser_step_lt := parser_step_lt.
+Abbreviation parser_step_lt := parser_step_lt.
 
-Notation parser_termination_cert := parser_termination_cert.
+Abbreviation parser_termination_cert := parser_termination_cert.
 
-Notation parser_termination_certb := parser_termination_certb.
+Abbreviation parser_termination_certb := parser_termination_certb.
 
-Notation parser_termination_certificate_valid := parser_termination_certificate_valid.
+Abbreviation parser_termination_certificate_valid := parser_termination_certificate_valid.
 
-Notation parser_termination_certificate_validb := parser_termination_certificate_validb.
+Abbreviation parser_termination_certificate_validb := parser_termination_certificate_validb.
 
-Notation check_parser_termination_certificate := check_parser_termination_certificate.
+Abbreviation check_parser_termination_certificate := check_parser_termination_certificate.
 
-Notation build_certified_table := build_certified_table.
+Abbreviation build_certified_table := build_certified_table.
 
-Notation table_entries_sound_state := table_entries_sound_state.
+Abbreviation table_entries_sound_state := table_entries_sound_state.
 
-Notation check_table_entries_no_conflict_complete := check_table_entries_no_conflict_complete.
+Abbreviation check_table_entries_no_conflict_complete := check_table_entries_no_conflict_complete.
 
-Notation build_table_complete := build_table_complete.
+Abbreviation build_table_complete := build_table_complete.
 
-Notation rank_decreases_edgeb_complete := rank_decreases_edgeb_complete.
+Abbreviation rank_decreases_edgeb_complete := rank_decreases_edgeb_complete.
 
-Notation parser_termination_certb_complete := parser_termination_certb_complete.
+Abbreviation parser_termination_certb_complete := parser_termination_certb_complete.
 
-Notation parser_termination_certificate_validb_complete := parser_termination_certificate_validb_complete.
+Abbreviation parser_termination_certificate_validb_complete := parser_termination_certificate_validb_complete.
 
-Notation check_parser_termination_certificate_success_complete := check_parser_termination_certificate_success_complete.
+Abbreviation check_parser_termination_certificate_success_complete := check_parser_termination_certificate_success_complete.
 
-Notation build_certified_table_complete := build_certified_table_complete.
+Abbreviation build_certified_table_complete := build_certified_table_complete.
 
-Notation build_certified_table_complete_from_rank := build_certified_table_complete_from_rank.
+Abbreviation build_certified_table_complete_from_rank := build_certified_table_complete_from_rank.
 
 End Impl.
 
 Module Refine.
 
-Notation reduce_LA_item_sound_refines := reduce_LA_item_sound.
+Abbreviation reduce_LA_item_sound_refines := reduce_LA_item_sound.
 
-Notation reduce_LA_item_complete_refines := reduce_LA_item_complete.
+Abbreviation reduce_LA_item_complete_refines := reduce_LA_item_complete.
 
-Notation reduce_LA_sound_spec_refines := reduce_LA_sound_spec.
+Abbreviation reduce_LA_sound_spec_refines := reduce_LA_sound_spec.
 
-Notation reduce_LA_sound_refines := reduce_LA_sound.
+Abbreviation reduce_LA_sound_refines := reduce_LA_sound.
 
-Notation reduce_LA_sem_sound_spec_refines := reduce_LA_sem_sound_spec.
+Abbreviation reduce_LA_sem_sound_spec_refines := reduce_LA_sem_sound_spec.
 
-Notation reduce_LA_sound_sem_by_lr0_viable_refines := reduce_LA_sound_sem_by_lr0_viable.
+Abbreviation reduce_LA_sound_sem_by_lr0_viable_refines := reduce_LA_sound_sem_by_lr0_viable.
 
-Notation reduce_LA_marked_sound_spec_refines := reduce_LA_marked_sound_spec.
+Abbreviation reduce_LA_marked_sound_spec_refines := reduce_LA_marked_sound_spec.
 
-Notation reduce_LA_sound_marked_by_lr0_viable_refines := reduce_LA_sound_marked_by_lr0_viable.
+Abbreviation reduce_LA_sound_marked_by_lr0_viable_refines := reduce_LA_sound_marked_by_lr0_viable.
 
-Notation reduce_LA_marked_witness_spec_refines := reduce_LA_marked_witness_spec.
+Abbreviation reduce_LA_marked_witness_spec_refines := reduce_LA_marked_witness_spec.
 
-Notation reduce_LA_marked_witness_by_lr0_viable_refines := reduce_LA_marked_witness_by_lr0_viable.
+Abbreviation reduce_LA_marked_witness_by_lr0_viable_refines := reduce_LA_marked_witness_by_lr0_viable.
 
-Notation reduce_LA_marked_derivation_spec_refines := reduce_LA_marked_derivation_spec.
+Abbreviation reduce_LA_marked_derivation_spec_refines := reduce_LA_marked_derivation_spec.
 
-Notation reduce_LA_marked_derivation_by_lr0_viable_refines := reduce_LA_marked_derivation_by_lr0_viable.
+Abbreviation reduce_LA_marked_derivation_by_lr0_viable_refines := reduce_LA_marked_derivation_by_lr0_viable.
 
-Notation reduce_LA_marked_derivation_after_start_spec_refines := reduce_LA_marked_derivation_after_start_spec.
+Abbreviation reduce_LA_marked_derivation_after_start_spec_refines := reduce_LA_marked_derivation_after_start_spec.
 
-Notation reduce_LA_marked_derivation_after_start_by_lr0_viable_refines := reduce_LA_marked_derivation_after_start_by_lr0_viable.
+Abbreviation reduce_LA_marked_derivation_after_start_by_lr0_viable_refines := reduce_LA_marked_derivation_after_start_by_lr0_viable.
 
-Notation reduce_LA_sound_sem_productive_refines := reduce_LA_sound_sem_productive.
+Abbreviation reduce_LA_sound_sem_productive_refines := reduce_LA_sound_sem_productive.
 
-Notation reduce_LA_sound_marked_productive_refines := reduce_LA_sound_marked_productive.
+Abbreviation reduce_LA_sound_marked_productive_refines := reduce_LA_sound_marked_productive.
 
-Notation reduce_LA_marked_witness_productive_refines := reduce_LA_marked_witness_productive.
+Abbreviation reduce_LA_marked_witness_productive_refines := reduce_LA_marked_witness_productive.
 
-Notation reduce_LA_marked_derivation_productive_refines := reduce_LA_marked_derivation_productive.
+Abbreviation reduce_LA_marked_derivation_productive_refines := reduce_LA_marked_derivation_productive.
 
-Notation reduce_LA_marked_derivation_after_start_productive_refines := reduce_LA_marked_derivation_after_start_productive.
+Abbreviation reduce_LA_marked_derivation_after_start_productive_refines := reduce_LA_marked_derivation_after_start_productive.
 
-Notation reduce_LA_marked_derivation_after_start_to_sem_sound_refines := reduce_LA_marked_derivation_after_start_to_sem_sound.
+Abbreviation reduce_LA_marked_derivation_after_start_to_sem_sound_refines := reduce_LA_marked_derivation_after_start_to_sem_sound.
 
-Notation reduce_LA_no_start_prime_lhs_refines := reduce_LA_no_start_prime_lhs.
+Abbreviation reduce_LA_no_start_prime_lhs_refines := reduce_LA_no_start_prime_lhs.
 
-Notation reduce_LA_no_augmented_prod_refines := reduce_LA_no_augmented_prod.
+Abbreviation reduce_LA_no_augmented_prod_refines := reduce_LA_no_augmented_prod.
 
-Notation reduce_LA_user_lhs_refines := reduce_LA_user_lhs.
+Abbreviation reduce_LA_user_lhs_refines := reduce_LA_user_lhs.
 
-Notation reduce_LA_complete_refines := reduce_LA_complete.
+Abbreviation reduce_LA_complete_refines := reduce_LA_complete.
 
-Notation reduce_LA_complete_sem_by_follow_sem_refines := reduce_LA_complete_sem_by_follow_sem.
+Abbreviation reduce_LA_complete_sem_by_follow_sem_refines := reduce_LA_complete_sem_by_follow_sem.
 
-Notation reduce_LA_complete_sem_refines := reduce_LA_complete_sem.
+Abbreviation reduce_LA_complete_sem_refines := reduce_LA_complete_sem.
 
-Notation reduceN_completed_item_refines := reduceN_completed_item.
+Abbreviation reduceN_completed_item_refines := reduceN_completed_item.
 
-Notation reduce_guard_by_la_sem_and_follow_sem_refines := reduce_guard_by_la_sem_and_follow_sem.
+Abbreviation reduce_guard_by_la_sem_and_follow_sem_refines := reduce_guard_by_la_sem_and_follow_sem.
 
-Notation reduce_guard_by_la_sem_refines := reduce_guard_by_la_sem.
+Abbreviation reduce_guard_by_la_sem_refines := reduce_guard_by_la_sem.
 
-Notation reduce_LA_subset_reduceN_refines := reduce_LA_subset_reduceN.
+Abbreviation reduce_LA_subset_reduceN_refines := reduce_LA_subset_reduceN.
 
-Notation build_table_success_conflict_free_refines := build_table_success_conflict_free.
+Abbreviation build_table_success_conflict_free_refines := build_table_success_conflict_free.
 
-Notation conflict_free_single_action_refines := conflict_free_single_action.
+Abbreviation conflict_free_single_action_refines := conflict_free_single_action.
 
-Notation build_table_success_single_action_refines := build_table_success_single_action.
+Abbreviation build_table_success_single_action_refines := build_table_success_single_action.
 
-Notation build_table_failure_conflict_refines := build_table_failure_conflict.
+Abbreviation build_table_failure_conflict_refines := build_table_failure_conflict.
 
-Notation build_table_conflict_failure_refines := build_table_conflict_failure.
+Abbreviation build_table_conflict_failure_refines := build_table_conflict_failure.
 
-Notation table_entries_sound_state_refines := table_entries_sound_state.
+Abbreviation table_entries_sound_state_refines := table_entries_sound_state.
 
-Notation check_table_entries_no_conflict_complete_refines := check_table_entries_no_conflict_complete.
+Abbreviation check_table_entries_no_conflict_complete_refines := check_table_entries_no_conflict_complete.
 
-Notation build_table_complete_refines := build_table_complete.
+Abbreviation build_table_complete_refines := build_table_complete.
 
-Notation reduce_edge_refines := reduce_edge.
+Abbreviation reduce_edge_refines := reduce_edge.
 
-Notation reduce_edge_entries_sound_refines := reduce_edge_entries_sound.
+Abbreviation reduce_edge_entries_sound_refines := reduce_edge_entries_sound.
 
-Notation reduce_edge_entries_complete_refines := reduce_edge_entries_complete.
+Abbreviation reduce_edge_entries_complete_refines := reduce_edge_entries_complete.
 
-Notation reduce_edge_entries_correct_refines := reduce_edge_entries_correct.
+Abbreviation reduce_edge_entries_correct_refines := reduce_edge_entries_correct.
 
-Notation parser_termination_certb_sound_refines := parser_termination_certb_sound.
+Abbreviation parser_termination_certb_sound_refines := parser_termination_certb_sound.
 
-Notation parser_termination_certificate_validb_sound_refines := parser_termination_certificate_validb_sound.
+Abbreviation parser_termination_certificate_validb_sound_refines := parser_termination_certificate_validb_sound.
 
-Notation check_parser_termination_certificate_success_valid_refines := check_parser_termination_certificate_success_valid.
+Abbreviation check_parser_termination_certificate_success_valid_refines := check_parser_termination_certificate_success_valid.
 
-Notation check_parser_termination_certificate_failure_invalid_refines := check_parser_termination_certificate_failure_invalid.
+Abbreviation check_parser_termination_certificate_failure_invalid_refines := check_parser_termination_certificate_failure_invalid.
 
-Notation rank_decreases_edgeb_complete_refines := rank_decreases_edgeb_complete.
+Abbreviation rank_decreases_edgeb_complete_refines := rank_decreases_edgeb_complete.
 
-Notation parser_termination_certb_complete_refines := parser_termination_certb_complete.
+Abbreviation parser_termination_certb_complete_refines := parser_termination_certb_complete.
 
-Notation parser_termination_certificate_validb_complete_refines := parser_termination_certificate_validb_complete.
+Abbreviation parser_termination_certificate_validb_complete_refines := parser_termination_certificate_validb_complete.
 
-Notation check_parser_termination_certificate_success_complete_refines := check_parser_termination_certificate_success_complete.
+Abbreviation check_parser_termination_certificate_success_complete_refines := check_parser_termination_certificate_success_complete.
 
-Notation build_certified_table_complete_refines := build_certified_table_complete.
+Abbreviation build_certified_table_complete_refines := build_certified_table_complete.
 
-Notation build_certified_table_complete_from_rank_refines := build_certified_table_complete_from_rank.
+Abbreviation build_certified_table_complete_from_rank_refines := build_certified_table_complete_from_rank.
 
-Notation build_certified_table_success_refines := build_certified_table_success.
+Abbreviation build_certified_table_success_refines := build_certified_table_success.
 
-Notation build_certified_table_success_conflict_free_refines := build_certified_table_success_conflict_free.
+Abbreviation build_certified_table_success_conflict_free_refines := build_certified_table_success_conflict_free.
 
-Notation build_certified_table_success_single_action_refines := build_certified_table_success_single_action.
+Abbreviation build_certified_table_success_single_action_refines := build_certified_table_success_single_action.
 
-Notation build_certified_table_success_select_action_refines := build_certified_table_success_select_action.
+Abbreviation build_certified_table_success_select_action_refines := build_certified_table_success_select_action.
 
-Notation shift_action_in_actions_refines := shift_action_in_actions.
+Abbreviation shift_action_in_actions_refines := shift_action_in_actions.
 
-Notation reduce_action_in_actions_refines := reduce_action_in_actions.
+Abbreviation reduce_action_in_actions_refines := reduce_action_in_actions.
 
-Notation accept_action_in_actions_refines := accept_action_in_actions.
+Abbreviation accept_action_in_actions_refines := accept_action_in_actions.
 
-Notation build_certified_table_success_select_shift_refines := build_certified_table_success_select_shift.
+Abbreviation build_certified_table_success_select_shift_refines := build_certified_table_success_select_shift.
 
-Notation build_certified_table_success_select_reduce_refines := build_certified_table_success_select_reduce.
+Abbreviation build_certified_table_success_select_reduce_refines := build_certified_table_success_select_reduce.
 
-Notation build_certified_table_success_select_accept_refines := build_certified_table_success_select_accept.
+Abbreviation build_certified_table_success_select_accept_refines := build_certified_table_success_select_accept.
 
-Notation build_certified_table_success_termination_refines := build_certified_table_success_termination.
+Abbreviation build_certified_table_success_termination_refines := build_certified_table_success_termination.
 
-Notation build_certified_table_success_reduce_edge_step_lt_refines := build_certified_table_success_reduce_edge_step_lt.
+Abbreviation build_certified_table_success_reduce_edge_step_lt_refines := build_certified_table_success_reduce_edge_step_lt.
 
-Notation parser_step_lt_parser_measure_lt_refines := parser_step_lt_parser_measure_lt.
+Abbreviation parser_step_lt_parser_measure_lt_refines := parser_step_lt_parser_measure_lt.
 
-Notation parser_measure_lt_wf_refines := parser_measure_lt_wf.
+Abbreviation parser_measure_lt_wf_refines := parser_measure_lt_wf.
 
-Notation parser_step_lt_wf_refines := parser_step_lt_wf.
+Abbreviation parser_step_lt_wf_refines := parser_step_lt_wf.
 
-Notation parser_terminates_refines := parser_terminates.
+Abbreviation parser_terminates_refines := parser_terminates.
 
-Notation parser_step_lt_reduce_edge_certb_refines := parser_step_lt_reduce_edge_certb.
+Abbreviation parser_step_lt_reduce_edge_certb_refines := parser_step_lt_reduce_edge_certb.
 
-Notation parser_step_lt_refines := parser_step_lt.
+Abbreviation parser_step_lt_refines := parser_step_lt.
 
-Notation parser_termination_cert_refines := parser_termination_cert.
+Abbreviation parser_termination_cert_refines := parser_termination_cert.
 
-Notation parser_step_lt_shift_refines := parser_step_lt_shift.
+Abbreviation parser_step_lt_shift_refines := parser_step_lt_shift.
 
-Notation parser_step_lt_reduce_refines := parser_step_lt_reduce.
+Abbreviation parser_step_lt_reduce_refines := parser_step_lt_reduce.
 
-Notation parser_step_lt_reduce_edge_refines := parser_step_lt_reduce_edge.
+Abbreviation parser_step_lt_reduce_edge_refines := parser_step_lt_reduce_edge.
 
-Notation shift_action_sound_refines := shift_action_sound.
+Abbreviation shift_action_sound_refines := shift_action_sound.
 
-Notation shift_action_complete_refines := shift_action_complete.
+Abbreviation shift_action_complete_refines := shift_action_complete.
 
-Notation reduce_actions_sound_refines := reduce_actions_sound.
+Abbreviation reduce_actions_sound_refines := reduce_actions_sound.
 
-Notation reduce_actions_complete_refines := reduce_actions_complete.
+Abbreviation reduce_actions_complete_refines := reduce_actions_complete.
 
-Notation accept_action_sound_refines := accept_action_sound.
+Abbreviation accept_action_sound_refines := accept_action_sound.
 
-Notation accept_action_complete_refines := accept_action_complete.
+Abbreviation accept_action_complete_refines := accept_action_complete.
 
-Notation reduce_LA_list_NoDup_refines := reduce_LA_list_NoDup.
+Abbreviation reduce_LA_list_NoDup_refines := reduce_LA_list_NoDup.
 
-Notation reduce_LA_NoDup_refines := reduce_LA_NoDup.
+Abbreviation reduce_LA_NoDup_refines := reduce_LA_NoDup.
 
-Notation shift_action_NoDup_refines := shift_action_NoDup.
+Abbreviation shift_action_NoDup_refines := shift_action_NoDup.
 
-Notation reduce_actions_NoDup_refines := reduce_actions_NoDup.
+Abbreviation reduce_actions_NoDup_refines := reduce_actions_NoDup.
 
-Notation accept_action_NoDup_refines := accept_action_NoDup.
+Abbreviation accept_action_NoDup_refines := accept_action_NoDup.
 
-Notation actions_NoDup_refines := actions_NoDup.
+Abbreviation actions_NoDup_refines := actions_NoDup.
 
-Notation actions_head_distinct_refines := actions_head_distinct.
+Abbreviation actions_head_distinct_refines := actions_head_distinct.
 
-Notation shift_actions_in_actions_unique_refines := shift_actions_in_actions_unique.
+Abbreviation shift_actions_in_actions_unique_refines := shift_actions_in_actions_unique.
 
-Notation actions_head_of_shift_refines := actions_head_of_shift.
+Abbreviation actions_head_of_shift_refines := actions_head_of_shift.
 
 End Refine.
 
 Module API.
 
-Notation action := action.
+Abbreviation action := action.
 
-Notation reduce_LA := reduce_LA.
+Abbreviation reduce_LA := reduce_LA.
 
-Notation actions := actions.
+Abbreviation actions := actions.
 
-Notation table := table.
+Abbreviation table := table.
 
-Notation certified_table := certified_table.
+Abbreviation certified_table := certified_table.
 
-Notation certified_table_rank := certified_table_rank.
+Abbreviation certified_table_rank := certified_table_rank.
 
-Notation build_table := build_table.
+Abbreviation build_table := build_table.
 
-Notation build_certified_table := build_certified_table.
+Abbreviation build_certified_table := build_certified_table.
 
-Notation conflict_free := conflict_free.
+Abbreviation conflict_free := conflict_free.
 
-Notation build_table_success_conflict_free := build_table_success_conflict_free.
+Abbreviation build_table_success_conflict_free := build_table_success_conflict_free.
 
-Notation conflict_free_single_action := conflict_free_single_action.
+Abbreviation conflict_free_single_action := conflict_free_single_action.
 
-Notation build_table_success_single_action := build_table_success_single_action.
+Abbreviation build_table_success_single_action := build_table_success_single_action.
 
-Notation build_table_failure_conflict := build_table_failure_conflict.
+Abbreviation build_table_failure_conflict := build_table_failure_conflict.
 
-Notation build_table_conflict_failure := build_table_conflict_failure.
+Abbreviation build_table_conflict_failure := build_table_conflict_failure.
 
-Notation build_table_complete := build_table_complete.
+Abbreviation build_table_complete := build_table_complete.
 
-Notation build_certified_table_success := build_certified_table_success.
+Abbreviation build_certified_table_success := build_certified_table_success.
 
-Notation parser_termination_certb_complete := parser_termination_certb_complete.
+Abbreviation parser_termination_certb_complete := parser_termination_certb_complete.
 
-Notation build_certified_table_complete := build_certified_table_complete.
+Abbreviation build_certified_table_complete := build_certified_table_complete.
 
-Notation build_certified_table_complete_from_rank := build_certified_table_complete_from_rank.
+Abbreviation build_certified_table_complete_from_rank := build_certified_table_complete_from_rank.
 
-Notation build_certified_table_success_conflict_free := build_certified_table_success_conflict_free.
+Abbreviation build_certified_table_success_conflict_free := build_certified_table_success_conflict_free.
 
-Notation build_certified_table_success_single_action := build_certified_table_success_single_action.
+Abbreviation build_certified_table_success_single_action := build_certified_table_success_single_action.
 
-Notation build_certified_table_success_select_action := build_certified_table_success_select_action.
+Abbreviation build_certified_table_success_select_action := build_certified_table_success_select_action.
 
-Notation shift_action_in_actions := shift_action_in_actions.
+Abbreviation shift_action_in_actions := shift_action_in_actions.
 
-Notation reduce_action_in_actions := reduce_action_in_actions.
+Abbreviation reduce_action_in_actions := reduce_action_in_actions.
 
-Notation accept_action_in_actions := accept_action_in_actions.
+Abbreviation accept_action_in_actions := accept_action_in_actions.
 
-Notation build_certified_table_success_select_shift := build_certified_table_success_select_shift.
+Abbreviation build_certified_table_success_select_shift := build_certified_table_success_select_shift.
 
-Notation build_certified_table_success_select_reduce := build_certified_table_success_select_reduce.
+Abbreviation build_certified_table_success_select_reduce := build_certified_table_success_select_reduce.
 
-Notation build_certified_table_success_select_accept := build_certified_table_success_select_accept.
+Abbreviation build_certified_table_success_select_accept := build_certified_table_success_select_accept.
 
-Notation build_certified_table_success_termination := build_certified_table_success_termination.
+Abbreviation build_certified_table_success_termination := build_certified_table_success_termination.
 
-Notation build_certified_table_success_reduce_edge_step_lt := build_certified_table_success_reduce_edge_step_lt.
+Abbreviation build_certified_table_success_reduce_edge_step_lt := build_certified_table_success_reduce_edge_step_lt.
 
-Notation reduce_LA_sound_spec := reduce_LA_sound_spec.
+Abbreviation reduce_LA_sound_spec := reduce_LA_sound_spec.
 
-Notation reduce_LA_sound := reduce_LA_sound.
+Abbreviation reduce_LA_sound := reduce_LA_sound.
 
-Notation reduce_LA_sem_sound_spec := reduce_LA_sem_sound_spec.
+Abbreviation reduce_LA_sem_sound_spec := reduce_LA_sem_sound_spec.
 
-Notation reduce_LA_sound_sem_by_lr0_viable := reduce_LA_sound_sem_by_lr0_viable.
+Abbreviation reduce_LA_sound_sem_by_lr0_viable := reduce_LA_sound_sem_by_lr0_viable.
 
-Notation reduce_LA_marked_sound_spec := reduce_LA_marked_sound_spec.
+Abbreviation reduce_LA_marked_sound_spec := reduce_LA_marked_sound_spec.
 
-Notation reduce_LA_sound_marked_by_lr0_viable := reduce_LA_sound_marked_by_lr0_viable.
+Abbreviation reduce_LA_sound_marked_by_lr0_viable := reduce_LA_sound_marked_by_lr0_viable.
 
-Notation reduce_LA_marked_witness_spec := reduce_LA_marked_witness_spec.
+Abbreviation reduce_LA_marked_witness_spec := reduce_LA_marked_witness_spec.
 
-Notation reduce_LA_marked_witness_by_lr0_viable := reduce_LA_marked_witness_by_lr0_viable.
+Abbreviation reduce_LA_marked_witness_by_lr0_viable := reduce_LA_marked_witness_by_lr0_viable.
 
-Notation reduce_LA_marked_derivation_spec := reduce_LA_marked_derivation_spec.
+Abbreviation reduce_LA_marked_derivation_spec := reduce_LA_marked_derivation_spec.
 
-Notation reduce_LA_marked_derivation_by_lr0_viable := reduce_LA_marked_derivation_by_lr0_viable.
+Abbreviation reduce_LA_marked_derivation_by_lr0_viable := reduce_LA_marked_derivation_by_lr0_viable.
 
-Notation reduce_LA_marked_derivation_after_start_spec := reduce_LA_marked_derivation_after_start_spec.
+Abbreviation reduce_LA_marked_derivation_after_start_spec := reduce_LA_marked_derivation_after_start_spec.
 
-Notation reduce_LA_marked_derivation_after_start_by_lr0_viable := reduce_LA_marked_derivation_after_start_by_lr0_viable.
+Abbreviation reduce_LA_marked_derivation_after_start_by_lr0_viable := reduce_LA_marked_derivation_after_start_by_lr0_viable.
 
-Notation reduce_LA_sound_sem_productive := reduce_LA_sound_sem_productive.
+Abbreviation reduce_LA_sound_sem_productive := reduce_LA_sound_sem_productive.
 
-Notation reduce_LA_sound_marked_productive := reduce_LA_sound_marked_productive.
+Abbreviation reduce_LA_sound_marked_productive := reduce_LA_sound_marked_productive.
 
-Notation reduce_LA_marked_witness_productive := reduce_LA_marked_witness_productive.
+Abbreviation reduce_LA_marked_witness_productive := reduce_LA_marked_witness_productive.
 
-Notation reduce_LA_marked_derivation_productive := reduce_LA_marked_derivation_productive.
+Abbreviation reduce_LA_marked_derivation_productive := reduce_LA_marked_derivation_productive.
 
-Notation reduce_LA_marked_derivation_after_start_productive := reduce_LA_marked_derivation_after_start_productive.
+Abbreviation reduce_LA_marked_derivation_after_start_productive := reduce_LA_marked_derivation_after_start_productive.
 
-Notation reduce_LA_marked_derivation_after_start_to_sem_sound := reduce_LA_marked_derivation_after_start_to_sem_sound.
+Abbreviation reduce_LA_marked_derivation_after_start_to_sem_sound := reduce_LA_marked_derivation_after_start_to_sem_sound.
 
-Notation reduce_LA_no_start_prime_lhs := reduce_LA_no_start_prime_lhs.
+Abbreviation reduce_LA_no_start_prime_lhs := reduce_LA_no_start_prime_lhs.
 
-Notation reduce_LA_no_augmented_prod := reduce_LA_no_augmented_prod.
+Abbreviation reduce_LA_no_augmented_prod := reduce_LA_no_augmented_prod.
 
-Notation reduce_LA_user_lhs := reduce_LA_user_lhs.
+Abbreviation reduce_LA_user_lhs := reduce_LA_user_lhs.
 
-Notation reduce_LA_complete_sem_by_follow_sem := reduce_LA_complete_sem_by_follow_sem.
+Abbreviation reduce_LA_complete_sem_by_follow_sem := reduce_LA_complete_sem_by_follow_sem.
 
-Notation reduce_LA_complete_sem := reduce_LA_complete_sem.
+Abbreviation reduce_LA_complete_sem := reduce_LA_complete_sem.
 
-Notation reduceN_completed_item := reduceN_completed_item.
+Abbreviation reduceN_completed_item := reduceN_completed_item.
 
-Notation reduce_guard_by_la_sem_and_follow_sem := reduce_guard_by_la_sem_and_follow_sem.
+Abbreviation reduce_guard_by_la_sem_and_follow_sem := reduce_guard_by_la_sem_and_follow_sem.
 
-Notation reduce_guard_by_la_sem := reduce_guard_by_la_sem.
+Abbreviation reduce_guard_by_la_sem := reduce_guard_by_la_sem.
 
-Notation reduce_LA_subset_reduceN := reduce_LA_subset_reduceN.
+Abbreviation reduce_LA_subset_reduceN := reduce_LA_subset_reduceN.
 
-Notation reduce_LA_NoDup := reduce_LA_NoDup.
+Abbreviation reduce_LA_NoDup := reduce_LA_NoDup.
 
-Notation actions_NoDup := actions_NoDup.
+Abbreviation actions_NoDup := actions_NoDup.
 
-Notation actions_head_distinct := actions_head_distinct.
+Abbreviation actions_head_distinct := actions_head_distinct.
 
-Notation shift_actions_in_actions_unique := shift_actions_in_actions_unique.
+Abbreviation shift_actions_in_actions_unique := shift_actions_in_actions_unique.
 
-Notation actions_head_of_shift := actions_head_of_shift.
+Abbreviation actions_head_of_shift := actions_head_of_shift.
 
-Notation reduce_edge := reduce_edge.
+Abbreviation reduce_edge := reduce_edge.
 
-Notation reduce_edge_entry := reduce_edge_entry.
+Abbreviation reduce_edge_entry := reduce_edge_entry.
 
-Notation reduce_edge_entries := reduce_edge_entries.
+Abbreviation reduce_edge_entries := reduce_edge_entries.
 
-Notation reduce_edge_ensemble := reduce_edge_ensemble.
+Abbreviation reduce_edge_ensemble := reduce_edge_ensemble.
 
-Notation parser_rank := parser_rank.
+Abbreviation parser_rank := parser_rank.
 
-Notation parser_termination_certificate := parser_termination_certificate.
+Abbreviation parser_termination_certificate := parser_termination_certificate.
 
-Notation parser_measure := parser_measure.
+Abbreviation parser_measure := parser_measure.
 
-Notation parser_measure_key := parser_measure_key.
+Abbreviation parser_measure_key := parser_measure_key.
 
-Notation parser_measure_lt := parser_measure_lt.
+Abbreviation parser_measure_lt := parser_measure_lt.
 
-Notation parser_lookahead := parser_lookahead.
+Abbreviation parser_lookahead := parser_lookahead.
 
-Notation parser_step_lt := parser_step_lt.
+Abbreviation parser_step_lt := parser_step_lt.
 
-Notation parser_termination_cert := parser_termination_cert.
+Abbreviation parser_termination_cert := parser_termination_cert.
 
-Notation parser_termination_certb := parser_termination_certb.
+Abbreviation parser_termination_certb := parser_termination_certb.
 
-Notation parser_termination_certb_sound := parser_termination_certb_sound.
+Abbreviation parser_termination_certb_sound := parser_termination_certb_sound.
 
-Notation parser_termination_certificate_valid := parser_termination_certificate_valid.
+Abbreviation parser_termination_certificate_valid := parser_termination_certificate_valid.
 
-Notation parser_termination_certificate_validb := parser_termination_certificate_validb.
+Abbreviation parser_termination_certificate_validb := parser_termination_certificate_validb.
 
-Notation parser_termination_certificate_validb_sound := parser_termination_certificate_validb_sound.
+Abbreviation parser_termination_certificate_validb_sound := parser_termination_certificate_validb_sound.
 
-Notation check_parser_termination_certificate := check_parser_termination_certificate.
+Abbreviation check_parser_termination_certificate := check_parser_termination_certificate.
 
-Notation check_parser_termination_certificate_success_valid := check_parser_termination_certificate_success_valid.
+Abbreviation check_parser_termination_certificate_success_valid := check_parser_termination_certificate_success_valid.
 
-Notation parser_step_lt_wf := parser_step_lt_wf.
+Abbreviation parser_step_lt_wf := parser_step_lt_wf.
 
-Notation parser_terminates := parser_terminates.
+Abbreviation parser_terminates := parser_terminates.
 
-Notation parser_step_lt_reduce_edge_certb := parser_step_lt_reduce_edge_certb.
+Abbreviation parser_step_lt_reduce_edge_certb := parser_step_lt_reduce_edge_certb.
 
 End API.
 
@@ -14638,7 +14638,7 @@ Proof.
     congruence.
 Defined.
 
-Definition dN_target_dec (n : nat) (X : V') : { m : nat & dN n X = Some m } + (forall m, dN n X <> Some m).
+Definition dN_target_dec (n : nat) (X : V') : { m : nat & dN n X = Some m } + (forall m, dN n X ≠ Some m).
 Proof.
   destruct (dN n X) as [m | ] eqn: STEP.
   - left. exists m. reflexivity.
@@ -16190,627 +16190,627 @@ Qed.
 
 Module Abs.
 
-Notation parse_tree := parse_tree.
+Abbreviation parse_tree := parse_tree.
 
-Notation parse_tree_symbol := parse_tree_symbol.
+Abbreviation parse_tree_symbol := parse_tree_symbol.
 
-Notation parse_tree_yield := parse_tree_yield.
+Abbreviation parse_tree_yield := parse_tree_yield.
 
-Notation parse_tree_root := parse_tree_root.
+Abbreviation parse_tree_root := parse_tree_root.
 
-Notation valid_tree := valid_tree.
+Abbreviation valid_tree := valid_tree.
 
-Notation accept_word := accept_word.
+Abbreviation accept_word := accept_word.
 
-Notation accept_config := accept_config.
+Abbreviation accept_config := accept_config.
 
-Notation accept_stack := accept_stack.
+Abbreviation accept_stack := accept_stack.
 
-Notation accept_run_state := accept_run_state.
+Abbreviation accept_run_state := accept_run_state.
 
-Notation step_LA := step_LA.
+Abbreviation step_LA := step_LA.
 
-Notation steps_LA := steps_LA.
+Abbreviation steps_LA := steps_LA.
 
-Notation L_LA_spec := L_LA_spec.
+Abbreviation L_LA_spec := L_LA_spec.
 
-Notation L_LA := L_LA.
+Abbreviation L_LA := L_LA.
 
-Notation run_parser := run_parser.
+Abbreviation run_parser := run_parser.
 
-Notation parse_result_accept_similarity := parse_result_accept_similarity.
+Abbreviation parse_result_accept_similarity := parse_result_accept_similarity.
 
 End Abs.
 
 Module Impl.
 
-Notation parser_input := parser_input.
+Abbreviation parser_input := parser_input.
 
-Notation parser_input_yield := parser_input_yield.
+Abbreviation parser_input_yield := parser_input_yield.
 
-Notation initial_parser_measure := initial_parser_measure.
+Abbreviation initial_parser_measure := initial_parser_measure.
 
-Notation certified_initial_acc := certified_initial_acc.
+Abbreviation certified_initial_acc := certified_initial_acc.
 
-Notation npath_dec := npath_dec.
+Abbreviation npath_dec := npath_dec.
 
-Notation dN_target_dec := dN_target_dec.
+Abbreviation dN_target_dec := dN_target_dec.
 
-Notation run_stack := run_stack.
+Abbreviation run_stack := run_stack.
 
-Notation run_stack_entry_symbol := run_stack_entry_symbol.
+Abbreviation run_stack_entry_symbol := run_stack_entry_symbol.
 
-Notation run_stack_symbols := run_stack_symbols.
+Abbreviation run_stack_symbols := run_stack_symbols.
 
-Notation run_stack_entry_yield := run_stack_entry_yield.
+Abbreviation run_stack_entry_yield := run_stack_entry_yield.
 
-Notation run_stack_yield := run_stack_yield.
+Abbreviation run_stack_yield := run_stack_yield.
 
-Notation run_stack_valid := run_stack_valid.
+Abbreviation run_stack_valid := run_stack_valid.
 
-Notation run_state := run_state.
+Abbreviation run_state := run_state.
 
-Notation nconfig_parser_measure := nconfig_parser_measure.
+Abbreviation nconfig_parser_measure := nconfig_parser_measure.
 
-Notation run_state_measure := run_state_measure.
+Abbreviation run_state_measure := run_state_measure.
 
-Notation run_shift_tree := run_shift_tree.
+Abbreviation run_shift_tree := run_shift_tree.
 
-Notation run_shift_target := run_shift_target.
+Abbreviation run_shift_target := run_shift_target.
 
-Notation run_split_suffix := run_split_suffix.
+Abbreviation run_split_suffix := run_split_suffix.
 
-Notation run_sequence_trees := run_sequence_trees.
+Abbreviation run_sequence_trees := run_sequence_trees.
 
-Notation run_reduce_stack := run_reduce_stack.
+Abbreviation run_reduce_stack := run_reduce_stack.
 
-Notation run_accept_stack := run_accept_stack.
+Abbreviation run_accept_stack := run_accept_stack.
 
-Notation run_accept_word := run_accept_word.
+Abbreviation run_accept_word := run_accept_word.
 
-Notation run_state_accepts_spec := run_state_accepts_spec.
+Abbreviation run_state_accepts_spec := run_state_accepts_spec.
 
-Notation run_accept_config := run_accept_config.
+Abbreviation run_accept_config := run_accept_config.
 
-Notation run_reduce_allowed := run_reduce_allowed.
+Abbreviation run_reduce_allowed := run_reduce_allowed.
 
-Notation run_reduce_target_from := run_reduce_target_from.
+Abbreviation run_reduce_target_from := run_reduce_target_from.
 
-Notation run_reduce_target := run_reduce_target.
+Abbreviation run_reduce_target := run_reduce_target.
 
-Notation initial_nconfig := initial_nconfig.
+Abbreviation initial_nconfig := initial_nconfig.
 
-Notation initial_run_state := initial_run_state.
+Abbreviation initial_run_state := initial_run_state.
 
-Notation run_parser_acc := run_parser_acc.
+Abbreviation run_parser_acc := run_parser_acc.
 
-Notation run_parser := run_parser_impl.
+Abbreviation run_parser := run_parser_impl.
 
-Notation parse_result_accept_similarity := parse_result_accept_similarity.
+Abbreviation parse_result_accept_similarity := parse_result_accept_similarity.
 
 End Impl.
 
 Module Refine.
 
-Notation terminal_lift_app_refines := terminal_lift_app.
+Abbreviation terminal_lift_app_refines := terminal_lift_app.
 
-Notation grammar_step_context_refines := grammar_step_context.
+Abbreviation grammar_step_context_refines := grammar_step_context.
 
-Notation grammar_steps_context_refines := grammar_steps_context.
+Abbreviation grammar_steps_context_refines := grammar_steps_context.
 
-Notation valid_tree_forest_grammar_steps_refines := valid_tree_forest_grammar_steps.
+Abbreviation valid_tree_forest_grammar_steps_refines := valid_tree_forest_grammar_steps.
 
-Notation valid_tree_grammar_steps_refines := valid_tree_grammar_steps.
+Abbreviation valid_tree_grammar_steps_refines := valid_tree_grammar_steps.
 
-Notation valid_forest_grammar_steps_refines := valid_forest_grammar_steps.
+Abbreviation valid_forest_grammar_steps_refines := valid_forest_grammar_steps.
 
-Notation valid_tree_run_parser_refines := valid_tree_run_parser.
+Abbreviation valid_tree_run_parser_refines := valid_tree_run_parser.
 
-Notation step_LA_nstep_refines := step_LA_nstep.
+Abbreviation step_LA_nstep_refines := step_LA_nstep.
 
-Notation nstep_step_LA_by_reduce_guard_refines := nstep_step_LA_by_reduce_guard.
+Abbreviation nstep_step_LA_by_reduce_guard_refines := nstep_step_LA_by_reduce_guard.
 
-Notation nstep_preserves_src_refines := nstep_preserves_src.
+Abbreviation nstep_preserves_src_refines := nstep_preserves_src.
 
-Notation nstep_step_LA_by_nq0_reduce_guard_refines := nstep_step_LA_by_nq0_reduce_guard.
+Abbreviation nstep_step_LA_by_nq0_reduce_guard_refines := nstep_step_LA_by_nq0_reduce_guard.
 
-Notation steps_LA_nsteps_refines := steps_LA_nsteps.
+Abbreviation steps_LA_nsteps_refines := steps_LA_nsteps.
 
-Notation nsteps_steps_LA_by_reduce_guard_refines := nsteps_steps_LA_by_reduce_guard.
+Abbreviation nsteps_steps_LA_by_reduce_guard_refines := nsteps_steps_LA_by_reduce_guard.
 
-Notation nsteps_preserves_src_refines := nsteps_preserves_src.
+Abbreviation nsteps_preserves_src_refines := nsteps_preserves_src.
 
-Notation nsteps_steps_LA_by_nq0_reduce_guard_refines := nsteps_steps_LA_by_nq0_reduce_guard.
+Abbreviation nsteps_steps_LA_by_nq0_reduce_guard_refines := nsteps_steps_LA_by_nq0_reduce_guard.
 
-Notation L_LA_L_LRA_N_refines := L_LA_L_LRA_N.
+Abbreviation L_LA_L_LRA_N_refines := L_LA_L_LRA_N.
 
-Notation L_LRA_N_L_LA_by_reduce_guard_refines := L_LRA_N_L_LA_by_reduce_guard.
+Abbreviation L_LRA_N_L_LA_by_reduce_guard_refines := L_LRA_N_L_LA_by_reduce_guard.
 
-Notation L_LRA_N_L_LA_by_nq0_reduce_guard_refines := L_LRA_N_L_LA_by_nq0_reduce_guard.
+Abbreviation L_LRA_N_L_LA_by_nq0_reduce_guard_refines := L_LRA_N_L_LA_by_nq0_reduce_guard.
 
-Notation grammar_accepts_L_LA_by_reduce_guard_refines := grammar_accepts_L_LA_by_reduce_guard.
+Abbreviation grammar_accepts_L_LA_by_reduce_guard_refines := grammar_accepts_L_LA_by_reduce_guard.
 
-Notation grammar_accepts_L_LA_by_nq0_reduce_guard_refines := grammar_accepts_L_LA_by_nq0_reduce_guard.
+Abbreviation grammar_accepts_L_LA_by_nq0_reduce_guard_refines := grammar_accepts_L_LA_by_nq0_reduce_guard.
 
-Notation grammar_accepts_L_LA_by_la_sem_and_follow_sem_refines := grammar_accepts_L_LA_by_la_sem_and_follow_sem.
+Abbreviation grammar_accepts_L_LA_by_la_sem_and_follow_sem_refines := grammar_accepts_L_LA_by_la_sem_and_follow_sem.
 
-Notation grammar_accepts_L_LA_by_nq0_la_sem_and_follow_sem_refines := grammar_accepts_L_LA_by_nq0_la_sem_and_follow_sem.
+Abbreviation grammar_accepts_L_LA_by_nq0_la_sem_and_follow_sem_refines := grammar_accepts_L_LA_by_nq0_la_sem_and_follow_sem.
 
-Notation grammar_accepts_L_LA_by_la_sem_refines := grammar_accepts_L_LA_by_la_sem.
+Abbreviation grammar_accepts_L_LA_by_la_sem_refines := grammar_accepts_L_LA_by_la_sem.
 
-Notation grammar_accepts_L_LA_by_nq0_la_sem_refines := grammar_accepts_L_LA_by_nq0_la_sem.
+Abbreviation grammar_accepts_L_LA_by_nq0_la_sem_refines := grammar_accepts_L_LA_by_nq0_la_sem.
 
-Notation reduce_LA_sem_from_accepting_tail_refines := reduce_LA_sem_from_accepting_tail.
+Abbreviation reduce_LA_sem_from_accepting_tail_refines := reduce_LA_sem_from_accepting_tail.
 
-Notation reduce_guard_by_accepting_tail_refines := reduce_guard_by_accepting_tail.
+Abbreviation reduce_guard_by_accepting_tail_refines := reduce_guard_by_accepting_tail.
 
-Notation reduce_accepting_tail_empty_absurd_refines := reduce_accepting_tail_empty_absurd.
+Abbreviation reduce_accepting_tail_empty_absurd_refines := reduce_accepting_tail_empty_absurd.
 
-Notation nsteps_steps_LA_by_accepting_tail_1n_refines := nsteps_steps_LA_by_accepting_tail_1n.
+Abbreviation nsteps_steps_LA_by_accepting_tail_1n_refines := nsteps_steps_LA_by_accepting_tail_1n.
 
-Notation nsteps_steps_LA_by_accepting_tail_refines := nsteps_steps_LA_by_accepting_tail.
+Abbreviation nsteps_steps_LA_by_accepting_tail_refines := nsteps_steps_LA_by_accepting_tail.
 
-Notation L_LRA_N_L_LA_refines := L_LRA_N_L_LA.
+Abbreviation L_LRA_N_L_LA_refines := L_LRA_N_L_LA.
 
-Notation grammar_accepts_L_LA_refines := grammar_accepts_L_LA.
+Abbreviation grammar_accepts_L_LA_refines := grammar_accepts_L_LA.
 
-Notation L_LA_spec_refines := L_LA_spec.
+Abbreviation L_LA_spec_refines := L_LA_spec.
 
-Notation L_LA_sound_refines := L_LA_sound.
+Abbreviation L_LA_sound_refines := L_LA_sound.
 
-Notation run_parser_acc_irrel_refines := run_parser_acc_irrel.
+Abbreviation run_parser_acc_irrel_refines := run_parser_acc_irrel.
 
-Notation run_parser_acc_sound_refines := run_parser_acc_sound.
+Abbreviation run_parser_acc_sound_refines := run_parser_acc_sound.
 
-Notation run_parser_impl_L_LA_refines := run_parser_impl_L_LA.
+Abbreviation run_parser_impl_L_LA_refines := run_parser_impl_L_LA.
 
-Notation run_parser_impl_sound_refines := run_parser_impl_sound.
+Abbreviation run_parser_impl_sound_refines := run_parser_impl_sound.
 
-Notation step_LA_parser_step_lt_refines := step_LA_parser_step_lt.
+Abbreviation step_LA_parser_step_lt_refines := step_LA_parser_step_lt.
 
-Notation nconfig_shape_eq_refines := nconfig_shape_eq.
+Abbreviation nconfig_shape_eq_refines := nconfig_shape_eq.
 
-Notation nconfig_shape_eq_refl_refines := nconfig_shape_eq_refl.
+Abbreviation nconfig_shape_eq_refl_refines := nconfig_shape_eq_refl.
 
-Notation nconfig_shape_eq_trans_refines := nconfig_shape_eq_trans.
+Abbreviation nconfig_shape_eq_trans_refines := nconfig_shape_eq_trans.
 
-Notation step_LA_shape_transport_refines := step_LA_shape_transport.
+Abbreviation step_LA_shape_transport_refines := step_LA_shape_transport.
 
-Notation steps_LA_1n_shape_transport_refines := steps_LA_1n_shape_transport.
+Abbreviation steps_LA_1n_shape_transport_refines := steps_LA_1n_shape_transport.
 
-Notation steps_LA_shape_transport_refines := steps_LA_shape_transport.
+Abbreviation steps_LA_shape_transport_refines := steps_LA_shape_transport.
 
-Notation run_shift_branch_guards_complete_refines := run_shift_branch_guards_complete.
+Abbreviation run_shift_branch_guards_complete_refines := run_shift_branch_guards_complete.
 
-Notation run_reduce_branch_guards_complete_spec_refines := run_reduce_branch_guards_complete_spec.
+Abbreviation run_reduce_branch_guards_complete_spec_refines := run_reduce_branch_guards_complete_spec.
 
-Notation run_reduce_branch_guards_complete_refines := run_reduce_branch_guards_complete.
+Abbreviation run_reduce_branch_guards_complete_refines := run_reduce_branch_guards_complete.
 
-Notation run_step_progress_spec_refines := run_step_progress_spec.
+Abbreviation run_step_progress_spec_refines := run_step_progress_spec.
 
-Notation run_shift_step_progress_refines := run_shift_step_progress.
+Abbreviation run_shift_step_progress_refines := run_shift_step_progress.
 
-Notation run_reduce_step_progress_refines := run_reduce_step_progress.
+Abbreviation run_reduce_step_progress_refines := run_reduce_step_progress.
 
-Notation run_step_progress_refines := run_step_progress.
+Abbreviation run_step_progress_refines := run_step_progress.
 
-Notation run_accept_state_progress_refines := run_accept_state_progress.
+Abbreviation run_accept_state_progress_refines := run_accept_state_progress.
 
-Notation run_steps_progress_spec_refines := run_steps_progress_spec.
+Abbreviation run_steps_progress_spec_refines := run_steps_progress_spec.
 
-Notation run_steps_progress_1n_refines := run_steps_progress_1n.
+Abbreviation run_steps_progress_1n_refines := run_steps_progress_1n.
 
-Notation run_steps_progress_refines := run_steps_progress.
+Abbreviation run_steps_progress_refines := run_steps_progress.
 
-Notation run_parser_impl_L_LA_complete_refines := run_parser_impl_L_LA_complete.
+Abbreviation run_parser_impl_L_LA_complete_refines := run_parser_impl_L_LA_complete.
 
-Notation run_parser_impl_L_LA_correct_refines := run_parser_impl_L_LA_correct.
+Abbreviation run_parser_impl_L_LA_correct_refines := run_parser_impl_L_LA_correct.
 
-Notation parse_result_accept_similarity_refines := parse_result_accept_similarity.
+Abbreviation parse_result_accept_similarity_refines := parse_result_accept_similarity.
 
-Notation run_parser_impl_complete_refines := run_parser_impl_complete.
+Abbreviation run_parser_impl_complete_refines := run_parser_impl_complete.
 
-Notation run_parser_impl_complete_by_reduce_guard_refines := run_parser_impl_complete_by_reduce_guard.
+Abbreviation run_parser_impl_complete_by_reduce_guard_refines := run_parser_impl_complete_by_reduce_guard.
 
-Notation run_parser_impl_complete_by_nq0_reduce_guard_refines := run_parser_impl_complete_by_nq0_reduce_guard.
+Abbreviation run_parser_impl_complete_by_nq0_reduce_guard_refines := run_parser_impl_complete_by_nq0_reduce_guard.
 
-Notation run_parser_impl_complete_by_la_sem_and_follow_sem_refines := run_parser_impl_complete_by_la_sem_and_follow_sem.
+Abbreviation run_parser_impl_complete_by_la_sem_and_follow_sem_refines := run_parser_impl_complete_by_la_sem_and_follow_sem.
 
-Notation run_parser_impl_complete_by_nq0_la_sem_and_follow_sem_refines := run_parser_impl_complete_by_nq0_la_sem_and_follow_sem.
+Abbreviation run_parser_impl_complete_by_nq0_la_sem_and_follow_sem_refines := run_parser_impl_complete_by_nq0_la_sem_and_follow_sem.
 
-Notation run_parser_impl_complete_by_la_sem_refines := run_parser_impl_complete_by_la_sem.
+Abbreviation run_parser_impl_complete_by_la_sem_refines := run_parser_impl_complete_by_la_sem.
 
-Notation run_parser_impl_complete_by_nq0_la_sem_refines := run_parser_impl_complete_by_nq0_la_sem.
+Abbreviation run_parser_impl_complete_by_nq0_la_sem_refines := run_parser_impl_complete_by_nq0_la_sem.
 
-Notation run_parser_impl_complete_by_grammar_refines := run_parser_impl_complete_by_grammar.
+Abbreviation run_parser_impl_complete_by_grammar_refines := run_parser_impl_complete_by_grammar.
 
-Notation run_parser_impl_correct_refines := run_parser_impl_correct.
+Abbreviation run_parser_impl_correct_refines := run_parser_impl_correct.
 
-Notation run_parser_impl_correct_grammar_refines := run_parser_impl_correct_grammar.
+Abbreviation run_parser_impl_correct_grammar_refines := run_parser_impl_correct_grammar.
 
-Notation parser_input_yield_parser_input_refines := parser_input_yield_parser_input.
+Abbreviation parser_input_yield_parser_input_refines := parser_input_yield_parser_input.
 
-Notation run_split_suffix_sound_refines := run_split_suffix_sound.
+Abbreviation run_split_suffix_sound_refines := run_split_suffix_sound.
 
-Notation run_split_suffix_complete_refines := run_split_suffix_complete.
+Abbreviation run_split_suffix_complete_refines := run_split_suffix_complete.
 
-Notation run_split_suffix_map_refines := run_split_suffix_map.
+Abbreviation run_split_suffix_map_refines := run_split_suffix_map.
 
-Notation run_split_suffix_deterministic_refines := run_split_suffix_deterministic.
+Abbreviation run_split_suffix_deterministic_refines := run_split_suffix_deterministic.
 
-Notation run_stack_symbols_app_refines := run_stack_symbols_app.
+Abbreviation run_stack_symbols_app_refines := run_stack_symbols_app.
 
-Notation run_stack_yield_app_refines := run_stack_yield_app.
+Abbreviation run_stack_yield_app_refines := run_stack_yield_app.
 
-Notation run_stack_valid_app_refines := run_stack_valid_app.
+Abbreviation run_stack_valid_app_refines := run_stack_valid_app.
 
-Notation run_sequence_trees_sound_refines := run_sequence_trees_sound.
+Abbreviation run_sequence_trees_sound_refines := run_sequence_trees_sound.
 
-Notation run_sequence_trees_complete_refines := run_sequence_trees_complete.
+Abbreviation run_sequence_trees_complete_refines := run_sequence_trees_complete.
 
-Notation run_shift_stack_sound_refines := run_shift_stack_sound.
+Abbreviation run_shift_stack_sound_refines := run_shift_stack_sound.
 
-Notation run_shift_target_complete_refines := run_shift_target_complete.
+Abbreviation run_shift_target_complete_refines := run_shift_target_complete.
 
-Notation run_reduce_allowed_complete_refines := run_reduce_allowed_complete.
+Abbreviation run_reduce_allowed_complete_refines := run_reduce_allowed_complete.
 
-Notation lift_symbol_inj_refines := lift_symbol_inj.
+Abbreviation lift_symbol_inj_refines := lift_symbol_inj.
 
-Notation map_lift_symbol_inj_refines := map_lift_symbol_inj.
+Abbreviation map_lift_symbol_inj_refines := map_lift_symbol_inj.
 
-Notation inject_eq_inv_refines := inject_eq_inv.
+Abbreviation inject_eq_inv_refines := inject_eq_inv.
 
-Notation P'_user_prod_refines := P'_user_prod.
+Abbreviation P'_user_prod_refines := P'_user_prod.
 
-Notation P'_some_prod_refines := P'_some_prod.
+Abbreviation P'_some_prod_refines := P'_some_prod.
 
-Notation run_reduce_stack_sound_refines := run_reduce_stack_sound.
+Abbreviation run_reduce_stack_sound_refines := run_reduce_stack_sound.
 
-Notation run_reduce_stack_complete_user_refines := run_reduce_stack_complete_user.
+Abbreviation run_reduce_stack_complete_user_refines := run_reduce_stack_complete_user.
 
-Notation run_reduce_stack_complete_reduce_refines := run_reduce_stack_complete_reduce.
+Abbreviation run_reduce_stack_complete_reduce_refines := run_reduce_stack_complete_reduce.
 
-Notation run_reduce_target_from_complete_refines := run_reduce_target_from_complete.
+Abbreviation run_reduce_target_from_complete_refines := run_reduce_target_from_complete.
 
-Notation run_reduce_target_complete_refines := run_reduce_target_complete.
+Abbreviation run_reduce_target_complete_refines := run_reduce_target_complete.
 
-Notation run_accept_stack_shape_refines := run_accept_stack_shape.
+Abbreviation run_accept_stack_shape_refines := run_accept_stack_shape.
 
-Notation run_accept_stack_accept_stack_refines := run_accept_stack_accept_stack.
+Abbreviation run_accept_stack_accept_stack_refines := run_accept_stack_accept_stack.
 
-Notation accept_stack_run_accept_stack_refines := accept_stack_run_accept_stack.
+Abbreviation accept_stack_run_accept_stack_refines := accept_stack_run_accept_stack.
 
-Notation run_accept_stack_refines := run_accept_stack_refines.
+Abbreviation run_accept_stack_refines := run_accept_stack_refines.
 
-Notation accept_stack_tree_sound_refines := accept_stack_tree_sound.
+Abbreviation accept_stack_tree_sound_refines := accept_stack_tree_sound.
 
-Notation run_accept_stack_sound_refines := run_accept_stack_sound.
+Abbreviation run_accept_stack_sound_refines := run_accept_stack_sound.
 
-Notation run_accept_stack_complete_refines := run_accept_stack_complete.
+Abbreviation run_accept_stack_complete_refines := run_accept_stack_complete.
 
-Notation run_accept_config_sound_refines := run_accept_config_sound.
+Abbreviation run_accept_config_sound_refines := run_accept_config_sound.
 
-Notation run_accept_config_accept_config_refines := run_accept_config_accept_config.
+Abbreviation run_accept_config_accept_config_refines := run_accept_config_accept_config.
 
-Notation accept_config_run_accept_config_refines := accept_config_run_accept_config.
+Abbreviation accept_config_run_accept_config_refines := accept_config_run_accept_config.
 
-Notation run_accept_config_refines := run_accept_config_refines.
+Abbreviation run_accept_config_refines := run_accept_config_refines.
 
-Notation run_state_accepts_accept_run_state_refines := run_state_accepts_accept_run_state.
+Abbreviation run_state_accepts_accept_run_state_refines := run_state_accepts_accept_run_state.
 
-Notation accept_run_state_run_state_accepts_refines := accept_run_state_run_state_accepts.
+Abbreviation accept_run_state_run_state_accepts_refines := accept_run_state_run_state_accepts.
 
-Notation run_state_accepts_spec_refines := run_state_accepts_spec.
+Abbreviation run_state_accepts_spec_refines := run_state_accepts_spec.
 
-Notation run_state_accepts_refines := run_state_accepts_refines.
+Abbreviation run_state_accepts_refines := run_state_accepts_refines.
 
-Notation run_parser_acc_tree_sound_refines := run_parser_acc_tree_sound.
+Abbreviation run_parser_acc_tree_sound_refines := run_parser_acc_tree_sound.
 
-Notation run_parser_impl_tree_sound_refines := run_parser_impl_tree_sound.
+Abbreviation run_parser_impl_tree_sound_refines := run_parser_impl_tree_sound.
 
-Notation run_parser_impl_tree_run_parser_refines := run_parser_impl_tree_run_parser.
+Abbreviation run_parser_impl_tree_run_parser_refines := run_parser_impl_tree_run_parser.
 
-Notation step_LA_preserves_src_refines := step_LA_preserves_src.
+Abbreviation step_LA_preserves_src_refines := step_LA_preserves_src.
 
-Notation steps_LA_preserves_src_refines := steps_LA_preserves_src.
+Abbreviation steps_LA_preserves_src_refines := steps_LA_preserves_src.
 
 End Refine.
 
 Module API.
 
-Notation parse_tree := parse_tree.
+Abbreviation parse_tree := parse_tree.
 
-Notation PLeaf := PLeaf.
+Abbreviation PLeaf := PLeaf.
 
-Notation PNode := PNode.
+Abbreviation PNode := PNode.
 
-Notation parse_tree_yield := parse_tree_yield.
+Abbreviation parse_tree_yield := parse_tree_yield.
 
-Notation parse_tree_root := parse_tree_root.
+Abbreviation parse_tree_root := parse_tree_root.
 
-Notation valid_tree := valid_tree.
+Abbreviation valid_tree := valid_tree.
 
-Notation accept_word := accept_word.
+Abbreviation accept_word := accept_word.
 
-Notation accept_config := accept_config.
+Abbreviation accept_config := accept_config.
 
-Notation accept_stack := accept_stack.
+Abbreviation accept_stack := accept_stack.
 
-Notation accept_run_state := accept_run_state.
+Abbreviation accept_run_state := accept_run_state.
 
-Notation step_LA := step_LA.
+Abbreviation step_LA := step_LA.
 
-Notation steps_LA := steps_LA.
+Abbreviation steps_LA := steps_LA.
 
-Notation L_LA_spec := L_LA_spec.
+Abbreviation L_LA_spec := L_LA_spec.
 
-Notation L_LA := L_LA.
+Abbreviation L_LA := L_LA.
 
-Notation run_parser := run_parser.
+Abbreviation run_parser := run_parser.
 
-Notation parser_input := parser_input.
+Abbreviation parser_input := parser_input.
 
-Notation parser_input_yield := parser_input_yield.
+Abbreviation parser_input_yield := parser_input_yield.
 
-Notation parser_input_yield_parser_input := parser_input_yield_parser_input.
+Abbreviation parser_input_yield_parser_input := parser_input_yield_parser_input.
 
-Notation initial_parser_measure := initial_parser_measure.
+Abbreviation initial_parser_measure := initial_parser_measure.
 
-Notation certified_initial_acc := certified_initial_acc.
+Abbreviation certified_initial_acc := certified_initial_acc.
 
-Notation npath_dec := npath_dec.
+Abbreviation npath_dec := npath_dec.
 
-Notation dN_target_dec := dN_target_dec.
+Abbreviation dN_target_dec := dN_target_dec.
 
-Notation run_stack := run_stack.
+Abbreviation run_stack := run_stack.
 
-Notation run_stack_entry_symbol := run_stack_entry_symbol.
+Abbreviation run_stack_entry_symbol := run_stack_entry_symbol.
 
-Notation run_stack_symbols := run_stack_symbols.
+Abbreviation run_stack_symbols := run_stack_symbols.
 
-Notation run_stack_entry_yield := run_stack_entry_yield.
+Abbreviation run_stack_entry_yield := run_stack_entry_yield.
 
-Notation run_stack_yield := run_stack_yield.
+Abbreviation run_stack_yield := run_stack_yield.
 
-Notation run_stack_valid := run_stack_valid.
+Abbreviation run_stack_valid := run_stack_valid.
 
-Notation run_state := run_state.
+Abbreviation run_state := run_state.
 
-Notation nconfig_parser_measure := nconfig_parser_measure.
+Abbreviation nconfig_parser_measure := nconfig_parser_measure.
 
-Notation run_state_measure := run_state_measure.
+Abbreviation run_state_measure := run_state_measure.
 
-Notation run_shift_target := run_shift_target.
+Abbreviation run_shift_target := run_shift_target.
 
-Notation run_shift_target_complete := run_shift_target_complete.
+Abbreviation run_shift_target_complete := run_shift_target_complete.
 
-Notation run_shift_tree := run_shift_tree.
+Abbreviation run_shift_tree := run_shift_tree.
 
-Notation run_accept_word := run_accept_word.
+Abbreviation run_accept_word := run_accept_word.
 
-Notation run_state_accepts_spec := run_state_accepts_spec.
+Abbreviation run_state_accepts_spec := run_state_accepts_spec.
 
-Notation run_state_accepts := run_state_accepts.
+Abbreviation run_state_accepts := run_state_accepts.
 
-Notation run_split_suffix := run_split_suffix.
+Abbreviation run_split_suffix := run_split_suffix.
 
-Notation run_split_suffix_complete := run_split_suffix_complete.
+Abbreviation run_split_suffix_complete := run_split_suffix_complete.
 
-Notation run_sequence_trees := run_sequence_trees.
+Abbreviation run_sequence_trees := run_sequence_trees.
 
-Notation run_sequence_trees_complete := run_sequence_trees_complete.
+Abbreviation run_sequence_trees_complete := run_sequence_trees_complete.
 
-Notation run_reduce_stack := run_reduce_stack.
+Abbreviation run_reduce_stack := run_reduce_stack.
 
-Notation run_accept_stack := run_accept_stack.
+Abbreviation run_accept_stack := run_accept_stack.
 
-Notation run_reduce_allowed := run_reduce_allowed.
+Abbreviation run_reduce_allowed := run_reduce_allowed.
 
-Notation run_reduce_allowed_complete := run_reduce_allowed_complete.
+Abbreviation run_reduce_allowed_complete := run_reduce_allowed_complete.
 
-Notation run_reduce_target_from := run_reduce_target_from.
+Abbreviation run_reduce_target_from := run_reduce_target_from.
 
-Notation run_reduce_target := run_reduce_target.
+Abbreviation run_reduce_target := run_reduce_target.
 
-Notation run_reduce_target_from_complete := run_reduce_target_from_complete.
+Abbreviation run_reduce_target_from_complete := run_reduce_target_from_complete.
 
-Notation run_reduce_target_complete := run_reduce_target_complete.
+Abbreviation run_reduce_target_complete := run_reduce_target_complete.
 
-Notation run_parser_acc := run_parser_acc.
+Abbreviation run_parser_acc := run_parser_acc.
 
-Notation run_parser_impl := run_parser_impl.
+Abbreviation run_parser_impl := run_parser_impl.
 
-Notation run_parser_acc_irrel := run_parser_acc_irrel.
+Abbreviation run_parser_acc_irrel := run_parser_acc_irrel.
 
-Notation run_parser_acc_sound := run_parser_acc_sound.
+Abbreviation run_parser_acc_sound := run_parser_acc_sound.
 
-Notation run_parser_acc_tree_sound := run_parser_acc_tree_sound.
+Abbreviation run_parser_acc_tree_sound := run_parser_acc_tree_sound.
 
-Notation run_parser_impl_L_LA := run_parser_impl_L_LA.
+Abbreviation run_parser_impl_L_LA := run_parser_impl_L_LA.
 
-Notation run_parser_impl_sound := run_parser_impl_sound.
+Abbreviation run_parser_impl_sound := run_parser_impl_sound.
 
-Notation run_parser_impl_tree_sound := run_parser_impl_tree_sound.
+Abbreviation run_parser_impl_tree_sound := run_parser_impl_tree_sound.
 
-Notation run_parser_impl_tree_run_parser := run_parser_impl_tree_run_parser.
+Abbreviation run_parser_impl_tree_run_parser := run_parser_impl_tree_run_parser.
 
-Notation step_LA_nstep := step_LA_nstep.
+Abbreviation step_LA_nstep := step_LA_nstep.
 
-Notation nstep_step_LA_by_reduce_guard := nstep_step_LA_by_reduce_guard.
+Abbreviation nstep_step_LA_by_reduce_guard := nstep_step_LA_by_reduce_guard.
 
-Notation nstep_preserves_src := nstep_preserves_src.
+Abbreviation nstep_preserves_src := nstep_preserves_src.
 
-Notation nstep_step_LA_by_nq0_reduce_guard := nstep_step_LA_by_nq0_reduce_guard.
+Abbreviation nstep_step_LA_by_nq0_reduce_guard := nstep_step_LA_by_nq0_reduce_guard.
 
-Notation steps_LA_nsteps := steps_LA_nsteps.
+Abbreviation steps_LA_nsteps := steps_LA_nsteps.
 
-Notation nsteps_steps_LA_by_reduce_guard := nsteps_steps_LA_by_reduce_guard.
+Abbreviation nsteps_steps_LA_by_reduce_guard := nsteps_steps_LA_by_reduce_guard.
 
-Notation nsteps_preserves_src := nsteps_preserves_src.
+Abbreviation nsteps_preserves_src := nsteps_preserves_src.
 
-Notation nsteps_steps_LA_by_nq0_reduce_guard := nsteps_steps_LA_by_nq0_reduce_guard.
+Abbreviation nsteps_steps_LA_by_nq0_reduce_guard := nsteps_steps_LA_by_nq0_reduce_guard.
 
-Notation L_LA_L_LRA_N := L_LA_L_LRA_N.
+Abbreviation L_LA_L_LRA_N := L_LA_L_LRA_N.
 
-Notation L_LRA_N_L_LA_by_reduce_guard := L_LRA_N_L_LA_by_reduce_guard.
+Abbreviation L_LRA_N_L_LA_by_reduce_guard := L_LRA_N_L_LA_by_reduce_guard.
 
-Notation L_LRA_N_L_LA_by_nq0_reduce_guard := L_LRA_N_L_LA_by_nq0_reduce_guard.
+Abbreviation L_LRA_N_L_LA_by_nq0_reduce_guard := L_LRA_N_L_LA_by_nq0_reduce_guard.
 
-Notation grammar_accepts_L_LA_by_reduce_guard := grammar_accepts_L_LA_by_reduce_guard.
+Abbreviation grammar_accepts_L_LA_by_reduce_guard := grammar_accepts_L_LA_by_reduce_guard.
 
-Notation grammar_accepts_L_LA_by_nq0_reduce_guard := grammar_accepts_L_LA_by_nq0_reduce_guard.
+Abbreviation grammar_accepts_L_LA_by_nq0_reduce_guard := grammar_accepts_L_LA_by_nq0_reduce_guard.
 
-Notation grammar_accepts_L_LA_by_la_sem_and_follow_sem := grammar_accepts_L_LA_by_la_sem_and_follow_sem.
+Abbreviation grammar_accepts_L_LA_by_la_sem_and_follow_sem := grammar_accepts_L_LA_by_la_sem_and_follow_sem.
 
-Notation grammar_accepts_L_LA_by_nq0_la_sem_and_follow_sem := grammar_accepts_L_LA_by_nq0_la_sem_and_follow_sem.
+Abbreviation grammar_accepts_L_LA_by_nq0_la_sem_and_follow_sem := grammar_accepts_L_LA_by_nq0_la_sem_and_follow_sem.
 
-Notation grammar_accepts_L_LA_by_la_sem := grammar_accepts_L_LA_by_la_sem.
+Abbreviation grammar_accepts_L_LA_by_la_sem := grammar_accepts_L_LA_by_la_sem.
 
-Notation grammar_accepts_L_LA_by_nq0_la_sem := grammar_accepts_L_LA_by_nq0_la_sem.
+Abbreviation grammar_accepts_L_LA_by_nq0_la_sem := grammar_accepts_L_LA_by_nq0_la_sem.
 
-Notation reduce_LA_sem_from_accepting_tail := reduce_LA_sem_from_accepting_tail.
+Abbreviation reduce_LA_sem_from_accepting_tail := reduce_LA_sem_from_accepting_tail.
 
-Notation reduce_guard_by_accepting_tail := reduce_guard_by_accepting_tail.
+Abbreviation reduce_guard_by_accepting_tail := reduce_guard_by_accepting_tail.
 
-Notation reduce_accepting_tail_empty_absurd := reduce_accepting_tail_empty_absurd.
+Abbreviation reduce_accepting_tail_empty_absurd := reduce_accepting_tail_empty_absurd.
 
-Notation nsteps_steps_LA_by_accepting_tail_1n := nsteps_steps_LA_by_accepting_tail_1n.
+Abbreviation nsteps_steps_LA_by_accepting_tail_1n := nsteps_steps_LA_by_accepting_tail_1n.
 
-Notation nsteps_steps_LA_by_accepting_tail := nsteps_steps_LA_by_accepting_tail.
+Abbreviation nsteps_steps_LA_by_accepting_tail := nsteps_steps_LA_by_accepting_tail.
 
-Notation L_LRA_N_L_LA := L_LRA_N_L_LA.
+Abbreviation L_LRA_N_L_LA := L_LRA_N_L_LA.
 
-Notation grammar_accepts_L_LA := grammar_accepts_L_LA.
+Abbreviation grammar_accepts_L_LA := grammar_accepts_L_LA.
 
-Notation L_LA_sound := L_LA_sound.
+Abbreviation L_LA_sound := L_LA_sound.
 
-Notation step_LA_parser_step_lt := step_LA_parser_step_lt.
+Abbreviation step_LA_parser_step_lt := step_LA_parser_step_lt.
 
-Notation nconfig_shape_eq := nconfig_shape_eq.
+Abbreviation nconfig_shape_eq := nconfig_shape_eq.
 
-Notation nconfig_shape_eq_refl := nconfig_shape_eq_refl.
+Abbreviation nconfig_shape_eq_refl := nconfig_shape_eq_refl.
 
-Notation nconfig_shape_eq_trans := nconfig_shape_eq_trans.
+Abbreviation nconfig_shape_eq_trans := nconfig_shape_eq_trans.
 
-Notation step_LA_shape_transport := step_LA_shape_transport.
+Abbreviation step_LA_shape_transport := step_LA_shape_transport.
 
-Notation steps_LA_1n_shape_transport := steps_LA_1n_shape_transport.
+Abbreviation steps_LA_1n_shape_transport := steps_LA_1n_shape_transport.
 
-Notation steps_LA_shape_transport := steps_LA_shape_transport.
+Abbreviation steps_LA_shape_transport := steps_LA_shape_transport.
 
-Notation run_shift_branch_guards_complete := run_shift_branch_guards_complete.
+Abbreviation run_shift_branch_guards_complete := run_shift_branch_guards_complete.
 
-Notation run_reduce_branch_guards_complete_spec := run_reduce_branch_guards_complete_spec.
+Abbreviation run_reduce_branch_guards_complete_spec := run_reduce_branch_guards_complete_spec.
 
-Notation run_reduce_branch_guards_complete := run_reduce_branch_guards_complete.
+Abbreviation run_reduce_branch_guards_complete := run_reduce_branch_guards_complete.
 
-Notation run_step_progress_spec := run_step_progress_spec.
+Abbreviation run_step_progress_spec := run_step_progress_spec.
 
-Notation run_shift_step_progress := run_shift_step_progress.
+Abbreviation run_shift_step_progress := run_shift_step_progress.
 
-Notation run_reduce_step_progress := run_reduce_step_progress.
+Abbreviation run_reduce_step_progress := run_reduce_step_progress.
 
-Notation run_step_progress := run_step_progress.
+Abbreviation run_step_progress := run_step_progress.
 
-Notation run_accept_state_progress := run_accept_state_progress.
+Abbreviation run_accept_state_progress := run_accept_state_progress.
 
-Notation run_steps_progress_spec := run_steps_progress_spec.
+Abbreviation run_steps_progress_spec := run_steps_progress_spec.
 
-Notation run_steps_progress_1n := run_steps_progress_1n.
+Abbreviation run_steps_progress_1n := run_steps_progress_1n.
 
-Notation run_steps_progress := run_steps_progress.
+Abbreviation run_steps_progress := run_steps_progress.
 
-Notation run_parser_impl_L_LA_complete := run_parser_impl_L_LA_complete.
+Abbreviation run_parser_impl_L_LA_complete := run_parser_impl_L_LA_complete.
 
-Notation run_parser_impl_L_LA_correct := run_parser_impl_L_LA_correct.
+Abbreviation run_parser_impl_L_LA_correct := run_parser_impl_L_LA_correct.
 
-Notation parse_result_accept_similarity := parse_result_accept_similarity.
+Abbreviation parse_result_accept_similarity := parse_result_accept_similarity.
 
-Notation run_parser_impl_complete := run_parser_impl_complete.
+Abbreviation run_parser_impl_complete := run_parser_impl_complete.
 
-Notation run_parser_impl_complete_by_reduce_guard := run_parser_impl_complete_by_reduce_guard.
+Abbreviation run_parser_impl_complete_by_reduce_guard := run_parser_impl_complete_by_reduce_guard.
 
-Notation run_parser_impl_complete_by_nq0_reduce_guard := run_parser_impl_complete_by_nq0_reduce_guard.
+Abbreviation run_parser_impl_complete_by_nq0_reduce_guard := run_parser_impl_complete_by_nq0_reduce_guard.
 
-Notation run_parser_impl_complete_by_la_sem_and_follow_sem := run_parser_impl_complete_by_la_sem_and_follow_sem.
+Abbreviation run_parser_impl_complete_by_la_sem_and_follow_sem := run_parser_impl_complete_by_la_sem_and_follow_sem.
 
-Notation run_parser_impl_complete_by_nq0_la_sem_and_follow_sem := run_parser_impl_complete_by_nq0_la_sem_and_follow_sem.
+Abbreviation run_parser_impl_complete_by_nq0_la_sem_and_follow_sem := run_parser_impl_complete_by_nq0_la_sem_and_follow_sem.
 
-Notation run_parser_impl_complete_by_la_sem := run_parser_impl_complete_by_la_sem.
+Abbreviation run_parser_impl_complete_by_la_sem := run_parser_impl_complete_by_la_sem.
 
-Notation run_parser_impl_complete_by_nq0_la_sem := run_parser_impl_complete_by_nq0_la_sem.
+Abbreviation run_parser_impl_complete_by_nq0_la_sem := run_parser_impl_complete_by_nq0_la_sem.
 
-Notation run_parser_impl_complete_by_grammar := run_parser_impl_complete_by_grammar.
+Abbreviation run_parser_impl_complete_by_grammar := run_parser_impl_complete_by_grammar.
 
-Notation run_parser_impl_correct := run_parser_impl_correct.
+Abbreviation run_parser_impl_correct := run_parser_impl_correct.
 
-Notation run_parser_impl_correct_grammar := run_parser_impl_correct_grammar.
+Abbreviation run_parser_impl_correct_grammar := run_parser_impl_correct_grammar.
 
-Notation run_split_suffix_sound := run_split_suffix_sound.
+Abbreviation run_split_suffix_sound := run_split_suffix_sound.
 
-Notation run_split_suffix_map := run_split_suffix_map.
+Abbreviation run_split_suffix_map := run_split_suffix_map.
 
-Notation run_split_suffix_deterministic := run_split_suffix_deterministic.
+Abbreviation run_split_suffix_deterministic := run_split_suffix_deterministic.
 
-Notation run_stack_symbols_app := run_stack_symbols_app.
+Abbreviation run_stack_symbols_app := run_stack_symbols_app.
 
-Notation run_stack_yield_app := run_stack_yield_app.
+Abbreviation run_stack_yield_app := run_stack_yield_app.
 
-Notation run_stack_valid_app := run_stack_valid_app.
+Abbreviation run_stack_valid_app := run_stack_valid_app.
 
-Notation run_sequence_trees_sound := run_sequence_trees_sound.
+Abbreviation run_sequence_trees_sound := run_sequence_trees_sound.
 
-Notation run_shift_stack_sound := run_shift_stack_sound.
+Abbreviation run_shift_stack_sound := run_shift_stack_sound.
 
-Notation lift_symbol_inj := lift_symbol_inj.
+Abbreviation lift_symbol_inj := lift_symbol_inj.
 
-Notation map_lift_symbol_inj := map_lift_symbol_inj.
+Abbreviation map_lift_symbol_inj := map_lift_symbol_inj.
 
-Notation inject_eq_inv := inject_eq_inv.
+Abbreviation inject_eq_inv := inject_eq_inv.
 
-Notation P'_user_prod := P'_user_prod.
+Abbreviation P'_user_prod := P'_user_prod.
 
-Notation P'_some_prod := P'_some_prod.
+Abbreviation P'_some_prod := P'_some_prod.
 
-Notation run_reduce_stack_sound := run_reduce_stack_sound.
+Abbreviation run_reduce_stack_sound := run_reduce_stack_sound.
 
-Notation run_reduce_stack_complete_user := run_reduce_stack_complete_user.
+Abbreviation run_reduce_stack_complete_user := run_reduce_stack_complete_user.
 
-Notation run_reduce_stack_complete_reduce := run_reduce_stack_complete_reduce.
+Abbreviation run_reduce_stack_complete_reduce := run_reduce_stack_complete_reduce.
 
-Notation run_accept_stack_shape := run_accept_stack_shape.
+Abbreviation run_accept_stack_shape := run_accept_stack_shape.
 
-Notation run_accept_stack_accept_stack := run_accept_stack_accept_stack.
+Abbreviation run_accept_stack_accept_stack := run_accept_stack_accept_stack.
 
-Notation accept_stack_run_accept_stack := accept_stack_run_accept_stack.
+Abbreviation accept_stack_run_accept_stack := accept_stack_run_accept_stack.
 
-Notation run_accept_stack_refines := run_accept_stack_refines.
+Abbreviation run_accept_stack_refines := run_accept_stack_refines.
 
-Notation accept_stack_tree_sound := accept_stack_tree_sound.
+Abbreviation accept_stack_tree_sound := accept_stack_tree_sound.
 
-Notation run_accept_stack_sound := run_accept_stack_sound.
+Abbreviation run_accept_stack_sound := run_accept_stack_sound.
 
-Notation run_accept_stack_complete := run_accept_stack_complete.
+Abbreviation run_accept_stack_complete := run_accept_stack_complete.
 
-Notation run_accept_config_sound := run_accept_config_sound.
+Abbreviation run_accept_config_sound := run_accept_config_sound.
 
-Notation run_accept_config_accept_config := run_accept_config_accept_config.
+Abbreviation run_accept_config_accept_config := run_accept_config_accept_config.
 
-Notation accept_config_run_accept_config := accept_config_run_accept_config.
+Abbreviation accept_config_run_accept_config := accept_config_run_accept_config.
 
-Notation run_accept_config_refines := run_accept_config_refines.
+Abbreviation run_accept_config_refines := run_accept_config_refines.
 
-Notation run_state_accepts_accept_run_state := run_state_accepts_accept_run_state.
+Abbreviation run_state_accepts_accept_run_state := run_state_accepts_accept_run_state.
 
-Notation accept_run_state_run_state_accepts := accept_run_state_run_state_accepts.
+Abbreviation accept_run_state_run_state_accepts := accept_run_state_run_state_accepts.
 
-Notation run_state_accepts_refines := run_state_accepts_refines.
+Abbreviation run_state_accepts_refines := run_state_accepts_refines.
 
-Notation step_LA_preserves_src := step_LA_preserves_src.
+Abbreviation step_LA_preserves_src := step_LA_preserves_src.
 
-Notation steps_LA_preserves_src := steps_LA_preserves_src.
+Abbreviation steps_LA_preserves_src := steps_LA_preserves_src.
 
-Notation valid_tree_run_parser := valid_tree_run_parser.
+Abbreviation valid_tree_run_parser := valid_tree_run_parser.
 
 End API.
 
@@ -16970,111 +16970,111 @@ Qed.
 
 Module Abs.
 
-Notation parser := parser.
+Abbreviation parser := parser.
 
 End Abs.
 
 Module Impl.
 
-Notation parser := parser.
+Abbreviation parser := parser.
 
-Notation parser_table := parser_table.
+Abbreviation parser_table := parser_table.
 
-Notation parser_certificate := parser_certificate.
+Abbreviation parser_certificate := parser_certificate.
 
-Notation parser_table_built := parser_table_built.
+Abbreviation parser_table_built := parser_table_built.
 
-Notation parser_table_conflict_free := parser_table_conflict_free.
+Abbreviation parser_table_conflict_free := parser_table_conflict_free.
 
-Notation parser_table_cert := parser_table_cert.
+Abbreviation parser_table_cert := parser_table_cert.
 
-Notation build := build.
+Abbreviation build := build.
 
-Notation run_parser := run_parser.
+Abbreviation run_parser := run_parser.
 
 End Impl.
 
 Module Refine.
 
-Notation parser_build_correct_refines := parser_build_correct.
+Abbreviation parser_build_correct_refines := parser_build_correct.
 
-Notation parser_single_action_refines := parser_single_action.
+Abbreviation parser_single_action_refines := parser_single_action.
 
-Notation parser_run_complete_refines := parser_run_complete.
+Abbreviation parser_run_complete_refines := parser_run_complete.
 
-Notation parser_run_complete_by_nq0_reduce_guard_refines := parser_run_complete_by_nq0_reduce_guard.
+Abbreviation parser_run_complete_by_nq0_reduce_guard_refines := parser_run_complete_by_nq0_reduce_guard.
 
-Notation parser_run_complete_by_nq0_la_sem_and_follow_sem_refines := parser_run_complete_by_nq0_la_sem_and_follow_sem.
+Abbreviation parser_run_complete_by_nq0_la_sem_and_follow_sem_refines := parser_run_complete_by_nq0_la_sem_and_follow_sem.
 
-Notation parser_run_complete_by_nq0_la_sem_refines := parser_run_complete_by_nq0_la_sem.
+Abbreviation parser_run_complete_by_nq0_la_sem_refines := parser_run_complete_by_nq0_la_sem.
 
-Notation parser_run_complete_by_grammar_refines := parser_run_complete_by_grammar.
+Abbreviation parser_run_complete_by_grammar_refines := parser_run_complete_by_grammar.
 
-Notation parser_run_correct_refines := parser_run_correct.
+Abbreviation parser_run_correct_refines := parser_run_correct.
 
-Notation parser_run_correct_by_nq0_la_sem_and_follow_sem_refines := parser_run_correct_by_nq0_la_sem_and_follow_sem.
+Abbreviation parser_run_correct_by_nq0_la_sem_and_follow_sem_refines := parser_run_correct_by_nq0_la_sem_and_follow_sem.
 
-Notation parser_run_correct_by_nq0_la_sem_refines := parser_run_correct_by_nq0_la_sem.
+Abbreviation parser_run_correct_by_nq0_la_sem_refines := parser_run_correct_by_nq0_la_sem.
 
-Notation parser_run_correct_grammar_refines := parser_run_correct_grammar.
+Abbreviation parser_run_correct_grammar_refines := parser_run_correct_grammar.
 
-Notation parser_accepts_correct_refines := parser_accepts_correct.
+Abbreviation parser_accepts_correct_refines := parser_accepts_correct.
 
-Notation parser_accepts_correct_by_nq0_la_sem_and_follow_sem_refines := parser_accepts_correct_by_nq0_la_sem_and_follow_sem.
+Abbreviation parser_accepts_correct_by_nq0_la_sem_and_follow_sem_refines := parser_accepts_correct_by_nq0_la_sem_and_follow_sem.
 
-Notation parser_accepts_correct_by_nq0_la_sem_refines := parser_accepts_correct_by_nq0_la_sem.
+Abbreviation parser_accepts_correct_by_nq0_la_sem_refines := parser_accepts_correct_by_nq0_la_sem.
 
-Notation parser_accepts_correct_grammar_refines := parser_accepts_correct_grammar.
+Abbreviation parser_accepts_correct_grammar_refines := parser_accepts_correct_grammar.
 
 End Refine.
 
 Module API.
 
-Notation parser := parser.
+Abbreviation parser := parser.
 
-Notation parser_table := parser_table.
+Abbreviation parser_table := parser_table.
 
-Notation parser_certificate := parser_certificate.
+Abbreviation parser_certificate := parser_certificate.
 
-Notation parser_table_built := parser_table_built.
+Abbreviation parser_table_built := parser_table_built.
 
-Notation parser_table_conflict_free := parser_table_conflict_free.
+Abbreviation parser_table_conflict_free := parser_table_conflict_free.
 
-Notation parser_table_cert := parser_table_cert.
+Abbreviation parser_table_cert := parser_table_cert.
 
-Notation build := build.
+Abbreviation build := build.
 
-Notation run_parser := run_parser.
+Abbreviation run_parser := run_parser.
 
-Notation parser_build_correct := parser_build_correct.
+Abbreviation parser_build_correct := parser_build_correct.
 
-Notation parser_single_action := parser_single_action.
+Abbreviation parser_single_action := parser_single_action.
 
-Notation parser_run_complete := parser_run_complete.
+Abbreviation parser_run_complete := parser_run_complete.
 
-Notation parser_run_complete_by_nq0_reduce_guard := parser_run_complete_by_nq0_reduce_guard.
+Abbreviation parser_run_complete_by_nq0_reduce_guard := parser_run_complete_by_nq0_reduce_guard.
 
-Notation parser_run_complete_by_nq0_la_sem_and_follow_sem := parser_run_complete_by_nq0_la_sem_and_follow_sem.
+Abbreviation parser_run_complete_by_nq0_la_sem_and_follow_sem := parser_run_complete_by_nq0_la_sem_and_follow_sem.
 
-Notation parser_run_complete_by_nq0_la_sem := parser_run_complete_by_nq0_la_sem.
+Abbreviation parser_run_complete_by_nq0_la_sem := parser_run_complete_by_nq0_la_sem.
 
-Notation parser_run_complete_by_grammar := parser_run_complete_by_grammar.
+Abbreviation parser_run_complete_by_grammar := parser_run_complete_by_grammar.
 
-Notation parser_run_correct := parser_run_correct.
+Abbreviation parser_run_correct := parser_run_correct.
 
-Notation parser_run_correct_by_nq0_la_sem_and_follow_sem := parser_run_correct_by_nq0_la_sem_and_follow_sem.
+Abbreviation parser_run_correct_by_nq0_la_sem_and_follow_sem := parser_run_correct_by_nq0_la_sem_and_follow_sem.
 
-Notation parser_run_correct_by_nq0_la_sem := parser_run_correct_by_nq0_la_sem.
+Abbreviation parser_run_correct_by_nq0_la_sem := parser_run_correct_by_nq0_la_sem.
 
-Notation parser_run_correct_grammar := parser_run_correct_grammar.
+Abbreviation parser_run_correct_grammar := parser_run_correct_grammar.
 
-Notation parser_accepts_correct := parser_accepts_correct.
+Abbreviation parser_accepts_correct := parser_accepts_correct.
 
-Notation parser_accepts_correct_by_nq0_la_sem_and_follow_sem := parser_accepts_correct_by_nq0_la_sem_and_follow_sem.
+Abbreviation parser_accepts_correct_by_nq0_la_sem_and_follow_sem := parser_accepts_correct_by_nq0_la_sem_and_follow_sem.
 
-Notation parser_accepts_correct_by_nq0_la_sem := parser_accepts_correct_by_nq0_la_sem.
+Abbreviation parser_accepts_correct_by_nq0_la_sem := parser_accepts_correct_by_nq0_la_sem.
 
-Notation parser_accepts_correct_grammar := parser_accepts_correct_grammar.
+Abbreviation parser_accepts_correct_grammar := parser_accepts_correct_grammar.
 
 End API.
 
@@ -17256,63 +17256,63 @@ End MAIN_THEOREMS.
 
 Module API.
 
-Notation parser := Builder.parser.
+Abbreviation parser := Builder.parser.
 
-Notation build := Builder.build.
+Abbreviation build := Builder.build.
 
-Notation run_parser := Builder.run_parser.
+Abbreviation run_parser := Builder.run_parser.
 
-Notation productive_certified_witness := productive_certified_witness.
+Abbreviation productive_certified_witness := productive_certified_witness.
 
-Notation productive_certified_all_nonterminals := productive_certified_all_nonterminals.
+Abbreviation productive_certified_all_nonterminals := productive_certified_all_nonterminals.
 
-Notation productive_certified_follow_impl_sound := productive_certified_follow_impl_sound.
+Abbreviation productive_certified_follow_impl_sound := productive_certified_follow_impl_sound.
 
-Notation productive_certified_follow_impl_complete := productive_certified_follow_impl_complete.
+Abbreviation productive_certified_follow_impl_complete := productive_certified_follow_impl_complete.
 
-Notation productive_certified_LA_impl_sound := productive_certified_LA_impl_sound.
+Abbreviation productive_certified_LA_impl_sound := productive_certified_LA_impl_sound.
 
-Notation productive_certified_LA_impl_complete := productive_certified_LA_impl_complete.
+Abbreviation productive_certified_LA_impl_complete := productive_certified_LA_impl_complete.
 
-Notation productive_certified_reduce_LA_sem_sound := productive_certified_reduce_LA_sem_sound.
+Abbreviation productive_certified_reduce_LA_sem_sound := productive_certified_reduce_LA_sem_sound.
 
-Notation productive_certified_witness_from_productivity := productive_certified_witness_from_productivity.
+Abbreviation productive_certified_witness_from_productivity := productive_certified_witness_from_productivity.
 
-Notation build_correct := build_correct.
+Abbreviation build_correct := build_correct.
 
-Notation run_parser_sound := run_parser_sound.
+Abbreviation run_parser_sound := run_parser_sound.
 
-Notation run_parser_tree_sound := run_parser_tree_sound.
+Abbreviation run_parser_tree_sound := run_parser_tree_sound.
 
-Notation conflict_free_correct := conflict_free_correct.
+Abbreviation conflict_free_correct := conflict_free_correct.
 
-Notation run_parser_complete := run_parser_complete.
+Abbreviation run_parser_complete := run_parser_complete.
 
-Notation run_parser_complete_by_nq0_reduce_guard := run_parser_complete_by_nq0_reduce_guard.
+Abbreviation run_parser_complete_by_nq0_reduce_guard := run_parser_complete_by_nq0_reduce_guard.
 
-Notation run_parser_complete_by_nq0_la_sem_and_follow_sem := run_parser_complete_by_nq0_la_sem_and_follow_sem.
+Abbreviation run_parser_complete_by_nq0_la_sem_and_follow_sem := run_parser_complete_by_nq0_la_sem_and_follow_sem.
 
-Notation run_parser_complete_by_nq0_la_sem := run_parser_complete_by_nq0_la_sem.
+Abbreviation run_parser_complete_by_nq0_la_sem := run_parser_complete_by_nq0_la_sem.
 
-Notation run_parser_complete_by_grammar := run_parser_complete_by_grammar.
+Abbreviation run_parser_complete_by_grammar := run_parser_complete_by_grammar.
 
-Notation run_parser_correct := run_parser_correct.
+Abbreviation run_parser_correct := run_parser_correct.
 
-Notation run_parser_correct_by_nq0_la_sem_and_follow_sem := run_parser_correct_by_nq0_la_sem_and_follow_sem.
+Abbreviation run_parser_correct_by_nq0_la_sem_and_follow_sem := run_parser_correct_by_nq0_la_sem_and_follow_sem.
 
-Notation run_parser_correct_by_nq0_la_sem := run_parser_correct_by_nq0_la_sem.
+Abbreviation run_parser_correct_by_nq0_la_sem := run_parser_correct_by_nq0_la_sem.
 
-Notation run_parser_correct_grammar := run_parser_correct_grammar.
+Abbreviation run_parser_correct_grammar := run_parser_correct_grammar.
 
-Notation build_accepts_correct_L_LA := build_accepts_correct_L_LA.
+Abbreviation build_accepts_correct_L_LA := build_accepts_correct_L_LA.
 
-Notation build_accepts_correct := build_accepts_correct.
+Abbreviation build_accepts_correct := build_accepts_correct.
 
-Notation build_accepts_correct_by_nq0_la_sem_and_follow_sem := build_accepts_correct_by_nq0_la_sem_and_follow_sem.
+Abbreviation build_accepts_correct_by_nq0_la_sem_and_follow_sem := build_accepts_correct_by_nq0_la_sem_and_follow_sem.
 
-Notation build_accepts_correct_by_nq0_la_sem := build_accepts_correct_by_nq0_la_sem.
+Abbreviation build_accepts_correct_by_nq0_la_sem := build_accepts_correct_by_nq0_la_sem.
 
-Notation build_accepts_correct_grammar := build_accepts_correct_grammar.
+Abbreviation build_accepts_correct_grammar := build_accepts_correct_grammar.
 
 End API.
 
@@ -17390,7 +17390,7 @@ Proof.
   - right. intros EQ. inv EQ. contradiction.
 Defined.
 
-Definition live_dec (A : G.NT.t) : {gen_ntb A = true} + {gen_ntb A <> true}.
+Definition live_dec (A : G.NT.t) : {gen_ntb A = true} + {gen_ntb A ≠ true}.
 Proof.
   destruct (gen_ntb A) eqn: LIVE.
   - left. reflexivity.
@@ -18584,7 +18584,7 @@ Variant orig_semantic_action_conflict_spec (q : nat) (t : Orig.GrammarSyntax.T')
   | orig_semantic_action_conflict_intro act1 act2
     (ACTION1 : orig_semantic_action_spec q t act1)
     (ACTION2 : orig_semantic_action_spec q t act2)
-    (DIFF : act1 <> act2)
+    (DIFF : act1 ≠ act2)
     : orig_semantic_action_conflict_spec q t.
 
 Lemma orig_semantic_action_conflict_free_of_deterministic
@@ -19425,7 +19425,7 @@ Lemma pruned_semantic_merge_action_images_distinct_by_table (P : pruned_semantic
   (ACTIONS : Pruned.Table.actions q t = act1 :: act2 :: rest)
   (ACTION1 : pruned_semantic_merge_action_spec P q t act1 act_orig1)
   (ACTION2 : pruned_semantic_merge_action_spec P q t act2 act_orig2)
-  : act_orig1 <> act_orig2.
+  : act_orig1 ≠ act_orig2.
 Proof.
   assert (IN1 : act1 ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. left. reflexivity. }
@@ -19651,7 +19651,7 @@ Lemma pruned_lr0_state_image_action_images_distinct_by_table (P : pruned_lr0_sta
   (ACTIONS : Pruned.Table.actions q t = act1 :: act2 :: rest)
   (ACTION1 : pruned_lr0_state_image_action_semantic_spec P q t act1 act_orig1)
   (ACTION2 : pruned_lr0_state_image_action_semantic_spec P q t act2 act_orig2)
-  : act_orig1 <> act_orig2.
+  : act_orig1 ≠ act_orig2.
 Proof.
   assert (IN1 : act1 ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. left. reflexivity. }
@@ -20134,7 +20134,7 @@ Variant pruned_action_canonical_semantic_spec (q : nat) (t : Pruned.GrammarSynta
 Record pruned_canonical_action_normalization_obligations : Type :=
   { pruned_canonical_reduce_action_normalize : forall q, forall t, forall pr, Pruned.Table.Reduce pr ∈ Pruned.Table.reduce_actions q t -> Orig.Table.reduce_LA_sem_sound_spec (canonical_pruned_state_image q) t (erase_prod' pr)
   ; pruned_canonical_accept_action_normalize : forall q, forall t, Pruned.Table.Accept ∈ Pruned.Table.accept_action q t -> Orig.Table.Accept ∈ Orig.Table.accept_action (canonical_pruned_state_image q) t
-  ; pruned_canonical_action_images_distinct : forall q, forall t, forall st, forall act1, forall act2, forall rest, forall act_orig1, forall act_orig2, Pruned.Numbering.state_of q = Some st -> Pruned.Table.actions q t = act1 :: act2 :: rest -> pruned_action_canonical_semantic_spec q t act1 act_orig1 -> pruned_action_canonical_semantic_spec q t act2 act_orig2 -> act_orig1 <> act_orig2
+  ; pruned_canonical_action_images_distinct : forall q, forall t, forall st, forall act1, forall act2, forall rest, forall act_orig1, forall act_orig2, Pruned.Numbering.state_of q = Some st -> Pruned.Table.actions q t = act1 :: act2 :: rest -> pruned_action_canonical_semantic_spec q t act1 act_orig1 -> pruned_action_canonical_semantic_spec q t act2 act_orig2 -> act_orig1 ≠ act_orig2
   }.
 
 #[projections(primitive)]
@@ -20303,7 +20303,7 @@ Lemma pruned_canonical_action_images_distinct_by_table q t st act1 act2 rest act
   (ACTIONS : Pruned.Table.actions q t = act1 :: act2 :: rest)
   (ACTION1 : pruned_action_canonical_semantic_spec q t act1 act_orig1)
   (ACTION2 : pruned_action_canonical_semantic_spec q t act2 act_orig2)
-  : act_orig1 <> act_orig2.
+  : act_orig1 ≠ act_orig2.
 Proof.
   assert (IN1 : act1 ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. left. reflexivity. }
