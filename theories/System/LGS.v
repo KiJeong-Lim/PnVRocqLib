@@ -191,7 +191,7 @@ Proof.
     intros s e H_IN; induction H_IN; simpl; i; subst; try congruence.
     + rewrite orb_true_iff. left. eauto.
     + rewrite orb_true_iff. right. eauto.
-    + pose proof (app_eq_nil _ _ H) as [EQ1 EQ2]. done.
+    + use app_eq_nil as [EQ1 EQ2] with H. done.
 Qed.
 
 Theorem nullable_true_iff (e : regex ascii)
@@ -1204,7 +1204,7 @@ Proof.
   revert qi rules rule frag qi_rule qf FRAGS IN_FRAG REGEX qi_POS RANGE; induction DELTA; ii.
   - econs.
   - rewrite in_eps_step_from_edges_iff in STEP. rename STEP into IN_EDGE.
-    assert (SRC_NONZERO : ~ q = 0) by now pose proof (rules2fragments_start_ge _ _ _ _ _ _ _ _ FRAGS IN_FRAG REGEX); lia.
+    assert (SRC_NONZERO : q ≠ 0) by now pose proof (rules2fragments_start_ge _ _ _ _ _ _ _ _ FRAGS IN_FRAG REGEX); lia.
     pose proof (fragment_eps_edges_isolate _ _ _ _ _ _ _ _ _ _ FRAGS IN_FRAG REGEX SRC_NONZERO RANGE IN_EDGE) as IN_FRAG_EDGE.
     pose proof (regex2fragment_bounds _ _ _ _ REGEX) as [_ _ _ EPS _].
     pose proof (EPS _ _ IN_FRAG_EDGE). 
@@ -3247,7 +3247,7 @@ Qed.
 Lemma hopcroft_block_intersection_difference_neq (block : hopcroft_block) (splitter : hopcroft_block)
   (NONEMPTY1 : nonempty (hopcroft_block_intersection block splitter) = true)
   (NONEMPTY2 : nonempty (hopcroft_block_difference block splitter) = true)
-  : ~ hopcroft_block_intersection block splitter = hopcroft_block_difference block splitter.
+  : hopcroft_block_intersection block splitter ≠ hopcroft_block_difference block splitter.
 Proof.
   intros EQ.
   pose proof (nonempty_exists (hopcroft_block_intersection block splitter) NONEMPTY1) as (q & IN1).
@@ -6104,7 +6104,7 @@ Proof.
 Qed.
 
 Lemma maximal_munch_some_accepted_prefix (M : LGS.t) (q : M.(TaggedDFA.Partial.state)) (consumed : Input.t) (rest : Input.t) (best : option (Input.t * Token.t)) (tag : Token.t)
-  (NONEMPTY : ~ consumed = [])
+  (NONEMPTY : consumed ≠ [])
   (ACCEPT : (delta M q consumed, tag) ∈ M.(TaggedDFA.Partial.accept_states))
   : exists rest', exists tag', maximal_munch M q (consumed ++ rest) best = Some (rest', tag').
 Proof.
@@ -6169,7 +6169,7 @@ Definition scan_one (M : LGS.t) (s : list ascii) : option (list ascii * Token.t)
   maximal_munch M M.(TaggedDFA.Partial.start_state) s None.
 
 Definition scan_candidate (M : LGS.t) (s : Input.t) (rest : Input.t) (tag : Token.t) : Prop :=
-  exists consumed, s = consumed ++ rest /\ (~ consumed = []) /\ accepts M consumed tag.
+  exists consumed, s = consumed ++ rest /\ (consumed ≠ []) /\ accepts M consumed tag.
 
 Lemma maximal_munch_length_le (M : LGS.t) (q : M.(TaggedDFA.Partial.state)) (s : list ascii) (best : option (list ascii * Token.t)) (rest : list ascii) (tag : Token.t) (n : nat)
   (BEST_LE : forall rest0, forall tag0, best = Some (rest0, tag0) -> length rest0 <= n)
@@ -6192,7 +6192,7 @@ Proof.
 Qed.
 
 Lemma maximal_munch_length_le_accepted_prefix (M : LGS.t) (q : M.(TaggedDFA.Partial.state)) (consumed : Input.t) (rest : Input.t) (best : option (Input.t * Token.t)) (rest' : Input.t) (tag' : Token.t) (tag : Token.t)
-  (NONEMPTY : ~ consumed = [])
+  (NONEMPTY : consumed ≠ [])
   (ACCEPT : (delta M q consumed, tag) ∈ M.(TaggedDFA.Partial.accept_states))
   (SCAN : maximal_munch M q (consumed ++ rest) best = Some (rest', tag'))
   : length rest' <= length rest.
@@ -6401,7 +6401,7 @@ Inductive scan_all_rules (rules : list Rule.t) : Input.t -> list Token.t -> Prop
   | scan_all_rules_nil
     : scan_all_rules rules [] []
   | scan_all_rules_cons consumed rest tag tags rule
-    (NONEMPTY : ~ consumed = [])
+    (NONEMPTY : consumed ≠ [])
     (IN_RULE : rule ∈ rules)
     (TOKEN : rule.(Rule.token) = tag)
     (REGEX : consumed \in eval_regex rule.(Rule.regex))
@@ -6459,7 +6459,7 @@ Qed.
 Lemma build_scan_one_sound (M : LGS.t) (s : Input.t) (rest : Input.t) (tag : Token.t)
   (BUILD : build = inr M)
   (SCAN : scan_one M s = Some (rest, tag))
-  : exists rules, Rule.compileds = inr rules /\ (exists consumed, exists rule, s = consumed ++ rest /\ (~ consumed = []) /\ rule ∈ rules /\ rule.(Rule.token) = tag /\ consumed \in eval_regex rule.(Rule.regex) /\ length rest < length s).
+  : exists rules, Rule.compileds = inr rules /\ (exists consumed, exists rule, s = consumed ++ rest /\ (consumed ≠ []) /\ rule ∈ rules /\ rule.(Rule.token) = tag /\ consumed \in eval_regex rule.(Rule.regex) /\ length rest < length s).
 Proof.
   pose proof (build_sound M BUILD) as (rules & COMPILED & _).
   pose proof (scan_one_sound M s rest tag SCAN) as (consumed & EQ_INPUT & ACCEPT & LT).
@@ -6562,7 +6562,7 @@ Variant build_scan_one_spec (M : LGS.t) (s : Input.t) (rest : Input.t) (tag : To
   | build_scan_one_spec_intro rules consumed rule
     (COMPILED : Rule.compileds = inr rules)
     (EQ_INPUT : s = consumed ++ rest)
-    (NONEMPTY : ~ consumed = [])
+    (NONEMPTY : consumed ≠ [])
     (IN_RULE : rule ∈ rules)
     (TOKEN : rule.(Rule.token) = tag)
     (REGEX : consumed \in eval_regex rule.(Rule.regex))
@@ -6584,7 +6584,7 @@ Theorem build_scan_one_complete_correct (M : LGS.t) (rules : list Rule.t) (s : I
   (BUILD : build = inr M)
   (COMPILED : Rule.compileds = inr rules)
   (EQ_INPUT : s = consumed ++ rest)
-  (NONEMPTY : ~ consumed = [])
+  (NONEMPTY : consumed ≠ [])
   (IN_RULE : rule ∈ rules)
   (REGEX : consumed \in eval_regex rule.(Rule.regex))
   : exists rest', exists tag', scan_one M s = Some (rest', tag') /\ length rest' <= length rest.
@@ -6629,7 +6629,7 @@ Definition maximal_scan_candidate (M : LGS.t) (s : Input.t) (rest : Input.t) (ta
   scan_candidate M s rest tag /\ (forall rest', forall tag', scan_candidate M s rest' tag' -> length rest <= length rest').
 
 Definition priority_candidate (M : LGS.t) (s : Input.t) (rest : Input.t) (tag : Token.t) : Prop :=
-  exists consumed, exists prefix, exists suffix, s = consumed ++ rest /\ (~ consumed = []) /\ M.(TaggedDFA.Partial.accept_states) = prefix ++ (LGS.delta M M.(TaggedDFA.Partial.start_state) consumed, tag) :: suffix /\ forall tag', ~ (LGS.delta M M.(TaggedDFA.Partial.start_state) consumed, tag') ∈ prefix.
+  exists consumed, exists prefix, exists suffix, s = consumed ++ rest /\ (consumed ≠ []) /\ M.(TaggedDFA.Partial.accept_states) = prefix ++ (LGS.delta M M.(TaggedDFA.Partial.start_state) consumed, tag) :: suffix /\ forall tag', ~ (LGS.delta M M.(TaggedDFA.Partial.start_state) consumed, tag') ∈ prefix.
 
 Abbreviation scan_all_spec := LGS.scan_all_spec.
 
