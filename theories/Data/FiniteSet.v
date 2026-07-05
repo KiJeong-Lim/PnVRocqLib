@@ -10,15 +10,10 @@ Definition fin_ensemble@{u | } (Elem : Type@{u}) : Type@{u} :=
 
 #[global] Typeclasses Opaque fin_ensemble.
 
-#[global]
-Instance fin_ensemble_isSetoid (Elem : Type) : isSetoid (fin_ensemble Elem) :=
-  { eqProp (lhs : list Elem) (rhs : list Elem) := forall e : Elem, L.In e lhs <-> L.In e rhs
-  ; eqProp_Equivalence := relation_on_image_liftsEquivalence (pi_isSetoid (fun _ => Prop_isSetoid)).(eqProp_Equivalence) (fun X : list Elem => fun x : Elem => L.In x X)
-  }.
-
 #[local] Hint Resolve S_lt_S_intro : core.
 #[global] Hint Rewrite L.in_concat : simplication_hints.
 #[global] Hint Rewrite L.in_map_iff : simplication_hints.
+#[global] Hint Rewrite L.in_flat_map : simplication_hints.
 #[global] Hint Rewrite length_app : simplication_hints.
 #[global] Hint Rewrite length_map : simplication_hints.
 
@@ -41,9 +36,45 @@ Qed.
 
 #[global] Hint Rewrite list_corresponds_to_finite_ensemble_iff : simplication_hints.
 
+#[global, program]
+Instance fin_ensemble_isSetoid (Elem : Type@{u_1}) (Elem_isSetoid : isSetoid Elem) : isSetoid (fin_ensemble@{u_1} Elem) :=
+  { eqProp (lhs : list Elem) (rhs : list Elem) := (forall e : Elem, forall IN : e ∈ lhs, exists e', e' ∈ rhs /\ e == e') /\ (forall e : Elem, forall IN : e ∈ rhs, exists e', e' ∈ lhs /\ e' == e) }.
+Next Obligation.
+  split; [intros xs | intros xs ys [xs_ys ys_xs] | intros xs ys zs [xs_ys ys_xs] [ys_zs zs_ys]]; split; i.
+  - exists e. splits; auto. reflexivity; eauto.
+  - exists e. splits; auto. reflexivity; eauto.
+  - use ys_xs as (e1 & H_in & H_eq) with IN. exists e1. splits; auto. symmetry; eauto.
+  - use xs_ys as (e1 & H_in & H_eq) with IN. exists e1. splits; auto. symmetry; eauto.
+  - use xs_ys as (e1 & H_in & H_eq) with IN. use ys_zs as (e2 & H_in' & H_eq') with H_in. exists e2. splits; auto. transitivity e1; eauto.
+  - use zs_ys as (e1 & H_in & H_eq) with IN. use ys_xs as (e2 & H_in' & H_eq') with H_in. exists e2. splits; auto. transitivity e1; eauto.
+Qed.
+
+#[global]
+Instance fin_ensemble_isSetoid1 : isSetoid1 fin_ensemble@{u_1} :=
+  fin_ensemble_isSetoid.
+
+Lemma fin_ensemble_isSetoid1_eq_iff (A : Type@{u_1}) (xs : fin_ensemble@{u_1} A) (xs' : fin_ensemble@{u_1} A)
+  : eqProp (isSetoid := fromSetoid1 fin_ensemble_isSetoid) xs xs' <-> (forall e : A, e ∈ xs <-> e ∈ xs').
+Proof.
+  ii; ss!.
+Qed.
+
+#[global]
+Instance fin_ensemble_isMonad : isMonad fin_ensemble :=
+  { pure {A : Type} (x : A) := (@L.cons A x (@L.nil A))
+  ; bind {A : Type} {B : Type} (xs : list A) (k : A -> list B) := (@flat_map A B k xs)
+  }.
+
+#[global]
+Instance fin_ensemble_MonadLaws
+  : MonadLaws fin_ensemble (SETOID1 := fin_ensemble_isSetoid1) (MONAD := fin_ensemble_isMonad).
+Proof.
+  split; i; rewrite fin_ensemble_isSetoid1_eq_iff in *; i; ss!; ss!; exists x0; ss!.
+Qed.
+
 Theorem list_corresponds_to_finite_ensemble_flat_map {A : Type} {B : Type} (xs : list A) (X : ensemble A) (f : A -> list B) (F : A -> ensemble B)
   (xs_sim : xs =~= X)
-  (f_sim : forall x : A, x ∈ xs -> f x =~= F x)
+  (f_sim : forall x, x ∈ xs -> f x =~= F x)
   : L.flat_map f xs =~= (X >>= F).
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff.
