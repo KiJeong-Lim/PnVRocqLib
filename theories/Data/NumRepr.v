@@ -408,11 +408,11 @@ Qed.
 #[local] Hint Resolve from_num_aux_aux2 : core.
 
 Fixpoint from_num_aux (n : nat) (H_Acc : @Acc nat lt n) {struct H_Acc} : list nat :=
-  match eq_dec n 0 with
+  match B.decide (n = 0) with
   | left EQ => []
   | right NE =>
     let r := n mod b in
-    if eq_dec r 0 then
+    if B.decide (r = 0) then
       from_num_aux ((n / b) - 1) (Acc_inv H_Acc _ (from_num_aux_aux2 _ NE)) ++ [b]
     else
       from_num_aux (n / b) (Acc_inv H_Acc _ (from_num_aux_aux1 _ NE)) ++ [r]
@@ -420,7 +420,7 @@ Fixpoint from_num_aux (n : nat) (H_Acc : @Acc nat lt n) {struct H_Acc} : list na
 
 Fixpoint from_num_aux_pirrel1 (n : nat) (H_Acc : Acc lt n) (H_Acc' : Acc lt n) {struct H_Acc} : from_num_aux n H_Acc = from_num_aux n H_Acc'.
 Proof.
-  destruct H_Acc, H_Acc'; simpl. destruct (eq_dec _ _); f_equal. destruct (eq_dec _ _); f_equal; eapply from_num_aux_pirrel1.
+  destruct H_Acc, H_Acc'; simpl. destruct (B.decide (_ = _)); f_equal. destruct (B.decide (_ = _)); f_equal; eapply from_num_aux_pirrel1.
 Qed.
 
 Lemma from_num_aux_pirrel (n : nat) (m : nat) (EQ : n = m) (H_Acc : Acc lt n) (H_Acc' : Acc lt m) : from_num_aux n H_Acc = from_num_aux m H_Acc'.
@@ -430,11 +430,11 @@ Qed.
 
 Lemma from_num_aux_unfold (n : nat) (H_Acc : @Acc nat lt n) :
   from_num_aux n H_Acc =
-  match eq_dec n 0 with
+  match B.decide (n = 0) with
   | left EQ => []
   | right NE =>
     let r := n mod b in
-    if eq_dec r 0 then
+    if B.decide (r = 0) then
       from_num_aux ((n / b) - 1) (Acc_inv H_Acc _ (from_num_aux_aux2 _ NE)) ++ [b]
     else
       from_num_aux (n / b) (Acc_inv H_Acc _ (from_num_aux_aux1 _ NE)) ++ [r]
@@ -448,20 +448,20 @@ Definition from_num (n : nat) : list nat :=
 
 Lemma from_num_unfold n :
   from_num n =
-  match eq_dec n 0 with
+  match B.decide (n = 0) with
   | left EQ => []
   | right NE =>
     let r := n mod b in
-    if eq_dec r 0 then
+    if B.decide (r = 0) then
       from_num ((n / b) - 1) ++ [b]
     else
       from_num (n / b) ++ [r]
   end.
 Proof.
   unfold from_num at 1. rewrite from_num_aux_unfold.
-  destruct (eq_dec _ _) as [EQ1 | NE1].
+  destruct (B.decide (_ = _)) as [EQ1 | NE1].
   - reflexivity.
-  - cbn zeta. destruct (eq_dec _ _) as [EQ2 | NE2]; f_equal; eapply from_num_aux_pirrel1.
+  - cbn zeta. destruct (B.decide (_ = _)) as [EQ2 | NE2]; f_equal; eapply from_num_aux_pirrel1.
 Qed.
 
 #[local] Opaque from_num.
@@ -473,8 +473,8 @@ Lemma to_num_from_num n
   : to_num (from_num n) = n.
 Proof.
   induction (lt_wf n) as [n _ IH]. rewrite from_num_unfold.
-  destruct (eq_dec _ _) as [EQ1 | NE1]; eauto.
-  cbn zeta. destruct (eq_dec _ _) as [EQ2 | NE2].
+  destruct (B.decide (_ = _)) as [EQ1 | NE1]; eauto.
+  cbn zeta. destruct (B.decide (_ = _)) as [EQ2 | NE2].
   - unfold to_num in *. rewrite fold_left_app. simpl. rewrite IH; eauto.
     erewrite Nat.div_mod with (x := n) (y := b) at 2; try lia. rewrite EQ2.
     rewrite Nat.add_0_r. replace (n / b) with (1 + ((n / b) - 1)) at 2; try lia.
@@ -491,7 +491,7 @@ Proof.
   rewrite Forall_app in ns_bound. destruct ns_bound as [ns_bound n_bound].
   specialize (IH ns_bound). unfold to_num. rewrite fold_left_app. simpl.
   rewrite from_num_unfold. cbn zeta. inv n_bound.
-  destruct (eq_dec _ _) as [EQ1 | NE1]; try lia. destruct (eq_dec _ _) as [EQ2 | NE2].
+  destruct (B.decide (_ = _)) as [EQ1 | NE1]; try lia. destruct (B.decide (_ = _)) as [EQ2 | NE2].
   - rewrite Nat.mul_comm in EQ2. rewrite Nat.Div0.mod_add in EQ2.
     assert (claim1 : n = b).
     { enough (~ n < b) by lia. intros H_contra.

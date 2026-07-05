@@ -36,7 +36,7 @@ Inductive L_cfg1 : lang :=
 
 #[local] Hint Constructors L_cfg1 : core.
 
-#[local] Abbreviation count a s := (count_occ eq_dec s a).
+#[local] Abbreviation count a s := (count_occ (fun x y => B.decide (x = y)) s a).
 
 Variant cfg1_spec LANG : Prop :=
   | cfg1_lang_spec
@@ -219,7 +219,7 @@ Section THEORY.
 
 #[local] Hint Constructors L_cfg2 : core.
 
-#[local] Abbreviation count a s := (count_occ eq_dec s a).
+#[local] Abbreviation count a s := (count_occ (fun x y => B.decide (x = y)) s a).
 
 Lemma count_L_sum_count_R s
   : count L s + count R s = length s.

@@ -110,8 +110,8 @@ Proof.
   eapply L.forallb_forall.
 Qed.
 
-Definition mem {A : Type@{u_1}} `{EQ_DEC : hasEqDec@{u_1} A} (x : A) (xs : list A) : bool :=
-  if in_dec eq_dec@{u_1} x xs then true else false.
+Definition mem {A : Type@{u_1}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) : bool :=
+  if in_dec (fun x y => B.decide (x = y)) x xs then true else false.
 
 Theorem mem_spec (A : Type) `(EQ_DEC : hasEqDec A) (x : A) (xs : list A)
   : forall b, mem x xs = b <-> (if b then x ∈ xs else ~ x ∈ xs).
@@ -121,7 +121,7 @@ Qed.
 
 #[global] Hint Rewrite mem_spec : simplication_hints.
 
-Definition add {A : Type@{u_1}} `{EQ_DEC : hasEqDec@{u_1} A} (x : A) (xs : list A) : list A :=
+Definition add {A : Type@{u_1}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) : list A :=
   if mem x xs then xs else x :: xs.
 
 Theorem in_add_iff (A : Type) `(EQ_DEC : hasEqDec A) (x : A) (xs : list A)
@@ -132,7 +132,7 @@ Qed.
 
 #[global] Hint Rewrite in_add_iff : simplication_hints.
 
-Fixpoint union {A : Type@{u_1}} `{EQ_DEC : hasEqDec@{u_1} A} (xs : list A) (ys : list A) {struct xs} : list A :=
+Fixpoint union {A : Type@{u_1}} `{EQ_DEC : hasEqDec A} (xs : list A) (ys : list A) {struct xs} : list A :=
   match xs with
   | [] => ys
   | x :: xs' => union xs' (add x ys)
@@ -148,7 +148,7 @@ Qed.
 
 #[global] Hint Rewrite in_union_iff : simplication_hints.
 
-Fixpoint normalize {A : Type@{u_1}} `{EQ_DEC : hasEqDec@{u_1} A} (xs : list A) {struct xs} : list A :=
+Fixpoint normalize {A : Type@{u_1}} `{EQ_DEC : hasEqDec A} (xs : list A) {struct xs} : list A :=
   match xs with
   | [] => []
   | x :: xs' => add x (normalize xs')
@@ -162,7 +162,7 @@ Qed.
 
 #[global] Hint Rewrite in_normalize_iff : simplication_hints.
 
-Fixpoint unions {A : Type@{u_1}} `{EQ_DEC : hasEqDec@{u_1} A} (xss : list (list A)) {struct xss} : list A :=
+Fixpoint unions {A : Type@{u_1}} `{EQ_DEC : hasEqDec A} (xss : list (list A)) {struct xss} : list A :=
   match xss with
   | [] => []
   | xs :: xss' => union xs (unions xss')
@@ -180,12 +180,12 @@ Qed.
 
 Lemma remove_length_lt {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A)
   (IN : x ∈ xs)
-  : length (remove eq_dec x xs) < length xs.
+  : length (remove (fun x y => B.decide (x = y)) x xs) < length xs.
 Proof.
   revert x IN; induction xs as [ | y ys IH]; simpl; ii.
   - contradiction.
-  - destruct (eq_dec _ _) as [EQ | NE]; simpl.
-    + pose proof (remove_length_le eq_dec ys x); done.
+  - destruct (B.decide (_ = _)) as [EQ | NE]; simpl.
+    + pose proof (remove_length_le (fun x y => B.decide (x = y)) ys x); done.
     + destruct IN as [EQ | IN]; done.
 Qed.
 
@@ -209,10 +209,10 @@ Proof.
   induction xs as [ | x xs IH]; simpl; ss!.
 Qed.
 
-Fixpoint index_of {A : Type@{u_1}} `{EQ_DEC : hasEqDec@{u_1} A} (x : A) (xs : list A) {struct xs} : nat :=
+Fixpoint index_of {A : Type@{u_1}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) {struct xs} : nat :=
   match xs with
   | [] => O
-  | x' :: xs' => if eq_dec@{u_1} x x' then O else S (index_of x xs')
+  | x' :: xs' => if B.decide (x = x') then O else S (index_of x xs')
   end.
 
 Definition lookup {A : Type@{u_1}} (default : A) (n : nat) (xs : list A) : A :=
@@ -317,7 +317,7 @@ Theorem NoDup_exists_injective_length {A : Type} {B : Type} `{B_hasEqDec : hasEq
 Proof.
   revert ys R_total R_functional; induction xs_NoDup as [ | x xs NOT_IN NO_DUP IH]; intros ys TOTAL INJ; simpl; [lia | ].
   pose proof (TOTAL x (or_introl eq_refl)) as (y & IN_Y & R_XY).
-  enough (LE : length xs <= length (remove eq_dec y ys)).
+  enough (LE : length xs <= length (remove (fun x y => B.decide (x = y)) y ys)).
   { pose proof (remove_length_lt y ys IN_Y). lia. }
   eapply IH.
   - intros x' IN_XS.

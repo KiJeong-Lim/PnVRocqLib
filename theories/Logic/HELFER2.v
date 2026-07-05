@@ -42,7 +42,7 @@ Variable X : ensemble (frm L).
 Hypothesis CONSISTENT : X ⊬ Bot_frm.
 
 Let Hbase : ensemble (frm L') :=
-  E.union HenkinAxiomSet (E.image embed_frm X).
+  E.union (HenkinAxiomSet (Henkin_constants_hasEqDec := Henkin_constants_hasEqDec)) (E.image embed_frm X).
 
 Lemma Hbase_consistent
   : Hbase ⊬ Bot_frm.
@@ -151,10 +151,10 @@ Proof.
   - intros UNIV t. eapply MaxCS_closed.
     eapply UniversalE with (A := phi). eapply ByAssumption. exact UNIV.
   - intros UNIV.
-    pose proof (hc_decode_isSurjective x phi) as [hc Hdec].
-    assert (HEN_IN : HenkinAxiom hc \in Hbase).
+    pose proof (hc_decode_isSurjective (Henkin_constants_hasEqDec := Henkin_constants_hasEqDec) x phi) as [hc Hdec].
+    assert (HEN_IN : HenkinAxiom (Henkin_constants_hasEqDec := Henkin_constants_hasEqDec) hc \in Hbase).
     { left. econs. }
-    assert (HEN_IN_MCS : HenkinAxiom hc \in MaxCS).
+    assert (HEN_IN_MCS : HenkinAxiom (Henkin_constants_hasEqDec := Henkin_constants_hasEqDec) hc \in MaxCS).
     { eapply MaxCS_incl_Hbase. exact HEN_IN. }
     unfold HenkinAxiom in HEN_IN_MCS. rewrite Hdec in HEN_IN_MCS.
     eapply MaxCS_IMPLICATION_FAITHFUL with (p := subst_frm (one_subst x (@Con_trm L' (inr hc))) phi).
@@ -326,7 +326,7 @@ Proof.
     + intros INFERS [P [t Ht]]. rename y into x. set (s := one_subst x t). set (d := @exist _ _ _ _).
       assert (claim : interpret_frm trmModel ivar_interpret (subst_frm s p1) <-> interpret_frm trmModel (upd_env x d ivar_interpret) p1).
       { rewrite <- substitution_lemma_frm. eapply interpret_frm_ext. ii. unfold compose, upd_env, s, one_subst, cons_subst, nil_subst.
-        destruct (eq_dec z x) as [EQ1 | NE1]; trivial. subst z. eapply interpret_equation_intro. simpl. intros t'.
+        destruct (B.decide (z = x)) as [EQ1 | NE1]; trivial. subst z. eapply interpret_equation_intro. simpl. intros t'.
         rewrite -> Ht. pose proof (interpret_trm_trmModel t) as HH. split.
         - destruct (interpret_trm trmModel ivar_interpret t) as [P'' [t'' IFF]]; simpl in *; intros Ht''.
           rewrite -> IFF in HH, Ht''. eapply proves_symmetry. eapply proves_transitivity with (t2 := t''); eauto. eapply proves_symmetry; eauto.
@@ -338,7 +338,7 @@ Proof.
     + intros INTERPRET. rewrite MaxCS_infers_iff. eapply MaxCS_FORALL_FAITHFUL.
       intros t. rewrite <- MaxCS_infers_iff. rewrite -> IH with (p' := subst_frm (one_subst y t) p1) by now rewrite subst_preserves_rank; lia.
       rewrite <- substitution_lemma_frm. eapply interpret_frm_ext with (env' := upd_env y (interpret_trm trmModel ivar_interpret t) ivar_interpret); eauto.
-      ii. unfold compose, upd_env, one_subst, cons_subst, nil_subst. destruct (eq_dec z y) as [EQ1 | NE1]; trivial.
+      ii. unfold compose, upd_env, one_subst, cons_subst, nil_subst. destruct (B.decide (z = y)) as [EQ1 | NE1]; trivial.
 Qed.
 
 End WITH_MCS.

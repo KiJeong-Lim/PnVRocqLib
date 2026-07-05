@@ -35,7 +35,7 @@ Proof with eauto with *.
   - simpl in H. pose proof (classic (satisfies_frm STRUCTURE env q)). done!.
   - simpl in H. rewrite <- substitution_lemma_frm. specialize (H (interpret_trm STRUCTURE env t)).
     eapply interpret_frm_ext_upto with (env := upd_env x (interpret_trm STRUCTURE env t) env); trivial.
-    ii. unfold "∘". unfold upd_env, one_subst, cons_subst, nil_subst. destruct (eq_dec z x) as [EQ | NE]; eauto with *. reflexivity.
+    ii. unfold "∘". unfold upd_env, one_subst, cons_subst, nil_subst. destruct (B.decide (z = x)) as [EQ | NE]; eauto with *. reflexivity.
   - rewrite <- not_free_no_effect_on_interpret_frm; eauto with *.
   - red in H, H0. simpl in H, H0. red. specialize (H y_value); specialize (H0 y_value); eauto with *.
   - cbn; done!.

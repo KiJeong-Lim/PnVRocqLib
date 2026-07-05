@@ -168,7 +168,7 @@ Proof.
     { apply Lookup_to_LookupProp in LOOKUP.
       subst y. induction Gamma as [ | [x1 ty1] Gamma IH]; simpl in *.
       - exact LOOKUP.
-      - destruct (eq_dec x x1) as [EQ | NE].
+      - destruct (B.decide (x = x1)) as [EQ | NE].
         + left. symmetry. exact EQ.
         + right. eapply IH. exact LOOKUP. 
     }
@@ -392,10 +392,10 @@ Definition eval_ctx_cons_subst {Gamma : ctx L} {Gamma' : ctx L} y ty N gamma
   : eval_ctx Gamma' ((y, ty) :: Gamma) (cons_subst y N gamma).
 Proof.
   intros x1 ty1. unfold cons_subst. eapply Lookup_cons.
-  - intros x_EQ ty_EQ. destruct (eq_dec x1 y) as [EQ | NE].
+  - intros x_EQ ty_EQ. destruct (B.decide (x1 = y)) as [EQ | NE].
     + rewrite -> ty_EQ. eapply H_N.
     + contradiction.
-  - intros x_NE. destruct (eq_dec x1 y) as [EQ | NE].
+  - intros x_NE. destruct (B.decide (x1 = y)) as [EQ | NE].
     + rewrite Name.ne_iff in x_NE. contradiction.
     + intros LOOKUP. eapply H_gamma. exact LOOKUP.
 Defined.
@@ -626,10 +626,10 @@ Lemma jmRedSubst_cons Gamma gamma x ty N
   : jmRedSubst ((x, ty) :: Gamma) (cons_subst x N gamma).
 Proof.
   intros y ty'. unfold cons_subst. eapply Lookup_cons.
-  - intros y_eq ty_eq. subst y ty'. destruct (eq_dec x x) as [_ | NE].
+  - intros y_eq ty_eq. subst y ty'. destruct (B.decide (x = x)) as [_ | NE].
     + exact N_RED.
     + contradiction.
-  - intros y_ne LOOKUP. destruct (eq_dec y x) as [EQ | NE].
+  - intros y_ne LOOKUP. destruct (B.decide (y = x)) as [EQ | NE].
     + subst y. rewrite -> Name.ne_iff in y_ne. contradiction.
     + eapply GAMMA_RED. exact LOOKUP.
 Defined.
@@ -676,17 +676,17 @@ Proof.
     rewrite <- subst_compose_spec.
     eapply equiv_subst_implies_subst_same. intros u FREE_u.
     unfold subst_compose, one_subst, cons_subst, nil_subst.
-    destruct (eq_dec u x) as [u_eq_x | u_ne_x].
-    - subst u. simpl. destruct (eq_dec z z) as [_ | z_ne_z].
+    destruct (B.decide (u = x)) as [u_eq_x | u_ne_x].
+    - subst u. simpl. destruct (B.decide (z = z)) as [_ | z_ne_z].
       + reflexivity.
       + contradiction.
-    - destruct (eq_dec u z) as [u_eq_z | u_ne_z].
+    - destruct (B.decide (u = z)) as [u_eq_z | u_ne_z].
       + subst u. exfalso. simpl in NOT_FREE.
         rewrite andb_false_iff in NOT_FREE. destruct NOT_FREE as [NOT_FREE | NOT_FREE].
         * rewrite negb_false_iff in NOT_FREE. rewrite eqb_spec in NOT_FREE.
           contradiction.
         * rewrite <- not_true_iff_false in NOT_FREE. eapply NOT_FREE. exact FREE_u.
-      + simpl. destruct (eq_dec u z) as [u_eq_z | u_ne_z']; [contradiction | reflexivity].
+      + simpl. destruct (B.decide (u = z)) as [u_eq_z | u_ne_z']; [contradiction | reflexivity].
   }
   subst w. eapply chi_frm_ext. intros u. unfold free_in_wrt, nil_subst. split.
   - intros (v & FREE_v & FREE_u). simpl in FREE_u. rewrite eqb_spec in FREE_u. subst u. exists v.
@@ -696,7 +696,7 @@ Proof.
       subst v. rewrite <- free_in_wrt_iff in FREE_v.
       destruct FREE_v as (u & FREE_u & FREE_v).
       unfold one_subst, cons_subst, nil_subst in FREE_v.
-      destruct (eq_dec u x) as [u_eq_x | u_ne_x].
+      destruct (B.decide (u = x)) as [u_eq_x | u_ne_x].
       * subst u. simpl in FREE_v. rewrite eqb_spec in FREE_v.
         rewrite negb_true_iff in v_ne_x. rewrite eqb_spec in v_ne_x.
         contradiction.
@@ -705,7 +705,7 @@ Proof.
     + rewrite <- free_in_wrt_iff in FREE_v.
       destruct FREE_v as (u & FREE_u & FREE_v).
       unfold one_subst, cons_subst, nil_subst in FREE_v.
-      destruct (eq_dec u x) as [u_eq_x | u_ne_x].
+      destruct (B.decide (u = x)) as [u_eq_x | u_ne_x].
       * subst u. simpl in FREE_v. rewrite eqb_spec in FREE_v. subst v.
         rewrite negb_true_iff in v_ne_x. rewrite eqb_spec in v_ne_x.
         contradiction.
@@ -725,7 +725,7 @@ Proof.
         exact FREE_v.
     + rewrite <- free_in_wrt_iff. exists v. split; trivial.
       unfold one_subst, cons_subst, nil_subst.
-      destruct (eq_dec v x) as [v_eq_x | v_ne_x].
+      destruct (B.decide (v = x)) as [v_eq_x | v_ne_x].
       * subst v. rewrite negb_true_iff in v_ne_z. rewrite eqb_spec in v_ne_z. contradiction.
       * simpl. rewrite eqb_spec. reflexivity.
 Qed.
@@ -739,7 +739,7 @@ Proof.
   - rewrite <- free_in_wrt_iff in FREE.
     destruct FREE as (y & FREE_M & FREE_s).
     unfold one_subst, cons_subst, nil_subst in FREE_s.
-    destruct (eq_dec y x) as [y_eq_x | y_ne_x].
+    destruct (B.decide (y = x)) as [y_eq_x | y_ne_x].
     + subst y. rewrite orb_true_iff. right. exact FREE_s.
     + simpl in FREE_s. rewrite eqb_spec in FREE_s. subst z.
       rewrite orb_true_iff. left. rewrite andb_true_iff. split.
@@ -892,7 +892,7 @@ Proof.
   transitivity (subst_trm nil_subst M).
   - eapply alpha_equiv_subst_ext. intros z FREE.
     unfold one_subst, cons_subst, nil_subst.
-    destruct (eq_dec z x) as [z_eq_x | z_ne_x]; done!.
+    destruct (B.decide (z = x)) as [z_eq_x | z_ne_x]; done!.
   - symmetry. eapply alpha_equiv_nil_subst.
 Qed.
 
@@ -943,7 +943,7 @@ Proof.
       transitivity (Lam_trm x ty (subst_trm (one_subst y (Var_trm x)) M')).
       { eapply alpha_equiv_Lam_same. exact e'_ALPHA. }
       assert (NOT_FREE_SOURCE : is_free_in x (Lam_trm x ty M) = false).
-      { simpl. unfold eqb. destruct (eq_dec x x) as [_ | NE]; ss!. }
+      { simpl. unfold eqb. destruct (B.decide (x = x)) as [_ | NE]; ss!. }
       assert (NOT_FREE_N : is_free_in x (Lam_trm y ty N') = false).
       { rewrite <- alpha_equiv_is_free_in with (M := Lam_trm x ty M) (M' := Lam_trm y ty N'); eassumption. }
       symmetry. eapply alpha_equiv_lam_rename.
@@ -1010,7 +1010,7 @@ Lemma rawBetaOnce_preserves_is_fresh_in_subst_update gamma x N N' z M
 Proof.
   unfold is_fresh_in_subst in *. rewrite forallb_forall in FRESH |- *. intros y y_in.
   pose proof (FRESH y y_in) as H. unfold "∘" in H |- *. unfold cons_subst in H |- *.
-  destruct (eq_dec y x) as [y_eq_x | y_ne_x]; [rewrite negb_true_iff in H |- * | exact H].
+  destruct (B.decide (y = x)) as [y_eq_x | y_ne_x]; [rewrite negb_true_iff in H |- * | exact H].
   destruct (is_free_in z N') eqn: FREE; [ | trivial].
   enough (is_free_in z N = true) by congruence.
   exact (fullBetaOnce_is_free_in _ _ z (rawBetaOnce_fullBetaOnce _ _ BETA) FREE).
@@ -1021,7 +1021,7 @@ Lemma rawBetaMany_subst_update gamma x N N' M
   : subst_trm (cons_subst x N gamma) M ~>β₀* subst_trm (cons_subst x N' gamma) M.
 Proof.
   revert gamma x N N' BETA. induction M; intros gamma x0 N N' BETA; simpl.
-  - unfold cons_subst. destruct (eq_dec x x0) as [x_eq | x_ne].
+  - unfold cons_subst. destruct (B.decide (x = x0)) as [x_eq | x_ne].
     + subst x. econs 2. exact BETA.
     + econs 1. reflexivity.
   - eapply rawBetaMany_trans with (M' := App_trm (subst_trm (cons_subst x0 N' gamma) M1) (subst_trm (cons_subst x0 N gamma) M2)).
@@ -1032,10 +1032,10 @@ Proof.
     set (z := chi s (Lam_trm y ty M)).
     eapply rawBetaMany_trans with (M' := Lam_trm z ty (subst_trm (cons_subst y (Var_trm z) s') M)).
     + eapply rawBetaMany_lam.
-      destruct (eq_dec y x0) as [y_eq_x | y_ne_x].
+      destruct (B.decide (y = x0)) as [y_eq_x | y_ne_x].
       * subst y. econs 1.
         unfold s, s'. eapply alpha_equiv_subst_ext. intros u FREE.
-        unfold cons_subst. destruct (eq_dec u x0); reflexivity.
+        unfold cons_subst. destruct (B.decide (u = x0)); reflexivity.
       * eapply rawBetaMany_trans with (M' := subst_trm (cons_subst x0 N (cons_subst y (Var_trm z) gamma)) M).
         { econs 1. unfold s. eapply alpha_equiv_subst_swap. rewrite Name.ne_iff. exact y_ne_x. }
         eapply rawBetaMany_trans with (M' := subst_trm (cons_subst x0 N' (cons_subst y (Var_trm z) gamma)) M).

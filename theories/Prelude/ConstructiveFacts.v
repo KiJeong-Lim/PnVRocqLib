@@ -4,7 +4,7 @@ Require Import Stdlib.Logic.EqdepFacts.
 Require Import Stdlib.Arith.Wf_nat.
 
 #[universes(polymorphic=yes)]
-Lemma eq_pirrel_fromEqDec@{u} {A : Type@{u}} {hasEqDec : hasEqDec@{u} A} (lhs : A) (rhs : A)
+Lemma eq_pirrel_fromEqDec@{u} {A : Type@{u}} {hasEqDec : hasEqDec A} (lhs : A) (rhs : A)
   (EQ1 : lhs = rhs)
   (EQ2 : lhs = rhs)
   : EQ1 = EQ2.
@@ -362,7 +362,7 @@ Proof.
   intros x.
   refine (
     let eq_em (y : A) :=
-    match eq_dec x y with
+    match B.decide (x = y) with
     | left hyp_yes => or_introl hyp_yes
     | right hyp_no => or_intror hyp_no
     end in _

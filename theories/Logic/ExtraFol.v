@@ -91,12 +91,12 @@ Definition sentence_isEnumerable (enum_frm_L : isEnumerable (frm L)) : isEnumera
   {| enum n := @exist _ _ (closed_frm (enum n)) (closed_frm_is_sentence (enum n)) |}.
 Next Obligation.
   unfold closed_frm. destruct x as [p p_eq]; simpl in *.
-  assert (EQ : (close_ivars p (nodup eq_dec (fvs_frm p))) = p). 
-  { enough (WTS : (nodup eq_dec (fvs_frm p)) = []) by now rewrite WTS.
-    destruct (nodup eq_dec (fvs_frm p)) as [ | z zs] eqn: H_OBS.
+  assert (EQ : (close_ivars p (nodup (fun x y => B.decide (x = y)) (fvs_frm p))) = p). 
+  { enough (WTS : (nodup (fun x y => B.decide (x = y)) (fvs_frm p)) = []) by now rewrite WTS.
+    destruct (nodup (fun x y => B.decide (x = y)) (fvs_frm p)) as [ | z zs] eqn: H_OBS.
     - reflexivity.
     - assert (claim : L.In z (fvs_frm p)).
-      { rewrite <- L.nodup_In with (decA := eq_dec). rewrite H_OBS. simpl. left. reflexivity. }
+      { rewrite <- L.nodup_In with (decA := (fun x y => B.decide (x = y))). rewrite H_OBS. simpl. left. reflexivity. }
       rewrite L.null_spec in p_eq. rewrite p_eq in claim. contradiction claim.
   }
   exists (proj1_sig (enum_spec p)). destruct (enum_spec p) as [n n_eq]; simpl.

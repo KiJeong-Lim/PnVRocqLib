@@ -485,8 +485,8 @@ Section INSTANCES.
 
 #[global, universes(polymorphic=yes)]
 Instance vector_hasEqDec@{u} {A : Type@{u}} {n : nat}
-  (A_hasEqDec : hasEqDec@{u} A)
-  : hasEqDec@{u} (Vector.t A n).
+  (A_hasEqDec : hasEqDec A)
+  : hasEqDec (Vector.t A n).
 Proof.
   red. induction n as [ | n IH]; intros lhs rhs.
   - left. revert lhs rhs. introVNil; introVNil; reflexivity.
@@ -638,7 +638,7 @@ Proof.
     | vec_ext_heq_refl _ _ => @eq_refl (@sigT nat (Vector.t A)) (@existT nat (Vector.t A) n xs)
     end
   ) as EQ.
-  unshelve eapply projT2_eq_fromEqDec in EQ; [exact nat_hasEqDec | exact EQ].
+  exact (@projT2_eq_fromEqDec nat (Vector.t A) nat_hasEqDec n xs xs' EQ).
 Defined.
 
 Lemma from_list_to_list (n : nat) (xs : Vector.t A n)

@@ -75,7 +75,7 @@ Definition t : Set :=
   option E.t.
 
 #[local]
-Instance t_hasEqDec : hasEqDec@{Set} Option.t :=
+Instance t_hasEqDec : hasEqDec Option.t :=
   option_hasEqDec E.t_hasEqDec.
 
 Definition all : list Option.t :=
@@ -113,7 +113,7 @@ Definition t : Set :=
   E1.t + E2.t.
 
 #[local]
-Instance t_hasEqDec : hasEqDec@{Set} Sum.t :=
+Instance t_hasEqDec : hasEqDec Sum.t :=
   sum_hasEqDec E1.t_hasEqDec E2.t_hasEqDec.
 
 Definition all : list Sum.t :=
@@ -216,15 +216,15 @@ Module T'_FinEnum := FinEnumFacts.Option(Grammar.TM).
 Module V'_FinEnum := FinEnumFacts.Sum(N'_FinEnum)(T'_FinEnum).
 
 #[local]
-Instance N'_hasEqDec : hasEqDec@{Set} N' :=
+Instance N'_hasEqDec : hasEqDec N' :=
   N'_FinEnum.t_hasEqDec.
 
 #[local]
-Instance T'_hasEqDec : hasEqDec@{Set} T' :=
+Instance T'_hasEqDec : hasEqDec T' :=
   T'_FinEnum.t_hasEqDec.
 
 #[local]
-Instance V'_hasEqDec : hasEqDec@{Set} V' :=
+Instance V'_hasEqDec : hasEqDec V' :=
   V'_FinEnum.t_hasEqDec.
 
 Lemma N'_all_complete
@@ -272,12 +272,12 @@ Record prod' : Set :=
 
 #[global]
 Instance prod'_hasEqDec
-  : hasEqDec@{Set} prod'.
+  : hasEqDec prod'.
 Proof.
   intros [lhs1 rhs1] [lhs2 rhs2].
-  destruct (eq_dec lhs1 lhs2) as [EQ_LHS | NE_LHS].
+  destruct (B.decide (lhs1 = lhs2)) as [EQ_LHS | NE_LHS].
   - subst lhs2.
-    destruct (@eq_dec (list V') (list_hasEqDec V'_hasEqDec) rhs1 rhs2) as [EQ_RHS | NE_RHS].
+    destruct ((list_hasEqDec V'_hasEqDec) rhs1 rhs2) as [EQ_RHS | NE_RHS].
     + subst rhs2. left. reflexivity.
     + right. intros EQ. inv EQ. contradiction.
   - right. intros EQ. inv EQ. contradiction.
@@ -1000,7 +1000,7 @@ Definition gen_prod_in (known : list N') (p : prod') : list N' :=
     [].
 
 Definition gen_step (known : list N') : list N' :=
-  L.nodup (@eq_dec N' N'_hasEqDec)
+  L.nodup (N'_hasEqDec)
     (known ++ (P' >>= fun p => gen_prod_in known p)).
 
 Definition gen_fuel : nat :=
@@ -1210,7 +1210,7 @@ Lemma gen_NoDup_incl_remove_length_lt (xs : list N') (ys : list N') (x : N')
   (INCL : forall y, y ∈ ys -> y ∈ xs)
   : length ys < length xs.
 Proof.
-  enough (LE : length ys <= length (remove (@eq_dec N' N'_hasEqDec) x xs)).
+  enough (LE : length ys <= length (remove (N'_hasEqDec) x xs)).
   { pose proof (@remove_length_lt N' N'_hasEqDec x xs IN_XS) as LT.
     eapply Nat.le_lt_trans; [exact LE | exact LT].
   }
@@ -2260,14 +2260,14 @@ Record item : Set :=
 
 #[global]
 Instance item_hasEqDec
-  : hasEqDec@{Set} item.
+  : hasEqDec item.
 Proof.
   intros [lhs1 left1 right1] [lhs2 left2 right2].
-  pose proof (eq_dec lhs1 lhs2) as [EQ_LHS | NE_LHS].
+  pose proof (B.decide (lhs1 = lhs2)) as [EQ_LHS | NE_LHS].
   - subst lhs2.
-    pose proof (@eq_dec (list V') (list_hasEqDec V'_hasEqDec) left1 left2) as [EQ_LEFT | NE_LEFT].
+    pose proof ((list_hasEqDec V'_hasEqDec) left1 left2) as [EQ_LEFT | NE_LEFT].
     + subst left2.
-      pose proof (@eq_dec (list V') (list_hasEqDec V'_hasEqDec) right1 right2) as [EQ_RIGHT | NE_RIGHT].
+      pose proof ((list_hasEqDec V'_hasEqDec) right1 right2) as [EQ_RIGHT | NE_RIGHT].
       * subst right2. left. reflexivity.
       * right. intros EQ. inv EQ. contradiction.
     + right. intros EQ. inv EQ. contradiction.
@@ -2277,7 +2277,7 @@ Defined.
 Definition state : Set := list item.
 
 #[global]
-Instance state_hasEqDec : hasEqDec@{Set} state :=
+Instance state_hasEqDec : hasEqDec state :=
   list_hasEqDec item_hasEqDec.
 
 Definition item_prod (it : item) : prod' :=
@@ -2326,7 +2326,7 @@ Definition raw_all_items : list item :=
   P' >>= items_of_prod.
 
 Definition all_items : list item :=
-  L.nodup eq_dec raw_all_items.
+  L.nodup (fun x y => B.decide (x = y)) raw_all_items.
 
 Lemma items_of_prod_complete p left right
   (EQ : p.(p_rhs) = left ++ right)
@@ -2466,7 +2466,7 @@ Proof.
 Qed.
 
 Definition closure_step (q : state) : state :=
-  L.nodup eq_dec (q ++ (q >>= closure_step_items)).
+  L.nodup (fun x y => B.decide (x = y)) (q ++ (q >>= closure_step_items)).
 
 Lemma closure_step_contains q it
   (IN : it ∈ q)
@@ -2659,7 +2659,7 @@ Proof.
 Qed.
 
 Definition closure (q : state) : state :=
-  iter (length all_items) closure_step (L.nodup eq_dec q).
+  iter (length all_items) closure_step (L.nodup (fun x y => B.decide (x = y)) q).
 
 Lemma closure_no_dup q
   : NoDup (closure q).
@@ -2777,7 +2777,7 @@ Definition shift_dot (it : item) (X : V') : option item :=
   match it.(i_right) with
   | [] => None
   | Y :: gamma =>
-    if eq_dec X Y then
+    if B.decide (X = Y) then
       Some {| i_lhs := it.(i_lhs); i_left := it.(i_left) ++ [Y]; i_right := gamma |}
     else
       None
@@ -2796,7 +2796,7 @@ Lemma shift_dot_sound it X it'
 Proof.
   unfold shift_dot in SHIFT. destruct it as [A beta right]. simpl in *.
   destruct right as [ | Y gamma]; [discriminate | ].
-  destruct (eq_dec X Y) as [EQ | NE]; [ | discriminate].
+  destruct (B.decide (X = Y)) as [EQ | NE]; [ | discriminate].
   inv SHIFT. exists gamma. split; reflexivity.
 Qed.
 
@@ -2804,7 +2804,7 @@ Lemma shift_dot_complete it X gamma
   (RIGHT : it.(i_right) = X :: gamma)
   : shift_dot it X = Some {| i_lhs := it.(i_lhs); i_left := it.(i_left) ++ [X]; i_right := gamma |}.
 Proof.
-  unfold shift_dot. rewrite RIGHT. destruct (eq_dec X X) as [_ | NE]; [reflexivity | contradiction NE; reflexivity].
+  unfold shift_dot. rewrite RIGHT. destruct (B.decide (X = X)) as [_ | NE]; [reflexivity | contradiction NE; reflexivity].
 Qed.
 
 Lemma shift_dot_valid it X it'
@@ -3076,7 +3076,7 @@ Import Item.
 #[local] Existing Instance item_hasEqDec.
 
 #[global]
-Instance state_hasEqDec : hasEqDec@{Set} state :=
+Instance state_hasEqDec : hasEqDec state :=
   list_hasEqDec item_hasEqDec.
 
 Definition all_symbols : list V' :=
@@ -3091,7 +3091,7 @@ Definition state_successors (q : state) : list state :=
   if nonempty q' then [q'] else [].
 
 Definition states_step (qs : list state) : list state :=
-  L.nodup eq_dec (qs ++ (qs >>= state_successors)).
+  L.nodup (fun x y => B.decide (x = y)) (qs ++ (qs >>= state_successors)).
 
 Fixpoint lists_of_length (xs : list item) (n : nat) {struct n} : list state :=
   match n with
@@ -3492,7 +3492,7 @@ Lemma state_NoDup_incl_remove_length_lt (xs : list state) (ys : list state) (q :
   (INCL : forall r, r ∈ ys -> r ∈ xs)
   : length ys < length xs.
 Proof.
-  enough (LE : length ys <= length (remove (@eq_dec state Item.state_hasEqDec) q xs)).
+  enough (LE : length ys <= length (remove (Item.state_hasEqDec) q xs)).
   { pose proof (@remove_length_lt state Item.state_hasEqDec q xs IN_XS) as LT.
     eapply Nat.le_lt_trans; [exact LE | exact LT].
   }
@@ -6928,9 +6928,9 @@ Proof.
   revert n NO_DUP LT. induction xs as [ | x xs IH]; intros n NO_DUP LT; simpl in LT; [lia | ].
   inversion NO_DUP as [ | x0 xs0 NOTIN NO_DUP_TAIL]; subst.
   destruct n as [ | n]; simpl.
-  - destruct (eq_dec x x) as [_ | NE]; [reflexivity | contradiction NE; reflexivity].
+  - destruct (B.decide (x = x)) as [_ | NE]; [reflexivity | contradiction NE; reflexivity].
   - assert (LT_TAIL : n < length xs) by lia.
-    destruct (eq_dec (lookup default n xs) x) as [EQ | NE].
+    destruct (B.decide ((lookup default n xs) = x)) as [EQ | NE].
     + symmetry in EQ. subst x. pose proof (lookup_in default n xs LT_TAIL) as IN_LOOK. contradiction.
     + f_equal. eapply IH; [exact NO_DUP_TAIL | exact LT_TAIL].
 Qed.
@@ -7990,7 +7990,7 @@ Definition nullable_prod_in (known : list N') (p : prod') : list N' :=
     [].
 
 Definition nullable_step (known : list N') : list N' :=
-  L.nodup (@eq_dec N' N'_hasEqDec)
+  L.nodup (N'_hasEqDec)
     (known ++ (P' >>= fun p => nullable_prod_in known p)).
 
 Definition nullable_fuel : nat :=
@@ -8201,7 +8201,7 @@ Lemma NoDup_incl_remove_length_lt (xs : list N') (ys : list N') (x : N')
   (INCL : forall y, y ∈ ys -> y ∈ xs)
   : length ys < length xs.
 Proof.
-  enough (LE : length ys <= length (remove (@eq_dec N' N'_hasEqDec) x xs)).
+  enough (LE : length ys <= length (remove (N'_hasEqDec) x xs)).
   { pose proof (@remove_length_lt N' N'_hasEqDec x xs IN_XS) as LT.
     eapply Nat.le_lt_trans; [exact LE | exact LT].
   }
@@ -8647,14 +8647,14 @@ Import Nullable.
 #[local] Existing Instance T'_hasEqDec.
 
 #[local]
-Instance read_terminal_hasEqDec : hasEqDec@{Set} T' :=
+Instance read_terminal_hasEqDec : hasEqDec T' :=
   T'_FinEnum.t_hasEqDec.
 
 Definition read_node : Set :=
   (nat * N')%type.
 
 #[local]
-Instance read_node_hasEqDec : hasEqDec@{Set} read_node :=
+Instance read_node_hasEqDec : hasEqDec read_node :=
   pair_hasEqdec nat_hasEqDec N'_hasEqDec.
 
 Definition read_domain_entry (n : nat) (A : N') : list read_node :=
@@ -8667,7 +8667,7 @@ Definition read_domain_raw : list read_node :=
   seq 0 num_states >>= fun n => N'_FinEnum.all >>= fun A => read_domain_entry n A.
 
 Definition D : list read_node :=
-  L.nodup eq_dec read_domain_raw.
+  L.nodup (fun x y => B.decide (x = y)) read_domain_raw.
 
 Lemma read_domain_sound n A
   (IN : (n, A) ∈ D)
@@ -9066,11 +9066,11 @@ Import Read.
 #[local] Existing Instance N'_hasEqDec.
 
 #[local]
-Instance follow_terminal_hasEqDec : hasEqDec@{Set} T' :=
+Instance follow_terminal_hasEqDec : hasEqDec T' :=
   T'_FinEnum.t_hasEqDec.
 
 #[local]
-Instance follow_node_hasEqDec : hasEqDec@{Set} read_node :=
+Instance follow_node_hasEqDec : hasEqDec read_node :=
   pair_hasEqdec nat_hasEqDec N'_hasEqDec.
 
 Definition incl_candidate_from_item (p : nat) (A : N') (it : item) (candidate : read_node) : list read_node :=
@@ -12601,9 +12601,17 @@ Variant action : Set :=
 
 #[global]
 Instance action_hasEqDec
-  : hasEqDec@{Set} action.
+  : hasEqDec action.
 Proof.
-  intros a1 a2. decide equality; eapply eq_dec.
+  intros a1 a2.
+  destruct a1 as [q1 | pr1 | ], a2 as [q2 | pr2 | ]; try (right; congruence).
+  - destruct (nat_hasEqDec q1 q2) as [EQ | NE].
+    + left. subst q2. reflexivity.
+    + right. congruence.
+  - destruct (prod'_hasEqDec pr1 pr2) as [EQ | NE].
+    + left. subst pr2. reflexivity.
+    + right. congruence.
+  - left. reflexivity.
 Defined.
 
 Definition reduce_LA_item (q : nat) (t : T') (it : item) : list prod' :=
@@ -14761,7 +14769,7 @@ Definition run_accept_config (c : nconfig) : bool :=
     match c.(nc_rest) with
     | [] =>
       if eqb@{Set} c.(nc_dst) nf then
-        if @eq_dec@{Set} (list V') (list_hasEqDec V'_hasEqDec) c.(nc_word) run_accept_word then
+        if (list_hasEqDec V'_hasEqDec) c.(nc_word) run_accept_word then
           true
         else
           false
@@ -14898,7 +14906,7 @@ Proof.
   destruct nq_f as [nf | ] eqn: FINAL; [ | discriminate].
   destruct rest as [ | t rest']; [ | discriminate].
   destruct (eqb dst nf) eqn: DST; [ | discriminate].
-  destruct (@eq_dec@{Set} (list V') (list_hasEqDec V'_hasEqDec) word run_accept_word) as [WORD | NE_WORD]; [ | discriminate].
+  destruct ((list_hasEqDec V'_hasEqDec) word run_accept_word) as [WORD | NE_WORD]; [ | discriminate].
   rewrite eqb_eq in DST. exists nf. splits; [reflexivity | exact WORD | exact DST | reflexivity].
 Qed.
 
@@ -14919,7 +14927,7 @@ Proof.
   assert (DST_EQB : eqb nf nf = true).
   { rewrite eqb_eq. reflexivity. }
   unfold run_accept_config. simpl. rewrite FINAL. rewrite DST_EQB.
-  destruct (@eq_dec@{Set} (list V') (list_hasEqDec V'_hasEqDec) word run_accept_word) as [WORD_EQ | WORD_NE]; [reflexivity | ].
+  destruct ((list_hasEqDec V'_hasEqDec) word run_accept_word) as [WORD_EQ | WORD_NE]; [reflexivity | ].
   exfalso. eapply WORD_NE. unfold run_accept_word. exact WORD.
 Qed.
 
@@ -14933,7 +14941,7 @@ Qed.
 
 Definition run_reduce_allowed (pr : prod') (dst : nat) (lookahead : T') : option (pr ∈ reduce_LA dst lookahead).
 Proof.
-  destruct (L.in_dec eq_dec pr (reduce_LA dst lookahead)) as [IN_REDUCE | NOT_IN_REDUCE].
+  destruct (L.in_dec (fun x y => B.decide (x = y)) pr (reduce_LA dst lookahead)) as [IN_REDUCE | NOT_IN_REDUCE].
   - exact (Some IN_REDUCE).
   - exact None.
 Defined.
@@ -14942,7 +14950,7 @@ Lemma run_reduce_allowed_complete pr dst lookahead
   (IN_REDUCE : pr ∈ reduce_LA dst lookahead)
   : exists IN_REDUCE', run_reduce_allowed pr dst lookahead = Some IN_REDUCE'.
 Proof.
-  unfold run_reduce_allowed. destruct (L.in_dec eq_dec pr (reduce_LA dst lookahead)) as [IN_REDUCE' | NOT_IN_REDUCE].
+  unfold run_reduce_allowed. destruct (L.in_dec (fun x y => B.decide (x = y)) pr (reduce_LA dst lookahead)) as [IN_REDUCE' | NOT_IN_REDUCE].
   - eexists. reflexivity.
   - contradiction.
 Qed.
@@ -15279,7 +15287,7 @@ Proof.
       set (stack' := stack ++ [run_shift_tree t]).
       exact (run_parser_acc ctbl CERT {| run_state_config := c'; run_state_stack := stack' |} (ACC_INV (nconfig_parser_measure c') (parser_step_lt_shift (certified_table_rank ctbl) dst dst' t rest'))).
     + destruct (run_split_suffix (length pr.(p_rhs)) word) as [[alpha omega] | ]; [ | exact None].
-      destruct (@eq_dec (list V') (list_hasEqDec V'_hasEqDec) omega pr.(p_rhs)) as [EQ_RHS | NE_RHS]; [ | exact None].
+      destruct ((list_hasEqDec V'_hasEqDec) omega pr.(p_rhs)) as [EQ_RHS | NE_RHS]; [ | exact None].
       destruct (run_reduce_allowed pr dst (parser_lookahead rest)) as [IN_REDUCE | ]; [ | exact None].
       destruct (run_reduce_stack pr stack) as [stack' | ]; [ | exact None].
       destruct (run_reduce_target alpha src dst pr) as [(p & dst' & PATH_ALPHA & PATH_OMEGA & STEP) | ]; [ | exact None].
@@ -15309,7 +15317,7 @@ Proof.
     set (stack' := stack ++ [run_shift_tree t]).
     eapply run_parser_acc_irrel.
   - destruct (run_split_suffix (length pr.(p_rhs)) word) as [[alpha omega] | ] eqn: SPLIT_WORD; [ | reflexivity].
-    destruct (@eq_dec (list V') (list_hasEqDec V'_hasEqDec) omega pr.(p_rhs)) as [EQ_RHS | NE_RHS]; [ | reflexivity].
+    destruct ((list_hasEqDec V'_hasEqDec) omega pr.(p_rhs)) as [EQ_RHS | NE_RHS]; [ | reflexivity].
     destruct (run_reduce_allowed pr dst (parser_lookahead rest)) as [IN_REDUCE | ]; [ | reflexivity].
     destruct (run_reduce_stack pr stack) as [stack' | ] eqn: REDUCE_STACK; [ | reflexivity].
     destruct (run_reduce_target alpha src dst pr) as [(p & dst' & PATH_ALPHA & PATH_OMEGA & STEP) | ]; [ | reflexivity].
@@ -15338,7 +15346,7 @@ Proof.
     exists rs'. split; [ | exact ACCEPT].
     eapply rt_trans; [ | exact STEPS]. constructor 1. unfold c'. econstructor. exact STEP.
   - destruct (run_split_suffix (length pr.(p_rhs)) word) as [[alpha omega] | ] eqn: SPLIT_WORD; cbn in RUN; [ | discriminate].
-    destruct (@eq_dec (list V') (list_hasEqDec V'_hasEqDec) omega pr.(p_rhs)) as [EQ_RHS | NE_RHS]; cbn in RUN; [ | discriminate].
+    destruct ((list_hasEqDec V'_hasEqDec) omega pr.(p_rhs)) as [EQ_RHS | NE_RHS]; cbn in RUN; [ | discriminate].
     destruct (run_reduce_allowed pr dst (parser_lookahead rest)) as [IN_REDUCE | ]; [ | discriminate].
     destruct (run_reduce_stack pr stack) as [stack' | ]; [ | discriminate].
     destruct (run_reduce_target alpha src dst pr) as [(p & dst' & PATH_ALPHA & PATH_OMEGA & STEP) | ]; [ | discriminate].
@@ -15382,7 +15390,7 @@ Proof.
     { unfold c'. simpl. exact YIELD'. }
     exact (IH {| run_state_config := c'; run_state_stack := stack' |} (ACC_INV (nconfig_parser_measure c') (parser_step_lt_shift (certified_table_rank ctbl) dst dst' t rest')) tree STACK_SYMBOLS_C' STACK_VALID' YIELD_C' RUN).
   - destruct (run_split_suffix (length pr.(p_rhs)) word) as [[alpha omega] | ] eqn: SPLIT_WORD; cbn in RUN; [ | discriminate].
-    destruct (@eq_dec (list V') (list_hasEqDec V'_hasEqDec) omega pr.(p_rhs)) as [EQ_RHS | NE_RHS]; cbn in RUN; [ | discriminate].
+    destruct ((list_hasEqDec V'_hasEqDec) omega pr.(p_rhs)) as [EQ_RHS | NE_RHS]; cbn in RUN; [ | discriminate].
     destruct (run_reduce_allowed pr dst (parser_lookahead rest)) as [IN_REDUCE | ]; [ | discriminate].
     destruct (run_reduce_stack pr stack) as [stack' | ] eqn: REDUCE_STACK; [ | discriminate].
     destruct (run_reduce_target alpha src dst pr) as [(p & dst' & PATH_ALPHA & PATH_OMEGA & STEP) | ]; [ | discriminate].
@@ -15836,7 +15844,7 @@ Proof.
   eapply run_step_progress_spec_intro with (rs' := rs_run) (ACC' := ACC_INV (run_state_measure rs_run) STEP_LT).
   - unfold rs_run, c_run, nconfig_shape_eq. simpl. splits; reflexivity.
   - unfold rs_run, c_run. simpl. econstructor; [exact PATH_ALPHA_RUN | exact PATH_OMEGA_RUN | exact REDUCE | exact STEP_RUN].
-  - cbn [run_parser_acc]. rewrite ACTION. change (run_split_suffix (length (p_rhs {| p_lhs := Some B; p_rhs := omega |})) (alpha ++ omega)) with (run_split_suffix (length omega) (alpha ++ omega)). rewrite SPLIT_WORD. change (p_rhs {| p_lhs := Some B; p_rhs := omega |}) with omega. destruct (@eq_dec (list V') (list_hasEqDec V'_hasEqDec) omega omega) as [_ | NE_RHS]; [ | contradiction NE_RHS; reflexivity].
+  - cbn [run_parser_acc]. rewrite ACTION. change (run_split_suffix (length (p_rhs {| p_lhs := Some B; p_rhs := omega |})) (alpha ++ omega)) with (run_split_suffix (length omega) (alpha ++ omega)). rewrite SPLIT_WORD. change (p_rhs {| p_lhs := Some B; p_rhs := omega |}) with omega. destruct ((list_hasEqDec V'_hasEqDec) omega omega) as [_ | NE_RHS]; [ | contradiction NE_RHS; reflexivity].
     rewrite REDUCE_ALLOWED. rewrite REDUCE_STACK. rewrite REDUCE_TARGET. eapply run_parser_acc_irrel.
   - unfold rs_run, c_run. simpl. exact STACK_SYMBOLS'.
   - unfold rs_run. simpl. exact STACK_VALID'.
@@ -17382,7 +17390,7 @@ Proof.
 Qed.
 
 #[local]
-Instance t_hasEqDec : hasEqDec@{Set} t.
+Instance t_hasEqDec : hasEqDec t.
 Proof.
   intros [A LIVE_A] [B LIVE_B].
   pose proof (G.NT.t_hasEqDec A B) as [EQ | NE].
@@ -17437,7 +17445,7 @@ Proof.
 Qed.
 
 Definition all : list t :=
-  L.nodup eq_dec (G.NT.all >>= fun A => match live_of_dec A with | Some A' => [A'] | None => [] end).
+  L.nodup (fun x y => B.decide (x = y)) (G.NT.all >>= fun A => match live_of_dec A with | Some A' => [A'] | None => [] end).
 
 Lemma all_complete
   : forall x : t, x ∈ all.

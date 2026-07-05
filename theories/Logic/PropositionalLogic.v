@@ -619,14 +619,14 @@ Proof.
         { s!. destruct IN as [<- | IN]; unfold gen_context_for in *; ss!. exists i. rewrite H_OBS; ss!. }
         { s!. destruct IN as [<- | IN]; unfold gen_context_for in *; ss!. exists i. rewrite H_OBS; ss!. }
     + eapply IH. done!. intros e. destruct (e i) as [ | ] eqn: H_OBS.
-      * set (e' := fun l : propLetter => if eq_dec i l then false else e l).
+      * set (e' := fun l : propLetter => if B.decide (i = l) then false else e l).
         assert (INFERS' : E.insert (NegationF (AtomF i)) (E.fromList (gen_context_for e' ls)) ⊢ C).
-        { specialize INFERS with (e := e'). unfold e' in INFERS. destruct (eq_dec i i) as [EQ | NE]; [clear EQ | contradiction].
+        { specialize INFERS with (e := e'). unfold e' in INFERS. destruct (B.decide (i = i)) as [EQ | NE]; [clear EQ | contradiction].
           fold e' in INFERS. eapply extend_infers with (Gamma := E.fromList (NegationF (AtomF i) :: gen_context_for e' ls)); ss!.
         }
         assert (H_EQ : gen_context_for e ls = gen_context_for e' ls).
         { specialize MAP_EXT with (ls := ls) (f1 := fun i => if e i then AtomF i else NegationF (AtomF i)) (f2 := fun i => if e' i then AtomF i else NegationF (AtomF i)). 
-          unfold gen_context_for. eapply MAP_EXT. intros i' IN'. unfold e'. destruct (eq_dec i i') as [EQ | NE].
+          unfold gen_context_for. eapply MAP_EXT. intros i' IN'. unfold e'. destruct (B.decide (i = i')) as [EQ | NE].
           - subst i'. contradiction.
           - reflexivity.
         }
@@ -637,14 +637,14 @@ Proof.
         eapply DisjunctionE with (A := AtomF i) (B := NegationF (AtomF i)) (C := C); trivial.
         specialize INFERS with (e := e). rewrite H_OBS in INFERS.
         eapply extend_infers with (Gamma := E.fromList (AtomF i :: gen_context_for e ls)); ss!.
-      * set (e' := fun l : propLetter => if eq_dec i l then true else e l).
+      * set (e' := fun l : propLetter => if B.decide (i = l) then true else e l).
         assert (INFERS' : E.insert (AtomF i) (E.fromList (gen_context_for e' ls)) ⊢ C).
-        { specialize INFERS with (e := e'). unfold e' in INFERS. destruct (eq_dec i i) as [EQ | NE]; [clear EQ | contradiction].
+        { specialize INFERS with (e := e'). unfold e' in INFERS. destruct (B.decide (i = i)) as [EQ | NE]; [clear EQ | contradiction].
           fold e' in INFERS. eapply extend_infers with (Gamma := E.fromList (AtomF i :: gen_context_for e' ls)); ss!.
         }
         assert (H_EQ : gen_context_for e ls = gen_context_for e' ls).
         { specialize MAP_EXT with (ls := ls) (f1 := fun i => if e i then AtomF i else NegationF (AtomF i)) (f2 := fun i => if e' i then AtomF i else NegationF (AtomF i)). 
-          unfold gen_context_for. eapply MAP_EXT. intros i' IN'. unfold e'. destruct (eq_dec i i') as [EQ | NE].
+          unfold gen_context_for. eapply MAP_EXT. intros i' IN'. unfold e'. destruct (B.decide (i = i')) as [EQ | NE].
           - subst i'. contradiction.
           - reflexivity.
         }
@@ -986,7 +986,7 @@ Proof.
         - eapply ByAssumption; done!.
       }
       { eapply extend_infers with (Gamma := E.singleton (andsB (x :: xs))); done!. }
-    + intros [X [LISTREP INFERS']]. pose proof (in_dec eq_dec x xs) as [H_in | H_not_in].
+    + intros [X [LISTREP INFERS']]. pose proof (in_dec (fun x y => B.decide (x = y)) x xs) as [H_in | H_not_in].
       { exploit (proj2 (IH b)).
         - exists X. split. done!. eapply ImplicationE. exact INFERS'. eapply ByAssumption. done!.
         - intros INFERS''. exists (E.insert x X). split. done!. eapply ImplicationE.
@@ -997,7 +997,7 @@ Proof.
         - eapply extend_infers with (Gamma := X). exact INFERS'. done!.
         - eapply ByAssumption. done!.
       }
-  - intros [X [LISTREP INFERS]]. destruct (in_dec eq_dec x xs) as [H_in | H_not_in].
+  - intros [X [LISTREP INFERS]]. destruct (in_dec (fun x y => B.decide (x = y)) x xs) as [H_in | H_not_in].
     + exploit (proj2 (IH b)).
       * exists X. split; done!.
       * intros INFERS'. eapply Cut_property with (A := andsB xs).
@@ -1087,11 +1087,11 @@ Proof.
     exists xs, X'. split. done!. split. done!.
     eapply ContradictionE; done!.
   - destruct IHINFERS as [xs [X' [? [? ?]]]].
-    exists (L.remove eq_dec A xs), (E.delete A X'). split. done!. split. done!.
-    eapply NegationI. eapply extend_infers; ss!. pose proof (eq_dec x A) as [? | ?]; done!.
+    exists (L.remove (fun x y => B.decide (x = y)) A xs), (E.delete A X'). split. done!. split. done!.
+    eapply NegationI. eapply extend_infers; ss!. pose proof (B.decide (x = A)) as [? | ?]; done!.
   - destruct IHINFERS as [xs [X' [? [? ?]]]].
-    exists (L.remove eq_dec (NegationF A) xs), (E.delete (NegationF A) X'). split. done!. split. done!.
-    eapply NegationE. eapply extend_infers; ss!. pose proof (eq_dec x (NegationF A)) as [? | ?]; done!.
+    exists (L.remove (fun x y => B.decide (x = y)) (NegationF A) xs), (E.delete (NegationF A) X'). split. done!. split. done!.
+    eapply NegationE. eapply extend_infers; ss!. pose proof (B.decide (x = (NegationF A))) as [? | ?]; done!.
   - destruct IHINFERS1 as [xs1 [X1' [? [? ?]]]], IHINFERS2 as [xs2 [X2' [? [? ?]]]].
     exists (xs1 ++ xs2), (E.union X1' X2'). split. done!. split. done!.
     eapply ConjunctionI; eapply extend_infers; ss!.
@@ -1108,22 +1108,22 @@ Proof.
     exists xs, X'. split. done!. split. done!.
     eapply DisjunctionI2; ss!.
   - destruct IHINFERS1 as [xs1 [X1' [? [? ?]]]], IHINFERS2 as [xs2 [X2' [? [? ?]]]], IHINFERS3 as [xs3 [X3' [? [? ?]]]].
-    exists (xs1 ++ (L.remove eq_dec A xs2 ++ L.remove eq_dec B xs3)), (E.union X1' (E.union (E.delete A X2') (E.delete B X3'))). split. done!. split. done!.
+    exists (xs1 ++ (L.remove (fun x y => B.decide (x = y)) A xs2 ++ L.remove (fun x y => B.decide (x = y)) B xs3)), (E.union X1' (E.union (E.delete A X2') (E.delete B X3'))). split. done!. split. done!.
     eapply DisjunctionE with (A := A) (B := B).
     + eapply extend_infers with (Gamma := X1'); ss!.
     + eapply extend_infers with (Gamma := X2'); trivial.
-      ii; s!. pose proof (eq_dec x A) as [? | ?]; pose proof (eq_dec x B) as [? | ?]; done!.
+      ii; s!. pose proof (B.decide (x = A)) as [? | ?]; pose proof (B.decide (x = B)) as [? | ?]; done!.
     + eapply extend_infers with (Gamma := X3'); trivial.
-      ii; s!. pose proof (eq_dec x A) as [? | ?]; pose proof (eq_dec x B) as [? | ?]; done!.
+      ii; s!. pose proof (B.decide (x = A)) as [? | ?]; pose proof (B.decide (x = B)) as [? | ?]; done!.
   - destruct IHINFERS as [xs [X' [? [? ?]]]].
-    exists (L.remove eq_dec A xs), (E.delete A X'). split. done!. split. done!.
-    eapply ImplicationI. eapply extend_infers; ss!. pose proof (eq_dec x A) as [? | ?]; done!.
+    exists (L.remove (fun x y => B.decide (x = y)) A xs), (E.delete A X'). split. done!. split. done!.
+    eapply ImplicationI. eapply extend_infers; ss!. pose proof (B.decide (x = A)) as [? | ?]; done!.
   - destruct IHINFERS1 as [xs1 [X1' [? [? ?]]]], IHINFERS2 as [xs2 [X2' [? [? ?]]]].
     exists (xs1 ++ xs2), (E.union X1' X2'). split. done!. split. done!.
     eapply ImplicationE; eapply extend_infers; ss!.
   - destruct IHINFERS1 as [xs1 [X1' [? [? ?]]]], IHINFERS2 as [xs2 [X2' [? [? ?]]]].
-    exists (L.remove eq_dec A xs1 ++ L.remove eq_dec B xs2), (E.union (E.delete A X1') (E.delete B X2')). split. done!. split. done!.
-    eapply BiconditionalI; eapply extend_infers; ss!. pose proof (eq_dec x A) as [? | ?]; done!. pose proof (eq_dec x B) as [? | ?]; done!.
+    exists (L.remove (fun x y => B.decide (x = y)) A xs1 ++ L.remove (fun x y => B.decide (x = y)) B xs2), (E.union (E.delete A X1') (E.delete B X2')). split. done!. split. done!.
+    eapply BiconditionalI; eapply extend_infers; ss!. pose proof (B.decide (x = A)) as [? | ?]; done!. pose proof (B.decide (x = B)) as [? | ?]; done!.
   - destruct IHINFERS1 as [xs1 [X1' [? [? ?]]]], IHINFERS2 as [xs2 [X2' [? [? ?]]]].
     exists (xs1 ++ xs2), (E.union X1' X2'). split. done!. split. done!.
     eapply BiconditionalE1; eapply extend_infers; ss!.

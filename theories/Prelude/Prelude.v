@@ -1472,38 +1472,28 @@ Infix "$" := B.dollar.
 Infix ">>=" := bind.
 Infix ">=>" := B.kcompose : program_scope.
 
-#[universes(polymorphic=yes)]
-Class hasEqDec@{u} (A : Type@{u}) : Type@{u} :=
-  eq_dec (x : A) (y : A) : {x = y} + {x <> y}.
-
-#[global]
-Instance hasEqDec_from_Decision@{u} {A : Type@{u}}
-  (EQ_DEC : hasEqDec@{u} A)
-  : forall x : A, forall x' : A, B.Decision (x = x').
-Proof.
-  exact EQ_DEC.
-Defined.
+Abbreviation hasEqDec A := (forall x : A, forall y : A, B.Decision (x = y)).
 
 #[universes(polymorphic=yes)]
-Definition eqb@{u} {A : Type@{u}} {hasEqDec : hasEqDec@{u} A} (x : A) (y : A) : bool :=
-  if eq_dec@{u} (hasEqDec := hasEqDec) x y then true else false.
+Definition eqb@{u} {A : Type@{u}} {hasEqDec : hasEqDec A} (x : A) (y : A) : bool :=
+  if B.decide (x = y) then true else false.
 
 #[universes(polymorphic=yes)]
-Lemma eqb_eq@{u} {A : Type@{u}} {hasEqDec : hasEqDec@{u} A} (x : A) (y : A)
+Lemma eqb_eq@{u} {A : Type@{u}} {hasEqDec : hasEqDec A} (x : A) (y : A)
   : eqb@{u} x y = true <-> x = y.
 Proof.
-  unfold eqb. destruct (eq_dec x y) as [H_yes | H_no]; done!.
+  unfold eqb. destruct (B.decide (x = y)) as [H_yes | H_no]; done!.
 Qed.
 
 #[universes(polymorphic=yes)]
-Lemma eqb_neq@{u} {A : Type@{u}} {hasEqDec : hasEqDec@{u} A} (x : A) (y : A)
+Lemma eqb_neq@{u} {A : Type@{u}} {hasEqDec : hasEqDec A} (x : A) (y : A)
   : eqb@{u} x y = false <-> x <> y.
 Proof.
-  unfold eqb. destruct (eq_dec x y) as [H_yes | H_no]; done!.
+  unfold eqb. destruct (B.decide (x = y)) as [H_yes | H_no]; done!.
 Qed.
 
 #[universes(polymorphic=yes)]
-Theorem eqb_spec@{u} {A : Type@{u}} {hasEqDec : hasEqDec@{u} A} (x : A) (y : A) (b : bool)
+Theorem eqb_spec@{u} {A : Type@{u}} {hasEqDec : hasEqDec A} (x : A) (y : A) (b : bool)
   : eqb@{u} x y = b <-> (if b then x = y else x <> y).
 Proof.
   destruct b; [eapply eqb_eq | eapply eqb_neq].
@@ -1519,44 +1509,44 @@ Defined.
 
 #[global]
 Instance unit_hasEqDec
-  : hasEqDec@{Set} unit.
+  : hasEqDec unit.
 Proof.
   red. decide equality.
 Defined.
 
 #[global]
-Instance nat_hasEqDec : hasEqDec@{Set} nat :=
+Instance nat_hasEqDec : hasEqDec nat :=
   Nat.eq_dec.
 
 #[global, universes(polymorphic=yes)]
-Instance pair_hasEqdec@{u1 u2 u3} {A : Type@{u1}} {B : Type@{u2}}
-  (A_hasEqDec : hasEqDec@{u1} A)
-  (B_hasEqDec : hasEqDec@{u2} B)
-  : hasEqDec@{u3} (A * B).
+Instance pair_hasEqdec {A : Type} {B : Type}
+  (A_hasEqDec : hasEqDec A)
+  (B_hasEqDec : hasEqDec B)
+  : hasEqDec (A * B).
 Proof.
   red in A_hasEqDec, B_hasEqDec. red. decide equality.
 Defined.
 
 #[global]
 Instance bool_hasEqDec
-  : hasEqDec@{Set} bool.
+  : hasEqDec bool.
 Proof.
   red. decide equality.
 Defined.
 
 #[global]
-Instance sum_hasEqDec@{u1 u2 u3} {A : Type@{u1}} {B : Type@{u2}}
-  (A_hasEqDec : hasEqDec@{u1} A)
-  (B_hasEqDec : hasEqDec@{u2} B)
-  : hasEqDec@{u3} (A + B).
+Instance sum_hasEqDec {A : Type} {B : Type}
+  (A_hasEqDec : hasEqDec A)
+  (B_hasEqDec : hasEqDec B)
+  : hasEqDec (A + B).
 Proof.
   red in A_hasEqDec, B_hasEqDec. red. decide equality.
 Defined.
 
 #[global]
-Instance option_hasEqDec@{u1} {A : Type@{u1}}
-  `(EQ_DEC : hasEqDec@{u1} A)
-  : hasEqDec@{u1} (option A).
+Instance option_hasEqDec {A : Type}
+  `(EQ_DEC : hasEqDec A)
+  : hasEqDec (option A).
 Proof.
   exact (fun x : option A => fun y : option A =>
     match x as a, y as b return {a = b} + {a <> b} with
@@ -1578,7 +1568,7 @@ Class Similarity@{u1 u2} (A : Type@{u1}) (B : Type@{u2}) : Type@{max(u1, u2, Set
 
 Section SIMILARITY.
 
-Infix "=~=" := is_similar_to.
+#[local] Infix "=~=" := is_similar_to.
 
 #[global]
 Instance Similarity_forall {D : Type} {D' : Type} {C : D -> Type} {C' : D' -> Type} (DOM_SIM : Similarity D D') (COD_SIM : forall x : D, forall x' : D', is_similar_to (Similarity := DOM_SIM) x x' -> Similarity (C x) (C' x')) : Similarity (forall x : D, C x) (forall x' : D', C' x') :=
@@ -1735,8 +1725,8 @@ Qed.
 #[global] Hint Rewrite null_spec in_map_iff in_app_iff : simplication_hints.
 
 #[universes(polymorphic=yes)]
-Lemma in_remove_iff@{u} (A : Type@{u}) `(EQ_DEC : hasEqDec@{u} A) (x1 : A) (xs2 : list A)
-  : forall z, In z (remove Prelude.eq_dec x1 xs2) <-> (In z xs2 /\ z <> x1).
+Lemma in_remove_iff@{u} (A : Type@{u}) `(EQ_DEC : hasEqDec A) (x1 : A) (xs2 : list A)
+  : forall z, In z (remove EQ_DEC x1 xs2) <-> (In z xs2 /\ z <> x1).
 Proof.
   i; split.
   { intros H_IN. eapply in_remove. exact H_IN. }
@@ -1893,10 +1883,10 @@ Proof.
 Qed.
 
 #[universes(polymorphic=yes)]
-Fixpoint lookup@{u1 u2} {A : Type@{u1}} {B : Type@{u2}} {EQ_DEC : hasEqDec@{u1} A} (x : A) (zs : list (A * B)) : option B :=
+Fixpoint lookup@{u1 u2} {A : Type@{u1}} {B : Type@{u2}} {EQ_DEC : hasEqDec A} (x : A) (zs : list (A * B)) : option B :=
   match zs with
   | [] => None
-  | (x', y) :: zs' => if eq_dec x x' then Some y else lookup x zs'
+  | (x', y) :: zs' => if B.decide (x = x') then Some y else lookup x zs'
   end.
 
 Abbreviation is_finsubset_of xs X := (forall x, L.In x xs -> x \in X).
@@ -2524,7 +2514,7 @@ Module Type FINITE_ENUM.
 
 Parameter t : Set.
 
-Parameter t_hasEqDec : hasEqDec@{Set} t.
+Parameter t_hasEqDec : hasEqDec t.
 
 Parameter all : list t.
 
@@ -2540,7 +2530,7 @@ Definition t : Set :=
   option E.t.
 
 #[local]
-Instance t_hasEqDec : hasEqDec@{Set} Option.t :=
+Instance t_hasEqDec : hasEqDec Option.t :=
   option_hasEqDec E.t_hasEqDec.
 
 Definition all : list Option.t :=
@@ -2572,7 +2562,7 @@ Definition t : Set :=
   E1.t + E2.t.
 
 #[local]
-Instance t_hasEqDec : hasEqDec@{Set} Sum.t :=
+Instance t_hasEqDec : hasEqDec Sum.t :=
   sum_hasEqDec E1.t_hasEqDec E2.t_hasEqDec.
 
 Definition all : list Sum.t :=
@@ -2609,7 +2599,7 @@ Module Bool_FinEnum <: FINITE_ENUM.
 Definition t : Set :=
   bool.
 
-Definition t_hasEqDec : hasEqDec@{Set} Bool_FinEnum.t :=
+Definition t_hasEqDec : hasEqDec Bool_FinEnum.t :=
   bool_hasEqDec.
 
 Definition all : list bool :=
@@ -2624,7 +2614,7 @@ Qed.
 Lemma all_no_dup
   : NoDup Bool_FinEnum.all.
 Proof.
-  assert (EQ : L.nodup (@eq_dec@{Set} bool bool_hasEqDec) all = all) by reflexivity.
+  assert (EQ : L.nodup bool_hasEqDec all = all) by reflexivity.
   rewrite <- EQ. eapply L.NoDup_nodup.
 Qed.
 

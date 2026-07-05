@@ -25,15 +25,15 @@ Import DoNotations.
 
 #[global]
 Instance ascii_hasEqDec
-  : hasEqDec@{Set} ascii.
+  : hasEqDec ascii.
 Proof.
   exact Ascii.ascii_dec.
 Defined.
 
 #[global]
 Instance regex_hasEqDec {A : Set}
-  (A_hasEqDec : hasEqDec@{Set} A)
-  : hasEqDec@{Set} (regex A).
+  (A_hasEqDec : hasEqDec A)
+  : hasEqDec (regex A).
 Proof.
   red in A_hasEqDec |- *. decide equality.
 Defined.
@@ -47,7 +47,7 @@ Module Ascii_FinEnum <: FINITE_ENUM.
 Definition t : Set :=
   ascii.
 
-Definition t_hasEqDec : hasEqDec@{Set} Ascii_FinEnum.t :=
+Definition t_hasEqDec : hasEqDec Ascii_FinEnum.t :=
   ascii_hasEqDec.
 
 Definition all : list ascii := do
@@ -79,7 +79,7 @@ Qed.
 Lemma all_no_dup
   : NoDup Ascii_FinEnum.all.
 Proof.
-  assert (EQ : L.nodup (@eq_dec@{Set} ascii ascii_hasEqDec) all = all) by reflexivity.
+  assert (EQ : L.nodup (ascii_hasEqDec) all = all) by reflexivity.
   rewrite <- EQ. eapply L.NoDup_nodup.
 Qed.
 
@@ -93,7 +93,7 @@ Module Type TOKEN_SPEC.
 
 Parameter t : Set.
 
-Parameter t_hasEqDec : hasEqDec@{Set} TOKEN_SPEC.t.
+Parameter t_hasEqDec : hasEqDec TOKEN_SPEC.t.
 
 Parameter rules : list (TOKEN_SPEC.t * regex ascii).
 
@@ -257,9 +257,9 @@ Record t : Set :=
 
 #[global]
 Instance Rule_hasEqDec
-  : hasEqDec@{Set} Rule.t.
+  : hasEqDec Rule.t.
 Proof.
-  red; decide equality; eapply eq_dec.
+  red; decide equality; exact (B.decide _).
 Defined.
 
 Definition compileRule (rule : Rule.t) : BuildErrorM@{Set} Rule.t :=
@@ -372,7 +372,7 @@ Module TaggedENFA.
 Record t : Type :=
   mk
   { state : Set
-  ; state_hasEqDec : hasEqDec@{Set} state
+  ; state_hasEqDec : hasEqDec state
   ; states : fin_ensemble state
   ; start_state : state
   ; accept_states : alist state Token.t
@@ -583,7 +583,7 @@ Fixpoint eps_step_from_edges (edges : list (nat * nat)) (q : nat) {struct edges}
   match edges with
   | [] => []
   | (src, dst) :: edges' =>
-    if eq_dec@{Set} q src then
+    if B.decide (q = src) then
       dst :: eps_step_from_edges edges' q
     else
       eps_step_from_edges edges' q
@@ -593,8 +593,8 @@ Fixpoint char_step_from_edges (edges : list char_edge) (q : nat) (c : ascii) {st
   match edges with
   | [] => []
   | edge :: edges' =>
-    if eq_dec@{Set} q edge.(char_edge_src) then
-      if eq_dec@{Set} c edge.(char_edge_label) then
+    if B.decide (q = edge.(char_edge_src)) then
+      if B.decide (c = edge.(char_edge_label)) then
         edge.(char_edge_dst) :: char_step_from_edges edges' q c
       else
         char_step_from_edges edges' q c
@@ -1752,7 +1752,7 @@ Module TaggedDFA.
 Record t : Type :=
   mk
   { state : Set
-  ; state_hasEqDec : hasEqDec@{Set} state
+  ; state_hasEqDec : hasEqDec state
   ; states : fin_ensemble state
   ; start_state : state
   ; accept_states : alist state Token.t
@@ -2107,7 +2107,7 @@ Proof.
   unfold eclose.
   use eclosure_walk as [w WALK] with CLOS.
   exploit (@walk_finds_path eps_graph _ q q' w).
-  { clear; intros q qs. now pose proof (L.in_dec (@eq_dec Q M.(TaggedENFA.state_hasEqDec)) q qs) as [YES | NO]; [left | right]. }
+  { clear; intros q qs. now pose proof (L.in_dec (M.(TaggedENFA.state_hasEqDec)) q qs) as [YES | NO]; [left | right]. }
   { exact WALK. }
   intros [p PATH]. rewrite path_iff_no_dup_walk in PATH. destruct PATH as [WALK' NO_DUP].
   eapply iter_eclose_step_walk_complete with (q := q) (w := p); eauto.
@@ -2479,7 +2479,7 @@ Definition accept_state_ensemble : ensemble (Q * Token.t) :=
   fun qtag => qtag ∈ M.(TaggedDFA.accept_states).(kvlist).
 
 Definition accepting_tags_from (q : Q) : list Token.t :=
-  bind (isMonad := B.list_isMonad) M.(TaggedDFA.accept_states).(kvlist) (fun '(q', tag) => if eq_dec (hasEqDec := M.(TaggedDFA.state_hasEqDec)) q q' then pure (isMonad := B.list_isMonad) tag else []).
+  bind (isMonad := B.list_isMonad) M.(TaggedDFA.accept_states).(kvlist) (fun '(q', tag) => if M.(TaggedDFA.state_hasEqDec) q q' then pure (isMonad := B.list_isMonad) tag else []).
 
 Lemma accepting_tags_from_complete (q : Q) (tag : Token.t)
   (ACCEPT : (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
@@ -2724,7 +2724,7 @@ Definition hopcroft_worklist_mentions (block : hopcroft_block) (worklist : hopcr
 
 Definition hopcroft_update_splitter (old_block : hopcroft_block) (block1 : hopcroft_block) (block2 : hopcroft_block) (splitter : hopcroft_splitter) : hopcroft_worklist :=
   let '(block', c) := splitter in
-  if @eq_dec (list Q) (list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block' old_block then
+  if (list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block' old_block then
     [(block1, c); (block2, c)]
   else
     [splitter].
@@ -2744,7 +2744,7 @@ Proof.
   destruct (hopcroft_worklist_mentions old_block worklist) eqn: MENTIONS.
   - use (in_list_bind_elim _ _ _ IN) as ([block0 c0] & IN_WORKLIST & IN_UPDATE).
     unfold hopcroft_update_splitter in IN_UPDATE.
-    destruct (eq_dec _ _) as [EQ | NE].
+    destruct ((list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block0 old_block) as [EQ | NE].
     + subst block0. simpl in IN_UPDATE.
       use (VALID old_block c0) as [_ CHAR] with IN_WORKLIST.
       destruct IN_UPDATE as [EQ | [EQ | []]]; inv EQ; split; ss!.
@@ -2755,7 +2755,7 @@ Proof.
   - rewrite in_app_iff in IN. destruct IN as [IN | IN].
     + use (in_list_bind_elim _ _ _ IN) as ([block0 c0] & IN_WORKLIST & IN_UPDATE).
       unfold hopcroft_update_splitter in IN_UPDATE.
-      destruct (@eq_dec (list Q) (list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block0 old_block) as [EQ | NE].
+      destruct ((list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block0 old_block) as [EQ | NE].
       * subst block0. simpl in IN_UPDATE.
         use (VALID old_block c0) as [_ CHAR] with IN_WORKLIST.
         destruct IN_UPDATE as [EQ | [EQ | []]]; inv EQ; split; ss!.
@@ -2829,7 +2829,7 @@ Definition hopcroft_accepting_class (q : Q) : hopcroft_block :=
   filter (same_accepting_tagsb q) M.(TaggedDFA.states).
 
 Definition hopcroft_initial_partition : hopcroft_partition :=
-  L.nodup (@eq_dec (list Q) (list_hasEqDec M.(TaggedDFA.state_hasEqDec))) (map hopcroft_accepting_class M.(TaggedDFA.states)).
+  L.nodup ((list_hasEqDec M.(TaggedDFA.state_hasEqDec))) (map hopcroft_accepting_class M.(TaggedDFA.states)).
 
 Definition hopcroft_initial_worklist : hopcroft_worklist :=
   hopcroft_all_splitters hopcroft_initial_partition.
@@ -5098,7 +5098,7 @@ Lemma minimisation_equivb_same_accepting_tagsb_unbounded (q1 : Q) (q2 : Q) (s : 
 Proof.
   use (minimisation_pair_trace_walk (q1, q2) s) as WALK.
   rewrite minimisation_pair_delta_spec in WALK.
-  use (@walk_finds_path minimisation_pair_graph (fun qq => fun qs => match L.in_dec (@eq_dec (Q * Q) _) qq qs with left IN => or_introl IN | right NOT_IN => or_intror NOT_IN end) (q1, q2) (delta M q1 s, delta M q2 s) _ WALK) as [p PATH].
+  use (@walk_finds_path minimisation_pair_graph (fun qq => fun qs => match L.in_dec ((fun x y => B.decide (x = y))) qq qs with left IN => or_introl IN | right NOT_IN => or_intror NOT_IN end) (q1, q2) (delta M q1 s, delta M q2 s) _ WALK) as [p PATH].
   rewrite path_iff_no_dup_walk in PATH. destruct PATH as [WALK' NO_DUP].
   eapply minimisation_equivb_walk_same_accepting_tagsb with (fuel := minimisation_fuel) (qq := (q1, q2)) (qq' := (delta M q1 s, delta M q2 s)) (w := p); eauto.
   eapply L.NoDup_incl_length; [exact NO_DUP | intros qq IN].
@@ -5200,7 +5200,7 @@ Proof.
 Qed.
 
 Definition minimised_states : list minimised_state :=
-  L.nodup eq_dec (map minimisation_class M.(TaggedDFA.states)).
+  L.nodup (fun x y => B.decide (x = y)) (map minimisation_class M.(TaggedDFA.states)).
 
 Definition representative (qs : minimised_state) : Q :=
   match qs with
@@ -5443,7 +5443,7 @@ Module Partial.
 Record TaggedDFA : Type :=
   mk
   { state : Set
-  ; state_hasEqDec : hasEqDec@{Set} state
+  ; state_hasEqDec : hasEqDec state
   ; states : list state
   ; start_state : state
   ; accept_states : list (state * Token.t)
@@ -6050,28 +6050,28 @@ Proof.
   - now eapply delete_dead_state_complete.
 Qed.
 
-Fixpoint first_accepting_token_from {Q : Set} `{Q_hasEqDec : hasEqDec@{Set} Q} (q : Q) (accept_states : list (Q * Token.t)) {struct accept_states} : option Token.t :=
+Fixpoint first_accepting_token_from {Q : Set} `{Q_hasEqDec : hasEqDec Q} (q : Q) (accept_states : list (Q * Token.t)) {struct accept_states} : option Token.t :=
   match accept_states with
   | [] => None
-  | (q', tag) :: accept_states' => if eq_dec q q' then Some tag else first_accepting_token_from q accept_states'
+  | (q', tag) :: accept_states' => if B.decide (q = q') then Some tag else first_accepting_token_from q accept_states'
   end.
 
-Lemma first_accepting_token_from_sound {Q : Set} `{Q_hasEqDec : hasEqDec@{Set} Q} (q : Q) (accept_states : list (Q * Token.t)) (tag : Token.t)
+Lemma first_accepting_token_from_sound {Q : Set} `{Q_hasEqDec : hasEqDec Q} (q : Q) (accept_states : list (Q * Token.t)) (tag : Token.t)
   (FIND : first_accepting_token_from q accept_states = Some tag)
   : (q, tag) ∈ accept_states.
 Proof.
   induction accept_states as [ | [q' tag'] accept_states IH]; simpl in FIND; [inv FIND | ].
-  destruct (eq_dec q q') as [EQ | NE].
+  destruct (B.decide (q = q')) as [EQ | NE].
   - subst q'. inv FIND. left. reflexivity.
   - right. eapply IH. exact FIND.
 Qed.
 
-Lemma first_accepting_token_from_first {Q : Set} `{Q_hasEqDec : hasEqDec@{Set} Q} (q : Q) (accept_states : list (Q * Token.t)) (tag : Token.t)
+Lemma first_accepting_token_from_first {Q : Set} `{Q_hasEqDec : hasEqDec Q} (q : Q) (accept_states : list (Q * Token.t)) (tag : Token.t)
   (FIND : first_accepting_token_from q accept_states = Some tag)
   : exists prefix, exists suffix, accept_states = prefix ++ (q, tag) :: suffix /\ (forall tag', ~ (q, tag') ∈ prefix).
 Proof.
   induction accept_states as [ | [q' tag'] accept_states IH]; simpl in FIND; [inv FIND | ].
-  destruct (eq_dec q q') as [EQ | NE].
+  destruct (B.decide (q = q')) as [EQ | NE].
   - subst q'. inv FIND. exists [], accept_states. split; [reflexivity | ].
     intros tag0 IN. contradiction.
   - use IH as (prefix & suffix & EQ & FIRST) with FIND.
@@ -6082,13 +6082,13 @@ Proof.
       * eapply FIRST. exact IN_PREFIX.
 Qed.
 
-Lemma first_accepting_token_from_complete_some {Q : Set} `{Q_hasEqDec : hasEqDec@{Set} Q} (q : Q) (accept_states : list (Q * Token.t))
+Lemma first_accepting_token_from_complete_some {Q : Set} `{Q_hasEqDec : hasEqDec Q} (q : Q) (accept_states : list (Q * Token.t))
   (ACCEPT : exists tag, (q, tag) ∈ accept_states)
   : exists tag, first_accepting_token_from q accept_states = Some tag.
 Proof.
   induction accept_states as [ | [q' tag'] accept_states IH]; simpl in ACCEPT |- *.
   - destruct ACCEPT as (tag & ACCEPT). contradiction.
-  - destruct (eq_dec q q') as [EQ | NE].
+  - destruct (B.decide (q = q')) as [EQ | NE].
     + exists tag'. reflexivity.
     + destruct ACCEPT as (tag & [EQ | ACCEPT]).
       * inv EQ. contradiction.
@@ -6679,21 +6679,21 @@ End Impl.
 
 Module Refine.
 
-Theorem first_accepting_token_from_sound {Q : Set} `{Q_hasEqDec : hasEqDec@{Set} Q} (q : Q) (accept_states : list (Q * Token.t)) (tag : Token.t)
+Theorem first_accepting_token_from_sound {Q : Set} `{Q_hasEqDec : hasEqDec Q} (q : Q) (accept_states : list (Q * Token.t)) (tag : Token.t)
   (FIND : LGS.first_accepting_token_from q accept_states = Some tag)
   : (q, tag) ∈ accept_states.
 Proof.
   eapply LGS.first_accepting_token_from_sound. exact FIND.
 Qed.
 
-Theorem first_accepting_token_from_complete_some {Q : Set} `{Q_hasEqDec : hasEqDec@{Set} Q} (q : Q) (accept_states : list (Q * Token.t))
+Theorem first_accepting_token_from_complete_some {Q : Set} `{Q_hasEqDec : hasEqDec Q} (q : Q) (accept_states : list (Q * Token.t))
   (ACCEPT : exists tag, (q, tag) ∈ accept_states)
   : exists tag, LGS.first_accepting_token_from q accept_states = Some tag.
 Proof.
   eapply LGS.first_accepting_token_from_complete_some. exact ACCEPT.
 Qed.
 
-Theorem first_accepting_token_from_first {Q : Set} `{Q_hasEqDec : hasEqDec@{Set} Q} (q : Q) (accept_states : list (Q * Token.t)) (tag : Token.t)
+Theorem first_accepting_token_from_first {Q : Set} `{Q_hasEqDec : hasEqDec Q} (q : Q) (accept_states : list (Q * Token.t)) (tag : Token.t)
   (FIND : LGS.first_accepting_token_from q accept_states = Some tag)
   : exists prefix, exists suffix, accept_states = prefix ++ (q, tag) :: suffix /\ forall tag', ~ (q, tag') ∈ prefix.
 Proof.

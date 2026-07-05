@@ -15,7 +15,7 @@ Delimit Scope name_scope with name.
 
 #[global]
 Instance name_hasEqDec
-  : hasEqDec@{Set} name.
+  : hasEqDec name.
 Proof.
   red; decide equality; eapply Nat.eq_dec.
 Defined.
@@ -289,7 +289,7 @@ Qed.
 Lemma eq_ne_dec nm1 nm2
   : {eq nm1 nm2} + {ne nm1 nm2}.
 Proof.
-  pose proof (eq_dec nm1 nm2) as [EQ | NE].
+  pose proof (B.decide (nm1 = nm2)) as [EQ | NE].
   - left; exact (EQ).
   - right; exact (proj2 (ne_iff nm1 nm2) NE).
 Defined.

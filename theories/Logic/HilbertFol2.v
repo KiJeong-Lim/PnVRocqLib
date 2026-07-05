@@ -1001,7 +1001,7 @@ Proof.
         eapply twilight_frm_one_hsubst.
       * eapply equiv_hsubst_in_frm_implies_hsubst_frm_same. ii. unfold one_hsubst, cons_hsubst, nil_hsubst. unfold to_hsubst. unfold one_subst, cons_subst, nil_subst.
         destruct z as [z | z].
-        { destruct (eqb _ _) as [ | ] eqn: H_OBS1; destruct (eq_dec _ _) as [EQ2 | NE2]; trivial.
+        { destruct (eqb _ _) as [ | ] eqn: H_OBS1; destruct (B.decide (_ = _)) as [EQ2 | NE2]; trivial.
           - rewrite eqb_eq in H_OBS1. hinv H_OBS1.
           - rewrite eqb_neq in H_OBS1. done!.
         }
@@ -1121,7 +1121,7 @@ Proof.
     + assert (ALPHA : subst_frm (one_subst x (Var_trm y)) phi ≡ replace_constant_in_frm (nth_Henkin_constant n) (Var_trm y) (subst_frm (one_subst x c) phi)).
       { eapply alpha_equiv_eq_intro. unfold replace_constant_in_frm. erewrite subst_hsubst_compat_in_frm. 2: ii; reflexivity. erewrite subst_hsubst_compat_in_frm. 2: ii; reflexivity.
         rewrite <- hsubst_compose_frm_spec. eapply equiv_hsubst_in_frm_implies_hsubst_frm_same. intros [u | u] u_free.
-        - unfold to_hsubst, hsubst_compose, one_subst, cons_subst, nil_subst, one_hsubst, cons_hsubst, nil_hsubst. destruct (eq_dec u x) as [EQ1 | NE1]; trivial.
+        - unfold to_hsubst, hsubst_compose, one_subst, cons_subst, nil_subst, one_hsubst, cons_hsubst, nil_hsubst. destruct (B.decide (u = x)) as [EQ1 | NE1]; trivial.
           subst u. unfold c. rewrite hsubst_trm_unfold. destruct (eqb _ _) as [ | ] eqn: H_OBS; rewrite eqb_spec in H_OBS; done!.
         - unfold to_hsubst, hsubst_compose, one_subst, cons_subst, nil_subst, one_hsubst, cons_hsubst, nil_hsubst. rewrite hsubst_trm_unfold. destruct (eqb _ _) as [ | ] eqn: H_OBS; rewrite eqb_spec in H_OBS.
           + rewrite H_OBS in u_free. pose proof (@Henkin_constant_does_not_occur_in_enum L enum_frm_L' n) as claim. fold phi in claim.
@@ -1414,14 +1414,14 @@ Proof with eauto with *.
     + intros INFERS t. rename y into x. set (s := one_subst x t).
       assert (IFF : interpret_frm trmModel ivar_interpret (subst_frm s p1) <-> interpret_frm trmModel (upd_env x t ivar_interpret) p1).
       { rewrite <- substitution_lemma_frm. eapply interpret_frm_ext. ii. unfold compose, upd_env, s, one_subst, cons_subst, nil_subst.
-        destruct (eq_dec z x) as [EQ1 | NE1]; trivial. eapply interpret_trm_trmModel_ivar_interpret.
+        destruct (B.decide (z = x)) as [EQ1 | NE1]; trivial. eapply interpret_trm_trmModel_ivar_interpret.
       }
       rewrite <- IFF. rewrite <- IH with (p' := subst_frm s p1). 2: rewrite subst_preserves_rank; lia.
       unfold s. eapply for_All_E; trivial.
     + intros INTERPRET. rewrite <- CLOSED_infers. eapply FORALL_FAITHFUL.
       intros t. eapply CLOSED_infers. rewrite -> IH with (p' := subst_frm (one_subst y t) p1). 2: rewrite subst_preserves_rank; lia.
       rewrite <- substitution_lemma_frm. eapply interpret_frm_ext with (env' := upd_env y (interpret_trm trmModel ivar_interpret t) ivar_interpret). ii. unfold compose, upd_env, one_subst, cons_subst, nil_subst.
-      destruct (eq_dec z y) as [EQ1 | NE1]; trivial. eapply INTERPRET.
+      destruct (B.decide (z = y)) as [EQ1 | NE1]; trivial. eapply INTERPRET.
 Qed.
 
 End MODEL_EXISTENCE.
