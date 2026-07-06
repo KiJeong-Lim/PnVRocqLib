@@ -115,7 +115,7 @@ Proof.
 Qed.
 
 Definition mem {A : Type@{u_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) : bool :=
-  if in_dec (fun x y => B.decide (x = y)) x xs then true else false.
+  if in_dec EQ_DEC x xs then true else false.
 
 Theorem mem_spec (A : Type) `(EQ_DEC : hasEqDec A) (x : A) (xs : list A)
   : forall b, mem x xs = b <-> (if b then x ∈ xs else ~ x ∈ xs).
@@ -184,12 +184,12 @@ Qed.
 
 Lemma remove_length_lt {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A)
   (IN : x ∈ xs)
-  : length (remove (fun x y => B.decide (x = y)) x xs) < length xs.
+  : length (remove EQ_DEC x xs) < length xs.
 Proof.
   revert x IN; induction xs as [ | y ys IH]; simpl; ii.
   - contradiction.
-  - destruct (B.decide (_ = _)) as [EQ | NE]; simpl.
-    + pose proof (remove_length_le (fun x y => B.decide (x = y)) ys x); done.
+  - destruct (EQ_DEC _ _) as [EQ | NE]; simpl.
+    + use (@remove_length_le _ EQ_DEC ys x) as HH. lia.
     + destruct IN as [EQ | IN]; done.
 Qed.
 
@@ -321,7 +321,7 @@ Theorem NoDup_exists_injective_length {A : Type} {B : Type} `{B_hasEqDec : hasEq
 Proof.
   revert ys R_total R_functional; induction xs_NoDup as [ | x xs NOT_IN NO_DUP IH]; intros ys TOTAL INJ; simpl; [lia | ].
   pose proof (TOTAL x (or_introl eq_refl)) as (y & IN_Y & R_XY).
-  enough (LE : length xs <= length (remove (fun x y => B.decide (x = y)) y ys)).
+  enough (LE : length xs <= length (remove B_hasEqDec y ys)).
   { pose proof (remove_length_lt y ys IN_Y). lia. }
   eapply IH.
   - intros x' IN_XS.

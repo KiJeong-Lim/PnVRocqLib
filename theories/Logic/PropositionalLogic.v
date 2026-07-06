@@ -986,7 +986,7 @@ Proof.
         - eapply ByAssumption; done!.
       }
       { eapply extend_infers with (Gamma := E.singleton (andsB (x :: xs))); done!. }
-    + intros [X [LISTREP INFERS']]. pose proof (in_dec (fun x y => B.decide (x = y)) x xs) as [H_in | H_not_in].
+    + intros [X [LISTREP INFERS']]. pose proof (in_dec formula_hasEqDec x xs) as [H_in | H_not_in].
       { exploit (proj2 (IH b)).
         - exists X. split. done!. eapply ImplicationE. exact INFERS'. eapply ByAssumption. done!.
         - intros INFERS''. exists (E.insert x X). split. done!. eapply ImplicationE.
@@ -997,7 +997,7 @@ Proof.
         - eapply extend_infers with (Gamma := X). exact INFERS'. done!.
         - eapply ByAssumption. done!.
       }
-  - intros [X [LISTREP INFERS]]. destruct (in_dec (fun x y => B.decide (x = y)) x xs) as [H_in | H_not_in].
+  - intros [X [LISTREP INFERS]]. destruct (in_dec formula_hasEqDec x xs) as [H_in | H_not_in].
     + exploit (proj2 (IH b)).
       * exists X. split; done!.
       * intros INFERS'. eapply Cut_property with (A := andsB xs).
@@ -1087,10 +1087,10 @@ Proof.
     exists xs, X'. split. done!. split. done!.
     eapply ContradictionE; done!.
   - destruct IHINFERS as [xs [X' [? [? ?]]]].
-    exists (L.remove (fun x y => B.decide (x = y)) A xs), (E.delete A X'). split. done!. split. done!.
+    exists (L.remove formula_hasEqDec A xs), (E.delete A X'). split. done!. split. done!.
     eapply NegationI. eapply extend_infers; ss!. pose proof (B.decide (x = A)) as [? | ?]; done!.
   - destruct IHINFERS as [xs [X' [? [? ?]]]].
-    exists (L.remove (fun x y => B.decide (x = y)) (NegationF A) xs), (E.delete (NegationF A) X'). split. done!. split. done!.
+    exists (L.remove formula_hasEqDec (NegationF A) xs), (E.delete (NegationF A) X'). split. done!. split. done!.
     eapply NegationE. eapply extend_infers; ss!. pose proof (B.decide (x = (NegationF A))) as [? | ?]; done!.
   - destruct IHINFERS1 as [xs1 [X1' [? [? ?]]]], IHINFERS2 as [xs2 [X2' [? [? ?]]]].
     exists (xs1 ++ xs2), (E.union X1' X2'). split. done!. split. done!.
@@ -1108,7 +1108,7 @@ Proof.
     exists xs, X'. split. done!. split. done!.
     eapply DisjunctionI2; ss!.
   - destruct IHINFERS1 as [xs1 [X1' [? [? ?]]]], IHINFERS2 as [xs2 [X2' [? [? ?]]]], IHINFERS3 as [xs3 [X3' [? [? ?]]]].
-    exists (xs1 ++ (L.remove (fun x y => B.decide (x = y)) A xs2 ++ L.remove (fun x y => B.decide (x = y)) B xs3)), (E.union X1' (E.union (E.delete A X2') (E.delete B X3'))). split. done!. split. done!.
+    exists (xs1 ++ (L.remove formula_hasEqDec A xs2 ++ L.remove formula_hasEqDec B xs3)), (E.union X1' (E.union (E.delete A X2') (E.delete B X3'))). split. done!. split. done!.
     eapply DisjunctionE with (A := A) (B := B).
     + eapply extend_infers with (Gamma := X1'); ss!.
     + eapply extend_infers with (Gamma := X2'); trivial.
@@ -1116,13 +1116,13 @@ Proof.
     + eapply extend_infers with (Gamma := X3'); trivial.
       ii; s!. pose proof (B.decide (x = A)) as [? | ?]; pose proof (B.decide (x = B)) as [? | ?]; done!.
   - destruct IHINFERS as [xs [X' [? [? ?]]]].
-    exists (L.remove (fun x y => B.decide (x = y)) A xs), (E.delete A X'). split. done!. split. done!.
+    exists (L.remove formula_hasEqDec A xs), (E.delete A X'). split. done!. split. done!.
     eapply ImplicationI. eapply extend_infers; ss!. pose proof (B.decide (x = A)) as [? | ?]; done!.
   - destruct IHINFERS1 as [xs1 [X1' [? [? ?]]]], IHINFERS2 as [xs2 [X2' [? [? ?]]]].
     exists (xs1 ++ xs2), (E.union X1' X2'). split. done!. split. done!.
     eapply ImplicationE; eapply extend_infers; ss!.
   - destruct IHINFERS1 as [xs1 [X1' [? [? ?]]]], IHINFERS2 as [xs2 [X2' [? [? ?]]]].
-    exists (L.remove (fun x y => B.decide (x = y)) A xs1 ++ L.remove (fun x y => B.decide (x = y)) B xs2), (E.union (E.delete A X1') (E.delete B X2')). split. done!. split. done!.
+    exists (L.remove formula_hasEqDec A xs1 ++ L.remove formula_hasEqDec B xs2), (E.union (E.delete A X1') (E.delete B X2')). split. done!. split. done!.
     eapply BiconditionalI; eapply extend_infers; ss!. pose proof (B.decide (x = A)) as [? | ?]; done!. pose proof (B.decide (x = B)) as [? | ?]; done!.
   - destruct IHINFERS1 as [xs1 [X1' [? [? ?]]]], IHINFERS2 as [xs2 [X2' [? [? ?]]]].
     exists (xs1 ++ xs2), (E.union X1' X2'). split. done!. split. done!.

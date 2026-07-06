@@ -2328,7 +2328,7 @@ Definition raw_all_items : list item :=
   P' >>= items_of_prod.
 
 Definition all_items : list item :=
-  L.nodup (fun x y => B.decide (x = y)) raw_all_items.
+  L.nodup item_hasEqDec raw_all_items.
 
 Lemma items_of_prod_complete p left right
   (EQ : p.(p_rhs) = left ++ right)
@@ -2468,7 +2468,7 @@ Proof.
 Qed.
 
 Definition closure_step (q : state) : state :=
-  L.nodup (fun x y => B.decide (x = y)) (q ++ (q >>= closure_step_items)).
+  L.nodup item_hasEqDec (q ++ (q >>= closure_step_items)).
 
 Lemma closure_step_contains q it
   (IN : it ∈ q)
@@ -2661,7 +2661,7 @@ Proof.
 Qed.
 
 Definition closure (q : state) : state :=
-  iter (length all_items) closure_step (L.nodup (fun x y => B.decide (x = y)) q).
+  iter (length all_items) closure_step (L.nodup item_hasEqDec q).
 
 Lemma closure_no_dup q
   : NoDup (closure q).
@@ -3093,7 +3093,7 @@ Definition state_successors (q : state) : list state :=
   if nonempty q' then [q'] else [].
 
 Definition states_step (qs : list state) : list state :=
-  L.nodup (fun x y => B.decide (x = y)) (qs ++ (qs >>= state_successors)).
+  L.nodup state_hasEqDec (qs ++ (qs >>= state_successors)).
 
 Fixpoint lists_of_length (xs : list item) (n : nat) {struct n} : list state :=
   match n with
@@ -8669,7 +8669,7 @@ Definition read_domain_raw : list read_node :=
   seq 0 num_states >>= fun n => N'_FinEnum.all >>= fun A => read_domain_entry n A.
 
 Definition D : list read_node :=
-  L.nodup (fun x y => B.decide (x = y)) read_domain_raw.
+  L.nodup read_node_hasEqDec read_domain_raw.
 
 Lemma read_domain_sound n A
   (IN : (n, A) ∈ D)
@@ -12358,7 +12358,7 @@ Proof.
 Qed.
 
 Theorem LA_impl_to_marked_by_lr0_viable q it t
-  (VIABLE : forall A t alpha gamma q qs, NullStr gamma -> path alpha q0 q -> path (alpha ++ [inl A] ++ gamma ++ [inr t]) q0 qs -> exists z, rm_steps [inl start_prime] (alpha ++ inl A :: gamma ++ inr t :: map inr z))
+  (VIABLE : forall A, forall t, forall alpha, forall gamma, forall q, forall qs, NullStr gamma -> path alpha q0 q -> path (alpha ++ [inl A] ++ gamma ++ [inr t]) q0 qs -> exists z, rm_steps [inl start_prime] (alpha ++ inl A :: gamma ++ inr t :: map inr z))
   (IN : t ∈ LA_impl q it)
   : LA_marked q it t.
 Proof.
@@ -12832,7 +12832,7 @@ Variant reduce_LA_marked_derivation_after_start_spec (q : nat) (t : T') (pr : pr
     : reduce_LA_marked_derivation_after_start_spec q t pr.
 
 Theorem reduce_LA_sound_sem_by_lr0_viable
-  (VIABLE : forall A t alpha gamma q qs,
+  (VIABLE : forall A, forall t, forall alpha, forall gamma, forall q, forall qs,
     NullStr gamma ->
     path alpha q0 q ->
     path (alpha ++ [inl A] ++ gamma ++ [inr t]) q0 qs ->
@@ -12856,7 +12856,7 @@ Proof.
 Qed.
 
 Theorem reduce_LA_sound_marked_by_lr0_viable
-  (VIABLE : forall A t alpha gamma q qs,
+  (VIABLE : forall A, forall t, forall alpha, forall gamma, forall q, forall qs,
     NullStr gamma ->
     path alpha q0 q ->
     path (alpha ++ [inl A] ++ gamma ++ [inr t]) q0 qs ->
@@ -12880,7 +12880,7 @@ Proof.
 Qed.
 
 Theorem reduce_LA_marked_witness_by_lr0_viable
-  (VIABLE : forall A t alpha gamma q qs,
+  (VIABLE : forall A, forall t, forall alpha, forall gamma, forall q, forall qs,
     NullStr gamma ->
     path alpha q0 q ->
     path (alpha ++ [inl A] ++ gamma ++ [inr t]) q0 qs ->
@@ -12911,7 +12911,7 @@ Proof.
 Qed.
 
 Theorem reduce_LA_marked_derivation_by_lr0_viable
-  (VIABLE : forall A t alpha gamma q qs,
+  (VIABLE : forall A, forall t, forall alpha, forall gamma, forall q, forall qs,
     NullStr gamma ->
     path alpha q0 q ->
     path (alpha ++ [inl A] ++ gamma ++ [inr t]) q0 qs ->
@@ -14943,7 +14943,7 @@ Qed.
 
 Definition run_reduce_allowed (pr : prod') (dst : nat) (lookahead : T') : option (pr ∈ reduce_LA dst lookahead).
 Proof.
-  destruct (L.in_dec (fun x y => B.decide (x = y)) pr (reduce_LA dst lookahead)) as [IN_REDUCE | NOT_IN_REDUCE].
+  destruct (L.in_dec prod'_hasEqDec pr (reduce_LA dst lookahead)) as [IN_REDUCE | NOT_IN_REDUCE].
   - exact (Some IN_REDUCE).
   - exact None.
 Defined.
@@ -14952,7 +14952,7 @@ Lemma run_reduce_allowed_complete pr dst lookahead
   (IN_REDUCE : pr ∈ reduce_LA dst lookahead)
   : exists IN_REDUCE', run_reduce_allowed pr dst lookahead = Some IN_REDUCE'.
 Proof.
-  unfold run_reduce_allowed. destruct (L.in_dec (fun x y => B.decide (x = y)) pr (reduce_LA dst lookahead)) as [IN_REDUCE' | NOT_IN_REDUCE].
+  unfold run_reduce_allowed. destruct (L.in_dec prod'_hasEqDec pr (reduce_LA dst lookahead)) as [IN_REDUCE' | NOT_IN_REDUCE].
   - eexists. reflexivity.
   - contradiction.
 Qed.
@@ -17447,7 +17447,7 @@ Proof.
 Qed.
 
 Definition all : list t :=
-  L.nodup (fun x y => B.decide (x = y)) (G.NT.all >>= fun A => match live_of_dec A with | Some A' => [A'] | None => [] end).
+  L.nodup t_hasEqDec (G.NT.all >>= fun A => match live_of_dec A with | Some A' => [A'] | None => [] end).
 
 Lemma all_complete
   : forall x : t, x ∈ all.

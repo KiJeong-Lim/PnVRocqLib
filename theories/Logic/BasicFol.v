@@ -638,7 +638,7 @@ Fixpoint fvs_frm (p : frm L) : list ivar :=
   | Eqn_frm t1 t2 => fvs_trm t1 ++ fvs_trm t2
   | Neg_frm p1 => fvs_frm p1
   | Imp_frm p1 p2 => fvs_frm p1 ++ fvs_frm p2
-  | All_frm y p1 => List.remove (fun x y => B.decide (x = y)) y (fvs_frm p1)
+  | All_frm y p1 => List.remove ivar_hasEqDec y (fvs_frm p1)
   end.
 
 Lemma fvs_trm_unfold (t : trm L) :
@@ -669,7 +669,7 @@ Lemma fvs_frm_unfold (p : frm L) :
   | Eqn_frm t1 t2 => fvs_trm t1 ++ fvs_trm t2
   | Neg_frm p1 => fvs_frm p1
   | Imp_frm p1 p2 => fvs_frm p1 ++ fvs_frm p2
-  | All_frm y p1 => List.remove (fun x y => B.decide (x = y)) y (fvs_frm p1)
+  | All_frm y p1 => List.remove ivar_hasEqDec y (fvs_frm p1)
   end.
 Proof.
   destruct p; reflexivity.
@@ -1004,7 +1004,7 @@ Proof.
 Qed.
 
 Lemma distr_compose_one (s1 : subst L) (s2 : subst L) (x : ivar) (x' : ivar) (t : trm L) (z : ivar) (p : frm L)
-  (FRESH : forallb (negb ∘ is_free_in_trm x ∘ s1) (remove (fun x y => B.decide (x = y)) x' (fvs_frm p)) = true)
+  (FRESH : forallb (negb ∘ is_free_in_trm x ∘ s1) (remove ivar_hasEqDec x' (fvs_frm p)) = true)
   (FREE : is_free_in_frm z p = true)
   : cons_subst x' t (subst_compose s1 s2) z = subst_compose (cons_subst x' (Var_trm x) s1) (cons_subst x t s2) z.
 Proof.
@@ -1952,12 +1952,12 @@ Definition close_ivars (p : frm L) : list ivar -> frm L :=
   @list_rec _ (fun _ => frm L) p (fun x => fun _ => fun q => All_frm x q).
 
 Definition closed_frm (p : frm L) : frm L :=
-  close_ivars p (nodup (fun x y => B.decide (x = y)) (fvs_frm p)).
+  close_ivars p (nodup ivar_hasEqDec (fvs_frm p)).
 
 Lemma closed_frm_closed (p : frm L)
   : forall z, is_free_in_frm z (closed_frm p) = true -> False.
 Proof.
-  intros z. unfold closed_frm. remember (nodup (fun x y => B.decide (x = y)) (fvs_frm p)) as xs eqn: H_xs. intros FREE.
+  intros z. unfold closed_frm. remember (nodup ivar_hasEqDec (fvs_frm p)) as xs eqn: H_xs. intros FREE.
   assert (claim : forall x, L.In x xs <-> is_free_in_frm x p = true).
   { intros x. subst xs. rewrite L.nodup_In. rewrite fv_is_free_in_frm. reflexivity. }
   clear H_xs. specialize claim with (x := z). revert z p FREE claim. induction xs as [ | x xs IH]; simpl; i.

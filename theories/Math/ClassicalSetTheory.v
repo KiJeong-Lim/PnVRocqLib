@@ -4844,7 +4844,7 @@ Lemma subset_children_Cardinality_le x y
   : card x =< card y.
 Proof.
   destruct x as [csx tsx], y as [csy tsy]. simpl in *.
-  exploit (Axiom_of_Choice csx (fun _ => csy) (fun c d => tsx c == tsy d)).
+  exploit (Axiom_of_Choice csx (fun _ => csy) (fun c => fun d => tsx c == tsy d)).
   { intros c. pose proof (SUBSET _ (member_intro _ _ c)) as [d EQ]; eauto. }
   intros [f Hf]. exists f.
   - intros c1 c2 H_EQ; simpl in c1, c2. change (tsy (f c1) == tsy (f c2)).
@@ -5454,10 +5454,10 @@ Proof.
     - rewrite -> Hl, -> Hk. exact H_tree.
   }
   destruct H_fromWfSet as [H_left H_right].
-  exploit (Axiom_of_Choice kappa.(Cardinality.carrier) (fun _ => lambda.(Cardinality.carrier)) (fun x y => @fromWf _ Rl Rl_wf y == @fromWf _ Rk Rk_wf x)).
+  exploit (Axiom_of_Choice kappa.(Cardinality.carrier) (fun _ => lambda.(Cardinality.carrier)) (fun x => fun y => @fromWf _ Rl Rl_wf y == @fromWf _ Rk Rk_wf x)).
   { intros x. pose proof (H_left x) as [y Hy]. exists y. eauto with *. }
   intros [f Hf].
-  exploit (Axiom_of_Choice lambda.(Cardinality.carrier) (fun _ => kappa.(Cardinality.carrier)) (fun y x => @fromWf _ Rk Rk_wf x == @fromWf _ Rl Rl_wf y)).
+  exploit (Axiom_of_Choice lambda.(Cardinality.carrier) (fun _ => kappa.(Cardinality.carrier)) (fun y => fun x => @fromWf _ Rk Rk_wf x == @fromWf _ Rl Rl_wf y)).
   { intros y. pose proof (H_right y) as [x Hx]. exists x. eauto with *. }
   intros [g Hg].
   exists f. split.
@@ -6699,9 +6699,9 @@ Proof.
     exists (
       {|
         st_lift := fun x : st_carrier s => x;
-        st_lift_cong := fun _ _ H => H;
+        st_lift_cong := fun _ => fun _ => fun H => H;
         st_lift_emb := fun _ => eq_refl;
-        st_lift_code := fun _ _ => eqProp_refl _;
+        st_lift_code := fun _ => fun _ => eqProp_refl _;
       |}
     ).
     exact I.
@@ -6709,7 +6709,7 @@ Proof.
     unshelve eexists (
       {|
         st_lift := fun x : st_carrier s => st_lift t u emb_tu (st_lift s t emb_st x);
-        st_lift_cong := fun x y H => st_lift_cong t u emb_tu _ _ (st_lift_cong s t emb_st _ _ H);
+        st_lift_cong := fun x => fun y => fun H => st_lift_cong t u emb_tu _ _ (st_lift_cong s t emb_st _ _ H);
         st_lift_emb := _;
         st_lift_code := _;
       |}

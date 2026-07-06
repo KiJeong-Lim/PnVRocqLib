@@ -5100,7 +5100,7 @@ Lemma minimisation_equivb_same_accepting_tagsb_unbounded (q1 : Q) (q2 : Q) (s : 
 Proof.
   use (minimisation_pair_trace_walk (q1, q2) s) as WALK.
   rewrite minimisation_pair_delta_spec in WALK.
-  use (@walk_finds_path minimisation_pair_graph (fun qq => fun qs => match L.in_dec ((fun x y => B.decide (x = y))) qq qs with left IN => or_introl IN | right NOT_IN => or_intror NOT_IN end) (q1, q2) (delta M q1 s, delta M q2 s) _ WALK) as [p PATH].
+  use (@walk_finds_path minimisation_pair_graph (fun qq => fun qs => match L.in_dec (pair_hasEqdec M.(TaggedDFA.state_hasEqDec) M.(TaggedDFA.state_hasEqDec)) qq qs with left IN => or_introl IN | right NOT_IN => or_intror NOT_IN end) (q1, q2) (delta M q1 s, delta M q2 s) _ WALK) as [p PATH].
   rewrite path_iff_no_dup_walk in PATH. destruct PATH as [WALK' NO_DUP].
   eapply minimisation_equivb_walk_same_accepting_tagsb with (fuel := minimisation_fuel) (qq := (q1, q2)) (qq' := (delta M q1 s, delta M q2 s)) (w := p); eauto.
   eapply L.NoDup_incl_length; [exact NO_DUP | intros qq IN].
@@ -5202,7 +5202,7 @@ Proof.
 Qed.
 
 Definition minimised_states : list minimised_state :=
-  L.nodup (fun x y => B.decide (x = y)) (map minimisation_class M.(TaggedDFA.states)).
+  L.nodup minimised_state_hasEqDec (map minimisation_class M.(TaggedDFA.states)).
 
 Definition representative (qs : minimised_state) : Q :=
   match qs with

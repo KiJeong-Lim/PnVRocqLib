@@ -93,7 +93,7 @@ Fixpoint FVs (e : trm) : list name :=
   match e with
   | Var_trm x => [x]
   | App_trm e1 e2 => FVs e1 ++ FVs e2
-  | Lam_trm y ty e1 => L.remove (fun x y => B.decide (x = y)) y (FVs e1)
+  | Lam_trm y ty e1 => L.remove name_hasEqDec y (FVs e1)
   | Con_trm c => []
   end.
 
@@ -247,7 +247,7 @@ Definition subst_compose (s1 : subst) (s2 : subst) : subst :=
   fun z => subst_trm s2 (s1 z).
 
 Lemma distr_compose_one (s1 : subst) (s2 : subst) (x : Name.t) (x' : Name.t) (e : trm) (z : Name.t) (e' : trm)
-  (FRESH : forallb (negb ∘ is_free_in x ∘ s1) (remove (fun x y => B.decide (x = y)) x' (FVs e')) = true)
+  (FRESH : forallb (negb ∘ is_free_in x ∘ s1) (remove name_hasEqDec x' (FVs e')) = true)
   (FREE : is_free_in z e' = true)
   : cons_subst x' e (subst_compose s1 s2) z = subst_compose (cons_subst x' (Var_trm x) s1) (cons_subst x e s2) z.
 Proof.

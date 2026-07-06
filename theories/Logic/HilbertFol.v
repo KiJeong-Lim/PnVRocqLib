@@ -794,7 +794,7 @@ Lemma open_closed_frm (Gamma : ensemble (frm L)) (p : frm L)
   (PROVE : Gamma \proves closed_frm p)
   : Gamma \proves p.
 Proof.
-  revert PROVE. unfold closed_frm. revert Gamma. induction (nodup (fun x y => B.decide (x = y)) (fvs_frm p)) as [ | x xs IH]; simpl; ii.
+  revert PROVE. unfold closed_frm. revert Gamma. induction (nodup ivar_hasEqDec (fvs_frm p)) as [ | x xs IH]; simpl; ii.
   - exact PROVE.
   - eapply IH. eapply proves_alpha_proves with (p := subst_frm (one_subst x (Var_trm x)) (close_ivars p xs)).
     + eapply for_All_E. exact PROVE.

@@ -1843,7 +1843,7 @@ Context {Henkin_constants : Set} {Henkin_constants_hasEqDec : hasEqDec Henkin_co
 Section BOUNDED_HC.
 
 Definition hcs_of_ps_p (hc0 : Henkin_constants) (ps : list (frm L')) (p : frm L') : list Henkin_constants :=
-  L.nodup (fun x y => B.decide (x = y)) (hc0 :: flat_map accum_HCs_frm ps ++ accum_HCs_frm p).
+  L.nodup Henkin_constants_hasEqDec (hc0 :: flat_map accum_HCs_frm ps ++ accum_HCs_frm p).
 
 Lemma in_hcs_of_ps_p_hc0 (hc0 : Henkin_constants) (ps : list (frm L')) (p : frm L')
   : In hc0 (hcs_of_ps_p hc0 ps p).
@@ -1869,11 +1869,11 @@ Proof.
 Qed.
 
 Definition Kf (hc0 : Henkin_constants) (ps : list (frm L')) (p : frm L') : Set :=
-  { hc : Henkin_constants | (if in_dec (fun x y => B.decide (x = y)) hc (hcs_of_ps_p hc0 ps p) then true else false) = true }.
+  { hc : Henkin_constants | (if in_dec Henkin_constants_hasEqDec hc (hcs_of_ps_p hc0 ps p) then true else false) = true }.
 
 #[program]
 Definition f (hc0 : Henkin_constants) (ps : list (frm L')) (p : frm L') : Henkin_constants -> Kf hc0 ps p :=
-  fun hc => (@exist _ _ (if in_dec (fun x y => B.decide (x = y)) hc (hcs_of_ps_p hc0 ps p) then hc else hc0) _).
+  fun hc => (@exist _ _ (if in_dec Henkin_constants_hasEqDec hc (hcs_of_ps_p hc0 ps p) then hc else hc0) _).
 Next Obligation.
   - destruct (in_dec _ hc _) as [IN | NOT_IN].
     + destruct (in_dec _ hc _) as [IN1 | NOT_IN1].
@@ -1919,7 +1919,7 @@ Proof.
     - eapply nth_In; eauto.
   }
   exists (fun k => index_of (proj1_sig k) hcs).
-  assert (H_nth : forall n : nat, (if in_dec (fun x y => B.decide (x = y)) (L.nth n hcs hc0) (hcs_of_ps_p hc0 ps p) then true else false) = true).
+  assert (H_nth : forall n : nat, (if in_dec Henkin_constants_hasEqDec (L.nth n hcs hc0) (hcs_of_ps_p hc0 ps p) then true else false) = true).
   { intros n. destruct (in_dec _ _ _) as [IN1 | NOT_IN1].
     - reflexivity.
     - contradiction NOT_IN1. fold hcs. eapply HH.
@@ -2080,7 +2080,7 @@ Proof.
     rewrite HC0_FIX. simpl.
     exploit (frm_mapping_proj1_sig_f_fix hc0 ps p p).
     - intros hc OCC. eapply in_hcs_of_ps_p_of_p. exact OCC.
-    - intros X. set (XX := frm_mapping (@proj1_sig _ (fun hc => (if in_dec (fun x y => B.decide (x = y)) hc (hcs_of_ps_p hc0 ps p) then true else false) = true)) (frm_mapping f0 p)).
+    - intros X. set (XX := frm_mapping (@proj1_sig _ (fun hc => (if in_dec Henkin_constants_hasEqDec hc (hcs_of_ps_p hc0 ps p) then true else false) = true)) (frm_mapping f0 p)).
       change (XX = p) in X. congruence.
   }
   eapply extend_proves; cycle 1.
@@ -2100,7 +2100,7 @@ Proof.
     exploit (frm_mapping_proj1_sig_f_fix hc0 ps p q').
     + intros hc OCC. eapply in_hcs_of_ps_p_of_ps; eauto.
     + intros X.
-      set (XX := frm_mapping (@proj1_sig _ (fun hc => (if in_dec (fun x y => B.decide (x = y)) hc (hcs_of_ps_p hc0 ps p) then true else false) = true)) (frm_mapping f0 q')).
+      set (XX := frm_mapping (@proj1_sig _ (fun hc => (if in_dec Henkin_constants_hasEqDec hc (hcs_of_ps_p hc0 ps p) then true else false) = true)) (frm_mapping f0 q')).
       change (XX = q') in X. congruence.
   - eapply INCL. do 2 red. exact INq'.
 Qed.
@@ -2523,7 +2523,7 @@ Proof.
         intros q Hq. s!. destruct Hq as [<- | Hq].
         { eapply AddHenkin_stage_list_contains_base. left. exists hc. split; [exact Hlt' | reflexivity]. }
         { eapply Hsub. exact Hq. }
-      * pose proof (in_dec (fun x y => B.decide (x = y)) hc hcs) as [Hin | Hnin].
+      * pose proof (in_dec Henkin_constants_hasEqDec hc hcs) as [Hin | Hnin].
         { exists hcs. repeat split; try exact Hnodup; try exact Hstage.
           intros q Hq. s!. destruct Hq as [<- | Hq].
           - eapply AddHenkin_stage_list_contains_axiom. exact Hin.

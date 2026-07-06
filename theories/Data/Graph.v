@@ -378,7 +378,7 @@ Proof.
   - intros [w WALK].
     assert (exists p, x ---[ p ]-->*( G ) y) as [p PATH].
     { eapply @walk_finds_path with (G := G) (w := w); eauto.
-      now intros v vs; pose proof (L.in_dec (fun x y => B.decide (x = y)) v vs) as [YES | NO]; [left | right].
+      now intros v vs; pose proof (L.in_dec V_dec v vs) as [YES | NO]; [left | right].
     }
     rewrite path_iff_no_dup_walk in PATH.
     clear WALK. destruct PATH as [WALK NO_DUP].
