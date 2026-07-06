@@ -2,9 +2,9 @@ Require Import PnV.Prelude.Prelude.
 Require Import PnV.Prelude.X.
 Require Export PnV.Math.ThN.
 
-Universe u_fs.
+Universe U_fs.
 
-Constraint u_fs <= U_discourse.
+Constraint U_fs <= U_discourse.
 
 Module FS.
 
@@ -41,7 +41,7 @@ Qed.
 #[global] Hint Rewrite list_corresponds_to_finite_ensemble_iff : simplication_hints.
 
 #[global, program]
-Instance fin_ensemble_isSetoid (Elem : Type@{u_fs}) (Elem_isSetoid : isSetoid Elem) : isSetoid (fin_ensemble@{u_fs} Elem) :=
+Instance fin_ensemble_isSetoid (Elem : Type@{U_fs}) (Elem_isSetoid : isSetoid Elem) : isSetoid (fin_ensemble@{U_fs} Elem) :=
   { eqProp (lhs : list Elem) (rhs : list Elem) := (forall e : Elem, forall IN : e ∈ lhs, exists e', e' ∈ rhs /\ e == e') /\ (forall e : Elem, forall IN : e ∈ rhs, exists e', e' ∈ lhs /\ e' == e) }.
 Next Obligation.
   split; [intros xs | intros xs ys [xs_ys ys_xs] | intros xs ys zs [xs_ys ys_xs] [ys_zs zs_ys]]; split; i.
@@ -54,10 +54,10 @@ Next Obligation.
 Qed.
 
 #[global]
-Instance fin_ensemble_isSetoid1 : isSetoid1 fin_ensemble@{u_fs} :=
+Instance fin_ensemble_isSetoid1 : isSetoid1 fin_ensemble@{U_fs} :=
   fin_ensemble_isSetoid.
 
-Lemma fin_ensemble_isSetoid1_eq_iff (A : Type@{u_fs}) (xs : fin_ensemble@{u_fs} A) (xs' : fin_ensemble@{u_fs} A)
+Lemma fin_ensemble_isSetoid1_eq_iff (A : Type@{U_fs}) (xs : fin_ensemble@{U_fs} A) (xs' : fin_ensemble@{U_fs} A)
   : eqProp (isSetoid := fromSetoid1 fin_ensemble_isSetoid) xs xs' <-> (forall e : A, e ∈ xs <-> e ∈ xs').
 Proof.
   ii; ss!.
@@ -71,7 +71,7 @@ Instance fin_ensemble_isMonad@{u} : isMonad@{u u} fin_ensemble@{u} :=
 
 #[global]
 Instance fin_ensemble_MonadLaws
-  : MonadLaws fin_ensemble (SETOID1 := fin_ensemble_isSetoid1) (MONAD := fin_ensemble_isMonad@{u_fs}).
+  : MonadLaws fin_ensemble (SETOID1 := fin_ensemble_isSetoid1) (MONAD := fin_ensemble_isMonad@{U_fs}).
 Proof.
   split; i; rewrite fin_ensemble_isSetoid1_eq_iff in *; i; ss!; ss!; exists x0; ss!.
 Qed.
@@ -114,7 +114,7 @@ Proof.
   eapply L.forallb_forall.
 Qed.
 
-Definition mem {A : Type@{u_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) : bool :=
+Definition mem {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) : bool :=
   if in_dec EQ_DEC x xs then true else false.
 
 Theorem mem_spec (A : Type) `(EQ_DEC : hasEqDec A) (x : A) (xs : list A)
@@ -125,7 +125,7 @@ Qed.
 
 #[global] Hint Rewrite mem_spec : simplication_hints.
 
-Definition add {A : Type@{u_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) : list A :=
+Definition add {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) : list A :=
   if mem x xs then xs else x :: xs.
 
 Theorem in_add_iff (A : Type) `(EQ_DEC : hasEqDec A) (x : A) (xs : list A)
@@ -136,7 +136,7 @@ Qed.
 
 #[global] Hint Rewrite in_add_iff : simplication_hints.
 
-Fixpoint union {A : Type@{u_fs}} `{EQ_DEC : hasEqDec A} (xs : list A) (ys : list A) {struct xs} : list A :=
+Fixpoint union {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (xs : list A) (ys : list A) {struct xs} : list A :=
   match xs with
   | [] => ys
   | x :: xs' => union xs' (add x ys)
@@ -152,7 +152,7 @@ Qed.
 
 #[global] Hint Rewrite in_union_iff : simplication_hints.
 
-Fixpoint normalize {A : Type@{u_fs}} `{EQ_DEC : hasEqDec A} (xs : list A) {struct xs} : list A :=
+Fixpoint normalize {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (xs : list A) {struct xs} : list A :=
   match xs with
   | [] => []
   | x :: xs' => add x (normalize xs')
@@ -166,7 +166,7 @@ Qed.
 
 #[global] Hint Rewrite in_normalize_iff : simplication_hints.
 
-Fixpoint unions {A : Type@{u_fs}} `{EQ_DEC : hasEqDec A} (xss : list (list A)) {struct xss} : list A :=
+Fixpoint unions {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (xss : list (list A)) {struct xss} : list A :=
   match xss with
   | [] => []
   | xs :: xss' => union xs (unions xss')
@@ -193,7 +193,7 @@ Proof.
     + destruct IN as [EQ | IN]; done.
 Qed.
 
-Fixpoint powerset {A : Type@{u_fs}} (xs : list A) : list (list A) :=
+Fixpoint powerset {A : Type@{U_fs}} (xs : list A) : list (list A) :=
   match xs with
   | [] => [[]]
   | x :: xs' =>
@@ -213,13 +213,13 @@ Proof.
   induction xs as [ | x xs IH]; simpl; ss!.
 Qed.
 
-Fixpoint index_of {A : Type@{u_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) {struct xs} : nat :=
+Fixpoint index_of {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) {struct xs} : nat :=
   match xs with
   | [] => O
   | x' :: xs' => if B.decide (x = x') then O else S (index_of x xs')
   end.
 
-Definition lookup {A : Type@{u_fs}} (default : A) (n : nat) (xs : list A) : A :=
+Definition lookup {A : Type@{U_fs}} (default : A) (n : nat) (xs : list A) : A :=
   nth n xs default.
 
 Lemma lookup_index_of {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) (default : A)

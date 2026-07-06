@@ -801,6 +801,18 @@ Proof.
     + eapply subst_nil_frm. intros u u_free. unfold one_subst, cons_subst, nil_subst. destruct (B.decide (u = x)) as [? | ?]; done.
 Qed.
 
+Lemma close_open_frm (Gamma : ensemble (frm L)) (p : frm L)
+  (FRESH : forall p', p' \in Gamma -> forall x, is_free_in_frm x p' = false)
+  (PROVE : Gamma \proves p)
+  : Gamma \proves closed_frm p.
+Proof.
+  revert PROVE. unfold closed_frm. revert Gamma FRESH. induction (nodup ivar_hasEqDec (fvs_frm p)) as [ | x xs IH]; simpl; ii.
+  - exact PROVE.
+  - eapply for_All_I.
+    + ii; eauto.
+    + now eapply proves_alpha_proves with (p := close_ivars p xs); eauto.
+Qed.
+
 Definition equiv_deductible (p1 : frm L) (p2 : frm L) : Prop :=
   E.singleton p1 \proves p2 /\ E.singleton p2 \proves p1.
 
