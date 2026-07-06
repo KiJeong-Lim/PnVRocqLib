@@ -808,9 +808,7 @@ Lemma close_open_frm (Gamma : ensemble (frm L)) (p : frm L)
 Proof.
   revert PROVE. unfold closed_frm. revert Gamma FRESH. induction (nodup ivar_hasEqDec (fvs_frm p)) as [ | x xs IH]; simpl; ii.
   - exact PROVE.
-  - eapply for_All_I.
-    + ii; eauto.
-    + now eapply proves_alpha_proves with (p := close_ivars p xs); eauto.
+  - eapply for_All_I; done.
 Qed.
 
 Definition equiv_deductible (p1 : frm L) (p2 : frm L) : Prop :=
