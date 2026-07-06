@@ -15325,7 +15325,7 @@ Proof.
     destruct (run_reduce_target alpha src dst pr) as [(p & dst' & PATH_ALPHA & PATH_OMEGA & STEP) | ]; [ | reflexivity].
     pose proof (npath_snoc alpha src p (inl pr.(p_lhs)) dst' PATH_ALPHA STEP) as path_tgt.
     set (c' := {| nc_word := alpha ++ [inl pr.(p_lhs)]; nc_src := src; nc_dst := dst'; nc_rest := rest; nc_path := path_tgt |}).
-    pose (EDGE := (ex_intro _ pr (ex_intro _ p (conj IN_REDUCE (conj PATH_OMEGA STEP))) : reduce_edge (parser_lookahead rest) dst dst')).
+    pose (EDGE := (@ex_intro _ _ pr (@ex_intro _ _ p (conj IN_REDUCE (conj PATH_OMEGA STEP))) : reduce_edge (parser_lookahead rest) dst dst')).
     eapply run_parser_acc_irrel.
 Defined.
 
@@ -15356,7 +15356,7 @@ Proof.
     rewrite EQ_RHS in WORD. subst word.
     set (path_tgt := npath_snoc alpha src p (inl pr.(p_lhs)) dst' PATH_ALPHA STEP).
     set (c' := {| nc_word := alpha ++ [inl pr.(p_lhs)]; nc_src := src; nc_dst := dst'; nc_rest := rest; nc_path := path_tgt |}) in RUN |- *.
-    pose (EDGE := (ex_intro _ pr (ex_intro _ p (conj IN_REDUCE (conj PATH_OMEGA STEP))) : reduce_edge (parser_lookahead rest) dst dst')).
+    pose (EDGE := (@ex_intro _ _ pr (@ex_intro _ _ p (conj IN_REDUCE (conj PATH_OMEGA STEP))) : reduce_edge (parser_lookahead rest) dst dst')).
     pose proof (IH {| run_state_config := c'; run_state_stack := stack' |} (ACC_INV (nconfig_parser_measure c') (parser_step_lt_reduce_edge (certified_table_rank ctbl) dst dst' rest CERT EDGE)) tree RUN) as (rs' & STEPS & ACCEPT).
     exists rs'. split; [ | exact ACCEPT].
     eapply rt_trans; [ | exact STEPS]. constructor 1. unfold c'. econstructor; [exact PATH_ALPHA | exact PATH_OMEGA | exact IN_REDUCE | exact STEP].
@@ -15399,7 +15399,7 @@ Proof.
     pose proof (run_reduce_stack_sound pr stack stack' word alpha omega dst (parser_lookahead rest) STACK_SYMBOLS STACK_VALID SPLIT_WORD EQ_RHS IN_REDUCE REDUCE_STACK) as (STACK_SYMBOLS' & STACK_VALID' & STACK_YIELD').
     set (path_tgt := npath_snoc alpha src p (inl pr.(p_lhs)) dst' PATH_ALPHA STEP) in RUN |- *.
     set (c' := {| nc_word := alpha ++ [inl pr.(p_lhs)]; nc_src := src; nc_dst := dst'; nc_rest := rest; nc_path := path_tgt |}) in RUN |- *.
-    set (EDGE := (ex_intro _ pr (ex_intro _ p (conj IN_REDUCE (conj PATH_OMEGA STEP))) : reduce_edge (parser_lookahead rest) dst dst')) in RUN |- *.
+    set (EDGE := (@ex_intro _ _ pr (@ex_intro _ _ p (conj IN_REDUCE (conj PATH_OMEGA STEP))) : reduce_edge (parser_lookahead rest) dst dst')) in RUN |- *.
     assert (YIELD_C' : run_stack_yield stack' ++ parser_input_yield c'.(nc_rest) = w).
     { unfold c'. simpl. rewrite STACK_YIELD'. exact YIELD. }
     assert (STACK_SYMBOLS_C' : run_stack_symbols stack' = c'.(nc_word)).
@@ -15840,7 +15840,7 @@ Proof.
   set (path_run := npath_snoc alpha src p (inl (Some B)) dst' PATH_ALPHA_RUN STEP_RUN).
   set (c_run := {| nc_word := alpha ++ [inl (Some B)]; nc_src := src; nc_dst := dst'; nc_rest := rest; nc_path := path_run |}).
   set (rs_run := {| run_state_config := c_run; run_state_stack := stack_run |}).
-  set (EDGE := (ex_intro _ {| p_lhs := Some B; p_rhs := omega |} (ex_intro _ p (conj REDUCE (conj PATH_OMEGA_RUN STEP_RUN))) : reduce_edge (parser_lookahead rest) dst dst')).
+  set (EDGE := (@ex_intro _ _ {| p_lhs := Some B; p_rhs := omega |} (@ex_intro _ _ p (conj REDUCE (conj PATH_OMEGA_RUN STEP_RUN))) : reduce_edge (parser_lookahead rest) dst dst')).
   assert (STEP_LT : parser_step_lt (certified_table_rank ctbl) (run_state_measure rs_run) (run_state_measure {| run_state_config := {| nc_word := alpha ++ omega; nc_src := src; nc_dst := dst; nc_rest := rest; nc_path := path_src |}; run_state_stack := stack |})).
   { unfold rs_run, c_run, run_state_measure, nconfig_parser_measure. simpl. eapply parser_step_lt_reduce_edge; [exact CERT | exact EDGE]. }
   eapply run_step_progress_spec_intro with (rs' := rs_run) (ACC' := ACC_INV (run_state_measure rs_run) STEP_LT).

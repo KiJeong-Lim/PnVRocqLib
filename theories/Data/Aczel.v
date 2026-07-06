@@ -1589,7 +1589,7 @@ Proof.
   symmetry. pose proof (R_wf i x) as H_Acc. unfold fromWf.
   induction H_Acc as [x _ IH]; simpl. eapply extensionality. intros z; split; intros H_IN.
   - rewrite fromAcc_unfold in H_IN |- *. destruct H_IN as [[y R_y_x] EQ]; simpl in *.
-    assert (toWellPoset_lt R (existT _ i (Some y)) (existT _ i (Some x))) as claim1.
+    assert (toWellPoset_lt R (@existT _ _ i (Some y)) (@existT _ _ i (Some x))) as claim1.
     { exists (Some y); ss!.
       - econs 2; ss!.
       - intros H_contra. apply projT2_eq in H_contra. inv H_contra. contradiction (well_founded_implies_Irreflexive (R i) (R_wf i) y).
