@@ -1408,7 +1408,7 @@ Proof.
     pose (Xs := fun a : XD => fun z : D => exists t : B.rose (Idx a), z = B.eval_rose ub (seed a) t).
     assert (seed_in_X : forall a : XD, forall i : Idx a, seed a i \in X).
     { intros a i. exact (proj2_sig (proj1_sig i)). }
-    pose (idx_incl := fun (a : XD) => fun (b : XD) => fun (LE : child_le (rank a) (rank b)) => fun (i : Idx a) => @exist XD (fun c : XD => child_le (rank c) (rank b)) (proj1_sig i) (child_le_trans (rank (proj1_sig i)) (rank a) (rank b) (proj2_sig i) LE)).
+    pose (idx_incl := fun a : XD => fun b : XD => fun LE : child_le (rank a) (rank b) => fun i : Idx a => @exist XD (fun c : XD => child_le (rank c) (rank b)) (proj1_sig i) (child_le_trans (rank (proj1_sig i)) (rank a) (rank b) (proj2_sig i) LE)).
     assert (Xs_sub : forall a : XD, Xs a \subseteq X).
     { intros a. eapply eval_rose_image_subset_X.
       - exact UB.
