@@ -419,9 +419,7 @@ Import HELFER1_ii.
 
 #[local] Existing Instance V.vec_isSetoid.
 
-Context `{Axms : ClassicalAxioms (b_AC := true) (b_fun_ext := true) (b_prop_ext := true)} {L : language} {function_symbols_hasEqDec : hasEqDec L.(function_symbols)} {constant_symbols_hasEqDec : hasEqDec L.(constant_symbols)} {relation_symbols_hasEqDec : hasEqDec L.(relation_symbols)}.
-
-#[local] Abbreviation L' := (augmented_language L (Henkin_constants L)).
+Context `{Axms : ClassicalAxioms (b_AC := true) (b_fun_ext := true) (b_prop_ext := true)}.
 
 #[local] Existing Instance Henkin_constants_hasEqDec.
 
@@ -431,23 +429,22 @@ Context `{Axms : ClassicalAxioms (b_AC := true) (b_fun_ext := true) (b_prop_ext 
 
 #[local] Hint Unfold E.insert : core.
 
-Theorem HilbertCalculus_complete (X : ensemble (frm L)) (b : frm L)
-  (CONSEQUENCE : X ⊨ b)
-  : X ⊢ b.
+Theorem HilbertCalculus_complete (L : language) `(function_symbols_hasEqDec : hasEqDec L.(function_symbols)) `(constant_symbols_hasEqDec : hasEqDec L.(constant_symbols)) `(relation_symbols_hasEqDec : hasEqDec L.(relation_symbols))
+  : forall X : ensemble (frm L), forall b : frm L, forall CONSEQUENCE : X ⊨ b, X ⊢ b.
 Proof with eauto.
-  eapply NNPP. intros NO. set (Gamma := E.insert (Neg_frm b) X).
+  ii. eapply NNPP. intros NO. set (Gamma := E.insert (Neg_frm b) X).
   assert (CONSISTENT : Gamma ⊬ Bot_frm).
   { intros INCONSISTENT. contradiction NO. eapply NegationE; eauto. }
   pose proof (exists_MCS Gamma CONSISTENT) as (MCS & HBsub & HCons & HMax).
-  set (STRUCTURE := trmModel MCS). set (env := ivar_interpret MCS).
+  set (augmented_language L _) as L' in *. set (STRUCTURE := trmModel MCS). set (env := ivar_interpret MCS).
   assert (MODEL : forall p : frm L, interpret_frm STRUCTURE env (embed_frm p) <-> interpret_frm (restrict_structure STRUCTURE) env p).
   { ii. eapply restrict_structure_frm. }
   assert (claim : Gamma ⊭ Bot_frm).
   { intros SAT. eapply SAT with (STRUCTURE := restrict_structure (trmModel MCS)) (env := ivar_interpret MCS).
     - ii; eauto.
-    - red. fold env. fold STRUCTURE. intros A AIN. red. rewrite <- MODEL with (p := A).
+    - red. fold env. fold STRUCTURE. intros A IN. red. rewrite <- MODEL with (p := A).
       unfold STRUCTURE, env. rewrite <- trmModel_isModel with (X := Gamma) (MaxCS := MCS); eauto.
-      eapply HBsub. right. rewrite E.in_image_iff. exists A; eauto.
+      eapply HBsub. right. subst L'. rewrite E.in_image_iff. exists A; eauto.
     - simpl. intros t. unfold interpret_equation. reflexivity.
   }
   contradiction claim. subst STRUCTURE env. intros ? H_eqProp_iff_eq ? ? SAT. unfold Gamma in SATISFY.
