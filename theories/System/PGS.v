@@ -9,6 +9,8 @@ Require Import PnV.Prelude.X.
 
 Import DoNotations.
 Import DigraphFixedpoint.
+Import FS.
+Import FM.
 
 #[local] Infix "\in" := E.In : type_scope.
 #[local] Infix "=~=" := (is_similar_to (Similarity := Re.in_regex eq)) : type_scope.
@@ -6923,7 +6925,7 @@ Qed.
 Lemma state_index_nat_lookup_no_dup_aux (xs : list state) (default : state) n
   (NO_DUP : NoDup xs)
   (LT : n < length xs)
-  : FiniteSet.index_of (EQ_DEC := Item.state_hasEqDec) (lookup default n xs) xs = n.
+  : FS.index_of (EQ_DEC := Item.state_hasEqDec) (lookup default n xs) xs = n.
 Proof.
   revert n NO_DUP LT. induction xs as [ | x xs IH]; intros n NO_DUP LT; simpl in LT; [lia | ].
   inversion NO_DUP as [ | x0 xs0 NOTIN NO_DUP_TAIL]; subst.
@@ -6949,7 +6951,7 @@ Theorem state_of_state_index_nat q
 Proof.
   unfold state_of, state_index_nat, num_states.
   pose proof (@index_of_lt state Item.state_hasEqDec q Q IN) as LT.
-  destruct (Nat.ltb (FiniteSet.index_of (EQ_DEC := Item.state_hasEqDec) q Q) (length Q)) eqn: LTB.
+  destruct (Nat.ltb (FS.index_of (EQ_DEC := Item.state_hasEqDec) q Q) (length Q)) eqn: LTB.
   - pose proof (@lookup_index_of state Item.state_hasEqDec q Q q0 IN) as LOOKUP. rewrite LOOKUP. reflexivity.
   - rewrite Nat.ltb_ge in LTB. lia.
 Qed.

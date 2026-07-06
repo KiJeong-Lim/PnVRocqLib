@@ -4,6 +4,8 @@ Require Export PnV.Math.ThN.
 
 Universe u_1.
 
+Module FS.
+
 #[universes(polymorphic=yes)]
 Definition fin_ensemble@{u | } (Elem : Type@{u}) : Type@{u} :=
   list Elem.
@@ -327,3 +329,5 @@ Proof.
     eapply INJ; ss!.
   - ii; eapply INJ; ss!.
 Qed.
+
+End FS.

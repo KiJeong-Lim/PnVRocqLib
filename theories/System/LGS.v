@@ -9,6 +9,8 @@ Require Import PnV.System.Regex.
 Require Import PnV.Prelude.X.
 
 Import DoNotations.
+Import FS.
+Import FM.
 
 #[local] Hint Rewrite andb_true_iff : simplication_hints.
 #[local] Hint Rewrite @eqb_spec@{Set} : simplication_hints.
@@ -112,7 +114,7 @@ Definition BuildErrorM@{u | } (A : Type@{u}) : Type@{u} :=
 
 #[universes(polymorphic=yes)]
 Instance BuildErrorM_isMonad@{u} : isMonad@{u u} BuildErrorM@{u} :=
-  { pure {A : Type@{u}} (x : A) := inr x
+  { pure {A : Type@{u}} (x : A) := (@inr BuildError.t A x)
   ; bind {A : Type@{u}} {B : Type@{u}} (m : BuildErrorM A) (k : A -> BuildErrorM B) := B.either (@inl BuildError.t B) k m
   }.
 

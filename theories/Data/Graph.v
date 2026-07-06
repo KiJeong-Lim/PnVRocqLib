@@ -4,6 +4,9 @@ Require Import PnV.Data.FiniteSet.
 Require Import PnV.Data.FiniteMap.
 Require Import PnV.Prelude.X.
 
+Import FS.
+Import FM.
+
 #[local] Abbreviation In := L.In.
 #[local] Infix "\in" := E.In : type_scope.
 

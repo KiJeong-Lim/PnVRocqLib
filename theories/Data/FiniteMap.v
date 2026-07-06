@@ -4,6 +4,8 @@ Require Import PnV.Prelude.X.
 #[local] Infix "=~=" := is_similar_to : type_scope.
 #[local] Infix "∈" := L.In.
 
+Module FM.
+
 #[universes(template), projections(primitive)]
 Record alist {K : Type} {V : Type} : Type :=
   mk_alist { kvlist : list (K * V) } as al.
@@ -30,3 +32,5 @@ Proof.
 Qed.
 
 #[global] Hint Rewrite alist_corresponds_to_finite_partial_map_iff : simplication_hints.
+
+End FM.
