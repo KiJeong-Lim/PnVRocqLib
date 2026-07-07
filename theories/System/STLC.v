@@ -1048,13 +1048,6 @@ Proof.
   - econs 1. reflexivity.
 Qed.
 
-Lemma rawBetaMany_one_subst_arg x M N N'
-  (BETA : N ~>β₀ N')
-  : subst_trm (one_subst x N) M ~>β₀* subst_trm (one_subst x N') M.
-Proof.
-  unfold one_subst. eapply rawBetaMany_subst_update. exact BETA.
-Qed.
-
 Inductive untyped_neutral : trm L -> Prop :=
   | untyped_neutral_var x
     : untyped_neutral (Var_trm x)
@@ -1137,7 +1130,7 @@ Proof.
   - eapply IHN.
     + exact BETA0.
     + eapply rawBetaMany_preserves_raw_sn.
-      * eapply rawBetaMany_one_subst_arg. exact BETA0.
+      * eapply rawBetaMany_subst_update. exact BETA0.
       * eapply raw_sn_alpha.
         { econs. exact e2_SN_inv. }
         { exact ALPHA. }
@@ -1174,7 +1167,7 @@ Lemma rawHead_confluence M N e1
   (BETA : M ~>β₀ e1)
   : N ≡ₐ e1 \/ (exists e2, rawHeadStep e1 e2 /\ N ~>β₀* e2).
 Proof.
-  revert e1 BETA. induction STEP; intros e1 BETA; inversion BETA; subst.
+  revert e1 BETA; induction STEP; ii; inversion BETA; subst.
   - left. exact ALPHA.
   - inversion BETA0; subst.
     pose proof (rawBetaOnce_subst_compat (one_subst x N) _ _ BETA1) as (e' & e'_STEP & e'_ALPHA).
@@ -1191,7 +1184,7 @@ Proof.
       * reflexivity.
     + eapply rawBetaMany_trans with (M' := subst_trm (one_subst x N) M).
       * econs 1. exact ALPHA.
-      * eapply rawBetaMany_one_subst_arg. exact BETA0.
+      * eapply rawBetaMany_subst_update. exact BETA0.
   - contradiction (rawHeadStep_not_lam _ _ _ _ _ STEP eq_refl).
   - pose proof (IHSTEP M'0 BETA0) as [ALPHA_STEP | (e2 & e2_STEP & e2_MANY)].
     + left. eapply alpha_equiv_App; [exact ALPHA_STEP | reflexivity].
@@ -1203,11 +1196,11 @@ Proof.
     + eapply rawBetaMany_app_r. econs 2. exact BETA0.
 Qed.
 
-Fixpoint raw_sn_app_inv M N (MN_SN : raw_sn (App_trm M N)) {struct MN_SN} : raw_sn M /\ raw_sn N.
+Fixpoint raw_sn_app_inv (M : trm L) (N : trm L) (MN_SN : raw_sn (App_trm M N)) {struct MN_SN} : raw_sn M /\ raw_sn N.
 Proof.
-  destruct MN_SN as [MN_SN]. split.
-  - econs. intros M' BETA. exact (proj1 (raw_sn_app_inv M' N (MN_SN (App_trm M' N) (rawBetaOnce_appl M M' N BETA)))).
-  - econs. intros N' BETA. exact (proj2 (raw_sn_app_inv M N' (MN_SN (App_trm M N') (rawBetaOnce_appr M N N' BETA)))).
+  destruct MN_SN as [MN_SN_inv]. split.
+  - econs. intros M' BETA. exact (proj1 (raw_sn_app_inv M' N (MN_SN_inv (App_trm M' N) (rawBetaOnce_appl M M' N BETA)))).
+  - econs. intros N' BETA. exact (proj2 (raw_sn_app_inv M N' (MN_SN_inv (App_trm M N') (rawBetaOnce_appr M N N' BETA)))).
 Defined.
 
 Lemma rawHead_backward_aux M N M'
