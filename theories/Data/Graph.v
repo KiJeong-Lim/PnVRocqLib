@@ -14,6 +14,7 @@ Module GRAPH.
 
 #[projections(primitive)]
 Class t : Type :=
+  mk
   { vertices : Type
   ; edges : ensemble (vertices * vertices)
   } as G.
@@ -702,7 +703,9 @@ End DIGRAPH.
 
 End DigraphFixedpoint.
 
-Module API.
+#[local] Hint Rewrite L.in_remove_iff : simplication_hints.
+
+Module GraphAPI.
 
 #[local] Infix "=~=" := is_similar_to.
 
@@ -713,11 +716,12 @@ Class FiniteGraph `{V : Type} : Type :=
   ; V_dec : hasEqDec V
   ; E_dec (v : V) (v' : V) : B.Decision ((v, v') \in E) 
   ; enum_vertices : list V
-  ; enum_vertices_contains
-    : exists extra_vetices, enum_vertices =~= E.union { v : V | (exists v_in, (v_in, v) \in E) \/ (exists v_out, (v, v_out) \in E) } extra_vetices
+  ; enum_vertices_contains_all
+    : exists extras : ensemble V, enum_vertices =~= E.union { v : V | (exists v_in, (v_in, v) \in E) \/ (exists v_out, (v, v_out) \in E) } extras
   } as GRAPH.
 
-#[global] Arguments enum_vertices_contains {V} {GRAPH} : simpl never.
+#[global] Arguments E {V} (GRAPH).
+#[global] Arguments enum_vertices_contains_all {V} (GRAPH) : simpl never.
 
 #[local] Existing Instance G.
 #[global] Existing Instance V_dec.
@@ -733,74 +737,105 @@ Section FiniteGraph_CONSTRUCTION.
 
 #[local] Obligation Tactic := i.
 
-#[refine]
-Definition emptyFiniteGraph {V : Type} `{V_hasEqDec : hasEqDec V} : @FiniteGraph V :=
+Context {V : Type}.
+
+#[program]
+Definition emptyFiniteGraph `{V_hasEqDec : hasEqDec V} : @FiniteGraph V :=
   {|
-    E := E.empty;
+    E := fun '(v, v') => False;
     V_dec := V_hasEqDec;
-    E_dec := fun v : V => fun v' : V => _;
+    E_dec := fun v : V => fun v' : V => B.decide _;
     enum_vertices := [];
   |}.
-Proof.
-  - red. right. intros [].
-  - exists E.empty. ss!.
-Defined.
+Next Obligation.
+  rewrite subset_lemma in *. done.
+Qed.
 
-#[refine]
-Definition insertEdge {V : Type} (v_in : V) (v_out : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
-  {|
-    E := E.insert (v_in, v_out) GRAPH.(E);
-    V_dec := GRAPH.(V_dec);
-    E_dec := fun v : V => fun v' : V => _;
-    enum_vertices := [v_in; v_out] ++ GRAPH.(enum_vertices);
-  |}.
+Lemma emptyFiniteGraph_edge_spec {V_hasEqDec : hasEqDec V}
+  : forall edge : V * V, edge \in (emptyFiniteGraph).(E) <-> edge \in E.empty.
 Proof.
-  - cbv.
-    pose proof (GRAPH.(V_dec) v v_in) as [EQ1 | NE1]; pose proof (GRAPH.(V_dec) v' v_out) as [EQ2 | NE2].
-    + left. left. congruence.
-    + pose proof (GRAPH.(E_dec) v v') as [IN | NOT_IN].
-      * left. right. exact IN.
-      * right. intros [? | ?]; [congruence | contradiction NOT_IN].
-    + pose proof (GRAPH.(E_dec) v v') as [IN | NOT_IN].
-      * left. right. exact IN.
-      * right. intros [? | ?]; [congruence | contradiction NOT_IN].
-    + pose proof (GRAPH.(E_dec) v v') as [IN | NOT_IN].
-      * left. right. exact IN.
-      * right. intros [? | ?]; [congruence | contradiction NOT_IN].
-  - pose proof GRAPH.(enum_vertices_contains) as HH.
-    rewrite subset_lemma in *. done.
-Defined.
+  intros [v v']; done.
+Qed.
 
-#[refine]
-Definition removeEdge {V : Type} (v_in : V) (v_out : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
+#[program]
+Definition insertEdge (v_in : V) (v_out : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
   {|
-    E := E.delete (v_in, v_out) GRAPH.(E);
+    E := fun '(v, v') => (v = v_in /\ v' = v_out) \/ E.In (v, v') GRAPH.(E);
     V_dec := GRAPH.(V_dec);
-    E_dec := fun v : V => fun v' : V => _;
-    enum_vertices := enum_vertices;
+    E_dec := fun v : V => fun v' : V => B.decide _;
+    enum_vertices := v_in :: v_out :: GRAPH.(enum_vertices);
   |}.
+Next Obligation.
+  rewrite subset_lemma in *. done.
+Qed.
+
+Lemma insertEdge_edge_spec v_in v_out GRAPH
+  : forall edge : V * V, edge \in (insertEdge v_in v_out GRAPH).(E) <-> edge \in E.insert (v_in, v_out) GRAPH.(E).
 Proof.
-  - cbv.
-    pose proof (GRAPH.(V_dec) v v_in) as [EQ1 | NE1]; pose proof (GRAPH.(V_dec) v' v_out) as [EQ2 | NE2].
-    + right. intros [H1 H2]. contradiction H1. congruence.
-    + pose proof (GRAPH.(E_dec) v v') as [IN | NOT_IN].
-      * left. split; eauto. congruence.
-      * right. intros [H1 H2]. contradiction NOT_IN.
-    + pose proof (GRAPH.(E_dec) v v') as [IN | NOT_IN].
-      * left. split; eauto. congruence.
-      * right. intros [H1 H2]. contradiction NOT_IN.
-    + pose proof (GRAPH.(E_dec) v v') as [IN | NOT_IN].
-      * left. split; eauto. congruence.
-      * right. intros [H1 H2]. contradiction NOT_IN.
-  - pose proof GRAPH.(enum_vertices_contains) as HH.
-    rewrite subset_lemma in *. intros v H_v. eapply HH. unfold E.In in *. done.
-Defined.
+  intros [v v']; done.
+Qed.
+
+#[program]
+Definition removeEdge (v_in : V) (v_out : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
+  {|
+    E := fun '(v, v') => (~ (v = v_in /\ v' = v_out)) /\ E.In (v, v') GRAPH.(E);
+    V_dec := GRAPH.(V_dec);
+    E_dec := fun v : V => fun v' : V => B.decide _;
+    enum_vertices := GRAPH.(enum_vertices);
+  |}.
+Next Obligation.
+  rewrite subset_lemma in *. done.
+Qed.
+
+Lemma removeEdge_edge_spec v_in v_out GRAPH
+  : forall edge : V * V, edge \in (removeEdge v_in v_out GRAPH).(E) <-> edge \in E.delete (v_in, v_out) GRAPH.(E).
+Proof.
+  intros [v v']; done.
+Qed.
+
+#[program]
+Definition insertVertex (v_new : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
+  {|
+    E := GRAPH.(E);
+    V_dec := GRAPH.(V_dec);
+    E_dec := GRAPH.(E_dec);
+    enum_vertices := v_new :: GRAPH.(enum_vertices);
+  |}.
+Next Obligation.
+  rewrite subset_lemma in *. done.
+Qed.
+
+Lemma insertVertex_edge_spec v_new GRAPH
+  : forall edge : V * V, edge \in (insertVertex v_new GRAPH).(E) <-> edge \in GRAPH.(E).
+Proof.
+  intros [v v']; done.
+Qed.
+
+#[program]
+Definition removeVertex (v_old : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
+  {|
+    E := fun '(v, v') => v ≠ v_old /\ v' ≠ v_old /\ E.In (v, v') GRAPH.(E);
+    V_dec := GRAPH.(V_dec);
+    E_dec := fun v : V => fun v' : V => B.decide _;
+    enum_vertices := @L.remove V GRAPH.(V_dec) v_old GRAPH.(enum_vertices);
+  |}.
+Next Obligation.
+  rewrite subset_lemma in *. done.
+Qed.
+
+Lemma removeVertex_edge_spec v_old GRAPH
+  : forall edge : V * V, edge \in (removeVertex v_old GRAPH).(E) <-> (fst edge ≠ v_old /\ snd edge ≠ v_old /\ edge \in GRAPH.(E)).
+Proof.
+  intros [v v']; done.
+Qed.
 
 End FiniteGraph_CONSTRUCTION.
 
 Section EXPORT.
 
 Context `{GRAPH : FiniteGraph}.
+
+#[local] Abbreviation E := GRAPH.(E).
 
 Lemma walk_last (v : V) (v' : V) (w : list V)
   (WALK : v ~~~[ w ]~~>*( GRAPH ) v')
@@ -896,7 +931,7 @@ Lemma enum_vertices_has_edge_tgt (v : V) (v' : V)
   (EDGE : (v, v') \in E)
   : L.In v' enum_vertices.
 Proof.
-  pose proof GRAPH.(enum_vertices_contains) as SIM. ss!.
+  pose proof GRAPH.(enum_vertices_contains_all) as SIM. ss!.
 Qed.
 
 Fixpoint reachableb_accum (fuel : nat) (v : V) (v' : V) {struct fuel} : bool :=
@@ -1175,4 +1210,4 @@ End DIGRAPH_FIXEDPOINT.
 
 End EXPORT.
 
-End API.
+End GraphAPI.
