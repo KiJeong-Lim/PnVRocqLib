@@ -62,6 +62,9 @@ Tactic Notation "use!" uconstr( H ) "as" simple_intropattern( p ) "with" ident( 
 Tactic Notation "use!" uconstr( H ) "as" simple_intropattern( p ) "with" ident( H1 ) ident( H2 ) ident( H3 ) ident( H4 ) ident( H5 ) ident( H6 ) ident( H7 ) ident( H8 ) ident( H9 ) :=
   hexploit H; [try (revert H1 H2 H3 H4 H5 H6 H7 H8 H9; clear; i; eauto) .. | intros p].
 
+Tactic Notation "use!" uconstr( H ) "as" simple_intropattern( p ) "with" "*" :=
+  hexploit H; [eauto .. | intros p].
+
 Ltac done :=
   des; subst; done!.
 
