@@ -859,8 +859,6 @@ End FiniteGraph_CONSTRUCTION.
 #[global] Arguments GRAPH {V} {L} lG /.
 #[global] Existing Instance GRAPH.
 
-Module LabeledFiniteGraph.
-
 Lemma edges_Irreflexive_flags_true `(lG : LabeledFiniteGraph)
   (edges_Irreflexive_flags_true : lG.(edges_Irreflexive_flags) = true)
   : forall v, ~ (v, v) \in E lG.(GRAPH).
@@ -888,9 +886,93 @@ Proof.
   exact HH.
 Qed.
 
-Abbreviation t := LabeledFiniteGraph.
+Section BUILDER.
 
-End LabeledFiniteGraph.
+#[local] Infix "∈" := L.In.
+
+Context {V : Type} {L : Type} `{V_hasEqDec : hasEqDec V}.
+
+Definition labeled_edge_keys (edges : list (V * V * L)) : list (V * V) :=
+  L.nodup (pair_hasEqdec V_hasEqDec V_hasEqDec) (map fst edges).
+
+Definition labeled_edge_vertices (edges : list (V * V * L)) : list V :=
+  L.flat_map (fun '(edge, _) => [fst edge; snd edge]) edges.
+
+Definition labels_of_edge (edges : list (V * V * L)) (edge : V * V) : list L :=
+  L.flat_map (fun '(edge', label) => if B.decide (edge = edge') then [label] else []) edges.
+
+Lemma labels_of_edge_In (edges : list (V * V * L)) (edge : V * V) (label : L)
+  : label ∈ labels_of_edge edges edge <-> (edge, label) ∈ edges.
+Proof.
+  induction edges as [ | [edge' label'] edges IH]; simpl; eauto.
+  destruct (B.decide (edge = edge')) as [EQ | NE]; ss!.
+Qed.
+
+Lemma in_labeled_edge_vertices_src (edges : list (V * V * L)) (v : V) (v' : V)
+  (EDGE : (v, v') ∈ map fst edges)
+  : L.In v (labeled_edge_vertices edges).
+Proof.
+  unfold labeled_edge_vertices. ss!. destruct x as [[v1 v2] l]; simpl in *. exists ((v1, v2), l); ss!.
+Qed.
+
+Lemma in_labeled_edge_vertices_dst (edges : list (V * V * L)) (v : V) (v' : V)
+  (EDGE : (v, v') ∈ map fst edges)
+  : L.In v' (labeled_edge_vertices edges).
+Proof.
+  unfold labeled_edge_vertices. ss!. destruct x as [[v1 v2] l]; simpl in *. exists ((v1, v2), l); ss!.
+Qed.
+
+Lemma labeled_edge_keys_NoDup (edges : list (V * V * L))
+  : NoDup (labeled_edge_keys edges).
+Proof.
+  unfold labeled_edge_keys. eapply L.NoDup_nodup.
+Qed.
+
+Lemma labeled_edge_keys_In (edges : list (V * V * L)) (edge : V * V)
+  : edge ∈ labeled_edge_keys edges <-> edge ∈ map fst edges.
+Proof.
+  unfold labeled_edge_keys. rewrite L.nodup_In. reflexivity.
+Qed.
+
+Lemma labeled_edge_enum_keys (edges : list (V * V * L))
+  : map fst (map (fun edge => (edge, labels_of_edge edges edge)) (labeled_edge_keys edges)) = labeled_edge_keys edges.
+Proof.
+  induction (labeled_edge_keys edges) as [ | edge keys IH]; simpl; congruence.
+Qed.
+
+#[refine]
+Definition buildFiniteGraph (edges : list (V * V * L)) : @FiniteGraph V :=
+  {|
+    E := fun edge => edge ∈ map fst edges;
+    V_dec := V_hasEqDec;
+    E_dec := fun v : V => fun v' : V => L.in_dec (pair_hasEqdec V_hasEqDec V_hasEqDec) (v, v') (map fst edges);
+    enum_vertices := labeled_edge_vertices edges;
+  |}.
+Proof.
+  rewrite -> FS.subset_lemma. intros v [[v_in EDGE] | [v_out EDGE]].
+  - eapply in_labeled_edge_vertices_dst. exact EDGE.
+  - eapply in_labeled_edge_vertices_src. exact EDGE.
+Defined.
+
+#[refine]
+Definition buildLabeledFiniteGraph (edges : list ((V * V) * L)) : @LabeledFiniteGraph V (list L) :=
+  {|
+    GRAPH := buildFiniteGraph edges;
+    enum_labels := {| kvlist := map (fun edge => (edge, labels_of_edge edges edge)) (labeled_edge_keys edges) |};
+    edges_Irreflexive_flags := false;
+    edges_Symmetric_flags := false;
+    label_Symmetric_flags := false;
+  |}.
+Proof.
+  - cbn. rewrite labeled_edge_enum_keys. eapply labeled_edge_keys_NoDup.
+  - rewrite list_corresponds_to_finite_ensemble_iff. intros edge.
+    cbn. rewrite labeled_edge_enum_keys. eapply labeled_edge_keys_In.
+  - exact I.
+  - exact I.
+  - exact I.
+Defined.
+
+End BUILDER.
 
 Section EXPORT.
 

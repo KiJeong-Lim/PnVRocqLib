@@ -3210,6 +3210,86 @@ Proof.
   exists parent. exists gamma. split; [exact IN_PARENT | exact RIGHT].
 Qed.
 
+Definition lr0_labeled_successors (q : state) : list ((state * state) * V') :=
+  all_symbols >>= fun X =>
+  match delta q X with
+  | Some q' => [((q, q'), X)]
+  | None => []
+  end.
+
+Definition lr0_labeled_edges (qs : list state) : list ((state * state) * V') :=
+  qs >>= lr0_labeled_successors.
+
+Definition lr0_lgraph_from (qs : list state) : @GraphAPI.LabeledFiniteGraph state (list V') :=
+  GraphAPI.buildLabeledFiniteGraph (lr0_labeled_edges qs).
+
+Definition lr0_lgraph : @GraphAPI.LabeledFiniteGraph state (list V') :=
+  lr0_lgraph_from Q.
+
+Lemma lr0_labeled_successors_sound p q q' X
+  (IN : ((q, q'), X) ∈ lr0_labeled_successors p)
+  : q = p /\ X ∈ all_symbols /\ delta p X = Some q'.
+Proof.
+  unfold lr0_labeled_successors in IN.
+  pose proof (list_bind_sound _ _ _ IN) as (Y & IN_Y & IN_EDGE).
+  destruct (delta p Y) as [r | ] eqn: DELTA; simpl in IN_EDGE; [ | contradiction].
+  destruct IN_EDGE as [EQ | []]. inv EQ. splits; eauto.
+Qed.
+
+Lemma lr0_labeled_successors_complete q q' X
+  (IN_X : X ∈ all_symbols)
+  (DELTA : delta q X = Some q')
+  : ((q, q'), X) ∈ lr0_labeled_successors q.
+Proof.
+  unfold lr0_labeled_successors.
+  eapply list_bind_complete with (x := X); [exact IN_X | ].
+  rewrite DELTA. simpl. left. reflexivity.
+Qed.
+
+Theorem lr0_labeled_successors_correct p q q' X
+  : ((q, q'), X) ∈ lr0_labeled_successors p <-> (q = p /\ X ∈ all_symbols /\ delta p X = Some q').
+Proof.
+  split.
+  - eapply lr0_labeled_successors_sound.
+  - intros (EQ & IN_X & DELTA). subst q.
+    eapply lr0_labeled_successors_complete; eauto.
+Qed.
+
+Lemma lr0_labeled_edges_sound qs q q' X
+  (IN : ((q, q'), X) ∈ lr0_labeled_edges qs)
+  : q ∈ qs /\ X ∈ all_symbols /\ delta q X = Some q'.
+Proof.
+  unfold lr0_labeled_edges in IN.
+  pose proof (list_bind_sound _ _ _ IN) as (p & IN_P & IN_SUCC).
+  pose proof (lr0_labeled_successors_sound _ _ _ _ IN_SUCC) as (EQ & IN_X & DELTA).
+  subst q. splits; eauto.
+Qed.
+
+Lemma lr0_labeled_edges_complete qs q q' X
+  (IN_Q : q ∈ qs)
+  (IN_X : X ∈ all_symbols)
+  (DELTA : delta q X = Some q')
+  : ((q, q'), X) ∈ lr0_labeled_edges qs.
+Proof.
+  unfold lr0_labeled_edges.
+  eapply list_bind_complete with (x := q); [exact IN_Q | ].
+  eapply lr0_labeled_successors_complete; eauto.
+Qed.
+
+Theorem lr0_labeled_edges_correct qs q q' X
+  : ((q, q'), X) ∈ lr0_labeled_edges qs <-> (q ∈ qs /\ X ∈ all_symbols /\ delta q X = Some q').
+Proof.
+  split.
+  - eapply lr0_labeled_edges_sound.
+  - intros (IN_Q & IN_X & DELTA). eapply lr0_labeled_edges_complete; eauto.
+Qed.
+
+Theorem lr0_lgraph_labels_correct qs q q' X
+  : X ∈ GraphAPI.labels_of_edge (lr0_labeled_edges qs) (q, q') <-> (q ∈ qs /\ X ∈ all_symbols /\ delta q X = Some q').
+Proof.
+  rewrite GraphAPI.labels_of_edge_In. eapply lr0_labeled_edges_correct.
+Qed.
+
 Lemma q0_items_valid it
   (IN : it ∈ q0)
   : valid_item it.

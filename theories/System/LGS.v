@@ -616,6 +616,30 @@ Fixpoint fragment_char_edges (frags : list (Rule.t * fragment)) {struct frags} :
   | (_, frag) :: frags' => frag.(frag_char_edges) ++ fragment_char_edges frags'
   end.
 
+Definition enfa_edge_label : Set :=
+  option ascii.
+
+Definition eps_labeled_edges (edges : list (nat * nat)) : list (nat * nat * enfa_edge_label) :=
+  map (fun edge => (edge, None)) edges.
+
+Definition char_labeled_edge (edge : char_edge) : (nat * nat) * enfa_edge_label :=
+  ((edge.(char_edge_src), edge.(char_edge_dst)), Some edge.(char_edge_label)).
+
+Definition char_labeled_edges (edges : list char_edge) : list ((nat * nat) * enfa_edge_label) :=
+  map char_labeled_edge edges.
+
+Definition enfa_labeled_edges (eps_edges : list (nat * nat)) (char_edges : list char_edge) : list ((nat * nat) * enfa_edge_label) :=
+  eps_labeled_edges eps_edges ++ char_labeled_edges char_edges.
+
+Definition enfa_lgraph (eps_edges : list (nat * nat)) (char_edges : list char_edge) : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label) :=
+  GraphAPI.buildLabeledFiniteGraph (enfa_labeled_edges eps_edges char_edges).
+
+Definition fragment_lgraph (frag : fragment) : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label) :=
+  enfa_lgraph frag.(frag_eps_edges) frag.(frag_char_edges).
+
+Definition fragments_lgraph (frags : list (Rule.t * fragment)) : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label) :=
+  enfa_lgraph (fragment_eps_edges frags) (fragment_char_edges frags).
+
 Definition fragments2TaggedENFA (qmax : nat) (frags : list (Rule.t * fragment)) : TaggedENFA.t :=
   {|
     state := nat;
@@ -648,6 +672,99 @@ Proof.
 Qed.
 
 #[local] Hint Rewrite in_char_step_from_edges_iff : simplication_hints.
+
+Lemma in_eps_labeled_edges_iff (edge : nat * nat) (edges : list (nat * nat))
+  : (edge, None) ∈ eps_labeled_edges edges <-> edge ∈ edges.
+Proof.
+  unfold eps_labeled_edges. rewrite L.in_map_iff. split.
+  - intros (edge' & EQ & IN). inv EQ. exact IN.
+  - intros IN. exists edge. split; [reflexivity | exact IN].
+Qed.
+
+Lemma in_eps_labeled_edges_some_absurd (edge : nat * nat) (c : ascii) (edges : list (nat * nat))
+  (IN : (edge, Some c) ∈ eps_labeled_edges edges)
+  : False.
+Proof.
+  unfold eps_labeled_edges in IN. rewrite L.in_map_iff in IN.
+  destruct IN as (edge' & EQ & _). inv EQ.
+Qed.
+
+Lemma in_char_labeled_edges_iff
+  (q : nat) (q' : nat) (c : ascii) (edges : list char_edge)
+  : ((q, q'), Some c) ∈ char_labeled_edges edges <->
+    {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ edges.
+Proof.
+  unfold char_labeled_edges. rewrite L.in_map_iff. split.
+  - intros (edge & EQ & IN). destruct edge as [src label dst]. simpl in EQ.
+    inv EQ. exact IN.
+  - intros IN. exists {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |}.
+    split; [reflexivity | exact IN].
+Qed.
+
+Lemma in_char_labeled_edges_none_absurd (edge : nat * nat) (edges : list char_edge)
+  (IN : (edge, None) ∈ char_labeled_edges edges)
+  : False.
+Proof.
+  unfold char_labeled_edges in IN. rewrite L.in_map_iff in IN.
+  destruct IN as (edge' & EQ & _). destruct edge' as [src label dst]. simpl in EQ. inv EQ.
+Qed.
+
+Lemma enfa_labeled_edges_eps_label_iff
+  (eps_edges : list (nat * nat))
+  (char_edges : list char_edge)
+  (q : nat) (q' : nat)
+  : None ∈
+      GraphAPI.labels_of_edge (enfa_labeled_edges eps_edges char_edges)
+        (q, q') <->
+    (q, q') ∈ eps_edges.
+Proof.
+  rewrite GraphAPI.labels_of_edge_In. unfold enfa_labeled_edges.
+  rewrite L.in_app_iff. split.
+  - intros [IN | IN].
+    + now rewrite in_eps_labeled_edges_iff in IN.
+    + exfalso. eapply in_char_labeled_edges_none_absurd. exact IN.
+  - intros IN. left. now rewrite in_eps_labeled_edges_iff.
+Qed.
+
+Lemma enfa_labeled_edges_char_label_iff
+  (eps_edges : list (nat * nat))
+  (char_edges : list char_edge)
+  (q : nat) (q' : nat) (c : ascii)
+  : Some c ∈
+      GraphAPI.labels_of_edge (enfa_labeled_edges eps_edges char_edges)
+        (q, q') <->
+    {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |}
+      ∈ char_edges.
+Proof.
+  rewrite GraphAPI.labels_of_edge_In. unfold enfa_labeled_edges.
+  rewrite L.in_app_iff. split.
+  - intros [IN | IN].
+    + exfalso. eapply in_eps_labeled_edges_some_absurd. exact IN.
+    + now rewrite in_char_labeled_edges_iff in IN.
+  - intros IN. right. now rewrite in_char_labeled_edges_iff.
+Qed.
+
+Lemma in_eps_step_from_lgraph_iff
+  (q : nat) (q' : nat)
+  (eps_edges : list (nat * nat))
+  (char_edges : list char_edge)
+  : q' ∈ eps_step_from_edges eps_edges q <->
+    None ∈ GraphAPI.labels_of_edge
+      (enfa_labeled_edges eps_edges char_edges) (q, q').
+Proof.
+  rewrite in_eps_step_from_edges_iff. symmetry. eapply enfa_labeled_edges_eps_label_iff.
+Qed.
+
+Lemma in_char_step_from_lgraph_iff
+  (q : nat) (q' : nat) (c : ascii)
+  (eps_edges : list (nat * nat))
+  (char_edges : list char_edge)
+  : q' ∈ char_step_from_edges char_edges q c <->
+    Some c ∈ GraphAPI.labels_of_edge
+      (enfa_labeled_edges eps_edges char_edges) (q, q').
+Proof.
+  rewrite in_char_step_from_edges_iff. symmetry. eapply enfa_labeled_edges_char_label_iff.
+Qed.
 
 Lemma q0_eps_qi_intro (frags : list (Rule.t * fragment)) (rule : Rule.t) (frag : fragment)
   (IN : (rule, frag) ∈ frags)
