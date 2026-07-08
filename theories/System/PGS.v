@@ -3087,10 +3087,16 @@ Definition all_symbols : list V' :=
 Definition q0 : state :=
   kernel.
 
-Definition state_successors (q : state) : list state :=
+Definition lr0_labeled_successors (q : state) : list ((state * state) * V') :=
   all_symbols >>= fun X =>
   let q' := goto q X in
-  if nonempty q' then [q'] else [].
+  if nonempty q' then [((q, q'), X)] else [].
+
+Definition lr0_labeled_edges (qs : list state) : list ((state * state) * V') :=
+  qs >>= lr0_labeled_successors.
+
+Definition state_successors (q : state) : list state :=
+  GraphAPI.successors (lr0_labeled_edges [q]) q.
 
 Definition states_step (qs : list state) : list state :=
   L.nodup state_hasEqDec (qs ++ (qs >>= state_successors)).
@@ -3210,16 +3216,6 @@ Proof.
   exists parent. exists gamma. split; [exact IN_PARENT | exact RIGHT].
 Qed.
 
-Definition lr0_labeled_successors (q : state) : list ((state * state) * V') :=
-  all_symbols >>= fun X =>
-  match delta q X with
-  | Some q' => [((q, q'), X)]
-  | None => []
-  end.
-
-Definition lr0_labeled_edges (qs : list state) : list ((state * state) * V') :=
-  qs >>= lr0_labeled_successors.
-
 Definition lr0_lgraph_from (qs : list state) : @GraphAPI.LabeledFiniteGraph state (list V') :=
   GraphAPI.buildLabeledFiniteGraph (lr0_labeled_edges qs).
 
@@ -3232,8 +3228,10 @@ Lemma lr0_labeled_successors_sound p q q' X
 Proof.
   unfold lr0_labeled_successors in IN.
   pose proof (list_bind_sound _ _ _ IN) as (Y & IN_Y & IN_EDGE).
-  destruct (delta p Y) as [r | ] eqn: DELTA; simpl in IN_EDGE; [ | contradiction].
-  destruct IN_EDGE as [EQ | []]. inv EQ. splits; eauto.
+  destruct (nonempty (goto p Y)) eqn: NONEMPTY; simpl in IN_EDGE; [ | contradiction].
+  destruct IN_EDGE as [EQ | []]. inv EQ.
+  splits; eauto.
+  unfold delta. rewrite NONEMPTY. reflexivity.
 Qed.
 
 Lemma lr0_labeled_successors_complete q q' X
@@ -3241,9 +3239,11 @@ Lemma lr0_labeled_successors_complete q q' X
   (DELTA : delta q X = Some q')
   : ((q, q'), X) ∈ lr0_labeled_successors q.
 Proof.
+  unfold delta in DELTA.
+  destruct (nonempty (goto q X)) eqn: NONEMPTY; inv DELTA.
   unfold lr0_labeled_successors.
   eapply list_bind_complete with (x := X); [exact IN_X | ].
-  rewrite DELTA. simpl. left. reflexivity.
+  rewrite NONEMPTY. simpl. left. reflexivity.
 Qed.
 
 Theorem lr0_labeled_successors_correct p q q' X
@@ -3290,27 +3290,22 @@ Proof.
   rewrite GraphAPI.labels_of_edge_In. eapply lr0_labeled_edges_correct.
 Qed.
 
+Definition lr0_graph_step (p : state) (X : V') (q : state) : Prop :=
+  X ∈ GraphAPI.labels_of_edge (lr0_labeled_edges [p]) (p, q).
+
+Lemma lr0_graph_step_delta p X q
+  : lr0_graph_step p X q <-> delta p X = Some q.
+Proof.
+  unfold lr0_graph_step. rewrite lr0_lgraph_labels_correct.
+  split.
+  - intros (_ & _ & DELTA). exact DELTA.
+  - intros DELTA. splits; [left; reflexivity | unfold all_symbols; eapply V'_all_complete | exact DELTA].
+Qed.
+
 Theorem state_successors_lgraph_correct q q'
   : q' ∈ state_successors q <-> (exists X, X ∈ GraphAPI.labels_of_edge (lr0_labeled_edges [q]) (q, q')).
 Proof.
-  split.
-  - intros IN.
-    unfold state_successors in IN.
-    pose proof (list_bind_sound _ _ _ IN) as (X & IN_X & IN_Q).
-    destruct (nonempty (goto q X)) eqn: NONEMPTY; simpl in IN_Q; [ | contradiction].
-    destruct IN_Q as [EQ | []]. subst q'.
-    exists X. rewrite lr0_lgraph_labels_correct.
-    splits; [left; reflexivity | exact IN_X | ].
-    unfold delta. rewrite NONEMPTY. reflexivity.
-  - intros (X & LABEL).
-    rewrite lr0_lgraph_labels_correct in LABEL.
-    destruct LABEL as (IN_Q & IN_X & DELTA).
-    destruct IN_Q as [EQ | []]. subst.
-    unfold state_successors.
-    eapply list_bind_complete with (x := X); [exact IN_X | ].
-    unfold delta in DELTA.
-    destruct (nonempty (goto q X)) eqn: NONEMPTY; inv DELTA.
-    simpl. left. reflexivity.
+  unfold state_successors. eapply GraphAPI.successors_labels_of_edge.
 Qed.
 
 Lemma q0_items_valid it
@@ -3889,7 +3884,7 @@ Inductive path : list V' -> state -> state -> Prop :=
     : path [] p p
   | path_cons X alpha p q r
     (IN : p ∈ Q)
-    (STEP : delta p X = Some q)
+    (STEP : lr0_graph_step p X q)
     (REST : path alpha q r)
     : path (X :: alpha) p r.
 
@@ -4041,7 +4036,8 @@ Proof.
   - replace (prefix ++ X :: eta) with ((prefix ++ [X]) ++ eta) by (rewrite <- app_assoc; reflexivity).
     eapply IH.
     + intros q_it IN_Q.
-      pose proof (delta_some_nonempty p X q STEP) as (Q_EQ & _).
+      pose proof (proj1 (lr0_graph_step_delta p X q) STEP) as DELTA.
+      pose proof (delta_some_nonempty p X q DELTA) as (Q_EQ & _).
       subst q.
       eapply lr0_goto_item_valid_for_path_productive; [exact PRODUCTIVE | eapply Q_items_valid; exact IN_P | exact SOURCE | exact IN_Q].
     + exact IN_IT.
@@ -4147,7 +4143,8 @@ Proof.
   - replace (prefix ++ X :: eta) with ((prefix ++ [X]) ++ eta) by (rewrite <- app_assoc; reflexivity).
     eapply IH.
     + intros q_it IN_Q.
-      pose proof (delta_some_nonempty p X q STEP) as (Q_EQ & _).
+      pose proof (proj1 (lr0_graph_step_delta p X q) STEP) as DELTA.
+      pose proof (delta_some_nonempty p X q DELTA) as (Q_EQ & _).
       subst q.
       eapply lr0_goto_item_plain_viable; [exact SOURCE | exact IN_Q].
     + exact IN_IT.
@@ -4175,7 +4172,8 @@ Proof.
   revert n qs IN. induction PATH as [p IN_Q | X alpha p q r IN_Q STEP REST IH]; intros n qs IN_ITER; simpl.
   - rewrite Nat.add_0_r. exact IN_ITER.
   - replace (n + S (length alpha)) with (S n + length alpha) by lia.
-    eapply IH. eapply states_iter_successor; [exact IN_ITER | | exact STEP].
+    pose proof (proj1 (lr0_graph_step_delta p X q) STEP) as DELTA.
+    eapply IH. eapply states_iter_successor; [exact IN_ITER | | exact DELTA].
     unfold all_symbols. eapply V'_all_complete.
 Qed.
 
@@ -4230,7 +4228,9 @@ Proof.
   revert q2 PATH2. induction PATH1 as [p IN | X alpha p q r IN STEP REST IH]; intros q2 PATH2.
   - inversion PATH2; subst. reflexivity.
   - inversion PATH2 as [ | X' alpha' p' q' r' IN' STEP' REST']; subst; clear PATH2.
-    rewrite STEP in STEP'. inversion STEP'; subst; clear STEP'.
+    pose proof (proj1 (lr0_graph_step_delta p X q) STEP) as DELTA.
+    pose proof (proj1 (lr0_graph_step_delta p X q') STEP') as DELTA'.
+    rewrite DELTA in DELTA'. inversion DELTA'; subst; clear DELTA'.
     eapply IH. exact REST'.
 Qed.
 
@@ -4267,13 +4267,14 @@ Proof.
   pose proof (path_target_in_Q [inl A] p dst' path_A) as IN_DST'.
   inversion path_A as [ | X tail p0 dst0 r IN_P STEP_A REST_A]; subst; clear path_A.
   inversion REST_A; subst; clear REST_A.
-  pose proof (delta_nonterminal_seed p A dst' omega (path_target_in_Q alpha q0 p path_alpha) PROD STEP_A) as SEED.
+  pose proof (proj1 (lr0_graph_step_delta p (inl A) dst') STEP_A) as STEP_A_DELTA.
+  pose proof (delta_nonterminal_seed p A dst' omega (path_target_in_Q alpha q0 p path_alpha) PROD STEP_A_DELTA) as SEED.
   eapply lr0_source_handle_prod_path_spec_intro with (p := p) (dst' := dst').
   - exact path_alpha.
   - exact path_A_copy.
   - exact path_suffix.
   - exact IN_DST'.
-  - exact STEP_A.
+  - exact STEP_A_DELTA.
   - exact SEED.
 Qed.
 
@@ -4318,7 +4319,9 @@ Lemma path_symbol p q X
   (STEP : delta p X = Some q)
   : path [X] p q.
 Proof.
-  econstructor; [exact IN_P | exact STEP | constructor; exact IN_Q].
+  assert (GSTEP : lr0_graph_step p X q).
+  { rewrite lr0_graph_step_delta. exact STEP. }
+  econstructor; [exact IN_P | exact GSTEP | constructor; exact IN_Q].
 Qed.
 
 Lemma path_snoc alpha p q X r
@@ -4439,7 +4442,9 @@ Proof.
     pose proof (goto_shift_item p X p' A beta right STEP ITEM) as ITEM_SHIFT.
     pose proof (IH p' (beta ++ [X]) IN_P' ITEM_SHIFT) as (q & PATH & DONE).
     exists q. split.
-    + econstructor; [exact IN_P | exact STEP | exact PATH].
+    + assert (GSTEP : lr0_graph_step p X p').
+      { rewrite lr0_graph_step_delta. exact STEP. }
+      econstructor; [exact IN_P | exact GSTEP | exact PATH].
     + replace (beta ++ X :: right) with ((beta ++ [X]) ++ right) by (rewrite <- app_assoc; reflexivity).
       exact DONE.
 Qed.
@@ -4464,7 +4469,8 @@ Theorem lr0_path_item_invariant alpha p q A beta gamma
 Proof.
   revert A beta gamma IN. induction PATH as [p IN_Q | X alpha p q r IN_Q STEP REST IH]; intros A beta gamma IN; simpl in *.
   - replace (beta ++ []) with beta by (rewrite app_nil_r; reflexivity). exact IN.
-  - pose proof (goto_shift_item p X q A beta (alpha ++ gamma) STEP IN) as IN_SHIFT.
+  - pose proof (proj1 (lr0_graph_step_delta p X q) STEP) as DELTA.
+    pose proof (goto_shift_item p X q A beta (alpha ++ gamma) DELTA IN) as IN_SHIFT.
     pose proof (IH A (beta ++ [X]) gamma IN_SHIFT) as IN_REST.
     replace (beta ++ X :: alpha) with ((beta ++ [X]) ++ alpha) by (rewrite <- app_assoc; reflexivity).
     exact IN_REST.
@@ -4742,8 +4748,9 @@ Proof.
   - simpl in path_ts. inversion path_ts; subst. simpl. rewrite app_nil_r. exists path_src. constructor 2.
   - simpl in path_ts. inversion path_ts as [ | X alpha' p q1 r IN_DST STEP_T REST]; subst; clear path_ts.
     pose proof (path_source_in_Q (map inr ts) q1 q REST) as IN_Q1.
-    pose proof (lr0_shift_steps alpha src dst (ts ++ rest) t q1 path_src IN_Q1 STEP_T) as STEPS_SHIFT.
-    pose proof (IH (alpha ++ [inr t]) src q1 rest (path_snoc alpha src dst (inr t) q1 path_src IN_Q1 STEP_T) REST) as (path_tgt & STEPS_REST).
+    pose proof (proj1 (lr0_graph_step_delta dst (inr t) q1) STEP_T) as STEP_T_DELTA.
+    pose proof (lr0_shift_steps alpha src dst (ts ++ rest) t q1 path_src IN_Q1 STEP_T_DELTA) as STEPS_SHIFT.
+    pose proof (IH (alpha ++ [inr t]) src q1 rest (path_snoc alpha src dst (inr t) q1 path_src IN_Q1 STEP_T_DELTA) REST) as (path_tgt & STEPS_REST).
     simpl.
     replace (alpha ++ inr t :: map inr ts) with ((alpha ++ [inr t]) ++ map inr ts) by (rewrite <- app_assoc; reflexivity).
     eexists. eapply lr0_steps_trans; [exact STEPS_SHIFT | exact STEPS_REST].
@@ -4969,8 +4976,12 @@ Proof.
   { unfold PT, compute_states. eapply states_iter_mono_fuel with (n := 2); [lia | exact IN_QF_ITER]. }
   assert (IN_QF : qf ∈ Q).
   { unfold Q. rewrite filter_In. split; [exact IN_QF_PT | ]. pose proof (delta_some_nonempty qS (inr eof) qf STEP_EOF) as (_ & NONEMPTY). exact NONEMPTY. }
-  unfold accept_word. econstructor; [exact q0_in_Q | exact STEP_START | ].
-  econstructor; [exact IN_QS | exact STEP_EOF | constructor; exact IN_QF].
+  assert (GSTEP_START : lr0_graph_step q0 (inl (lift_N Grammar.start)) qS).
+  { rewrite lr0_graph_step_delta. exact STEP_START. }
+  assert (GSTEP_EOF : lr0_graph_step qS (inr eof) qf).
+  { rewrite lr0_graph_step_delta. exact STEP_EOF. }
+  unfold accept_word. econstructor; [exact q0_in_Q | exact GSTEP_START | ].
+  econstructor; [exact IN_QS | exact GSTEP_EOF | constructor; exact IN_QF].
 Qed.
 
 Theorem accept_path_q_f qf
@@ -4980,8 +4991,10 @@ Proof.
   unfold accept_word in PATH. inversion PATH as [ | X alpha p qS r IN_Q0 STEP_START REST]; subst; clear PATH.
   inversion REST as [ | X' alpha' p' qf' r' IN_QS STEP_EOF REST_EOF]; subst; clear REST.
   inversion REST_EOF; subst; clear REST_EOF.
+  pose proof (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS) STEP_START) as STEP_START_DELTA.
+  pose proof (proj1 (lr0_graph_step_delta qS (inr eof) qf) STEP_EOF) as STEP_EOF_DELTA.
   unfold q_f. change ((delta q0 (inl (lift_N Grammar.start)) >>= fun qS0 => delta qS0 (inr eof)) = Some qf).
-  rewrite STEP_START. exact STEP_EOF.
+  rewrite STEP_START_DELTA. exact STEP_EOF_DELTA.
 Qed.
 
 Theorem q_f_accept_path_iff qf
@@ -5010,8 +5023,10 @@ Proof.
   pose proof (path_target_in_Q [inr eof] qS qf REST) as IN_QF.
   inversion REST as [ | X' alpha' p' qf' r' IN_QS STEP_EOF REST_EOF]; subst; clear REST.
   inversion REST_EOF; subst; clear REST_EOF.
-  pose proof (path_symbol q0 qS (inl (lift_N Grammar.start)) q0_in_Q IN_QS STEP_START) as path_start.
-  pose proof (lr0_shift_steps [inl (lift_N Grammar.start)] q0 qS [] eof qf path_start IN_QF STEP_EOF) as STEPS.
+  pose proof (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS) STEP_START) as STEP_START_DELTA.
+  pose proof (proj1 (lr0_graph_step_delta qS (inr eof) qf) STEP_EOF) as STEP_EOF_DELTA.
+  pose proof (path_symbol q0 qS (inl (lift_N Grammar.start)) q0_in_Q IN_QS STEP_START_DELTA) as path_start.
+  pose proof (lr0_shift_steps [inl (lift_N Grammar.start)] q0 qS [] eof qf path_start IN_QF STEP_EOF_DELTA) as STEPS.
   exists qS. exists path_start. unfold accept_word. simpl. eexists. exact STEPS.
 Qed.
 
@@ -5069,7 +5084,9 @@ Proof.
   destruct (delta q0 (inl (lift_N Grammar.start))) as [qS0 | ] eqn: STEP_START_QF; simpl in FINAL; [ | discriminate].
   destruct (delta qS0 (inr eof)) as [qf0 | ] eqn: STEP_EOF; simpl in FINAL; [ | discriminate]. inv FINAL.
   inversion path_start as [ | X alpha p q1 r IN_Q0 STEP_START REST]; subst.
-  inversion REST; subst. rewrite STEP_START_QF in STEP_START. inv STEP_START.
+  inversion REST; subst.
+  pose proof (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS) STEP_START) as STEP_START_DELTA.
+  rewrite STEP_START_QF in STEP_START_DELTA. inv STEP_START_DELTA.
   pose proof (path_target_in_Q accept_word q0 qf (q_f_accept_path qf FINAL_COPY)) as IN_QF.
   set (path_accept := path_snoc [inl (lift_N Grammar.start)] q0 qS (inr eof) qf path_start IN_QF STEP_EOF).
   pose proof (lr0_shift_steps [inl (lift_N Grammar.start)] q0 qS [] eof qf path_start IN_QF STEP_EOF) as STEPS_FINAL.
@@ -5223,7 +5240,8 @@ Proof.
   pose proof (path_target_in_Q [inl A] p dst' path_A) as IN_DST'.
   inversion path_A as [ | X tail p0 dst0 r IN_P STEP_A REST_A]; subst; clear path_A.
   inversion REST_A; subst; clear REST_A.
-  exact (lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists w q_input alpha omega suffix p dst rest A dst' q_source qS path_input path_handle path_alpha path_omega path_suffix_source path_start IN_DST' PROD STEP_A (fun path_shifted => STEPS_TO_TARGET dst path_handle path_shifted) (fun path_tgt => STEPS_AFTER_SOURCE path_tgt)).
+  pose proof (proj1 (lr0_graph_step_delta p (inl A) dst') STEP_A) as STEP_A_DELTA.
+  exact (lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists w q_input alpha omega suffix p dst rest A dst' q_source qS path_input path_handle path_alpha path_omega path_suffix_source path_start IN_DST' PROD STEP_A_DELTA (fun path_shifted => STEPS_TO_TARGET dst path_handle path_shifted) (fun path_tgt => STEPS_AFTER_SOURCE path_tgt)).
 Qed.
 
 Lemma lr0_init_prod_block_from_paths_to_sentential_steps w alpha omega suffix rest A q_target q_source
@@ -5242,7 +5260,8 @@ Proof.
   inversion path_A as [ | X tail p0 dst0 r IN_P STEP_A REST_A]; subst; clear path_A.
   inversion REST_A; subst; clear REST_A.
   pose proof (STEPS_TO_TARGET dst path_handle) as STEPS_HANDLE.
-  pose proof (lr0_reduce_then_shift_terminal_list_from_prod alpha omega suffix q0 p dst rest A dst' q_source path_handle path_alpha path_omega path_suffix_source IN_DST' PROD STEP_A) as (path_tgt & STEPS_BLOCK).
+  pose proof (proj1 (lr0_graph_step_delta p (inl A) dst') STEP_A) as STEP_A_DELTA.
+  pose proof (lr0_reduce_then_shift_terminal_list_from_prod alpha omega suffix q0 p dst rest A dst' q_source path_handle path_alpha path_omega path_suffix_source IN_DST' PROD STEP_A_DELTA) as (path_tgt & STEPS_BLOCK).
   exists path_tgt. eapply lr0_steps_trans; [exact STEPS_HANDLE | exact STEPS_BLOCK].
 Qed.
 
@@ -5260,7 +5279,8 @@ Proof.
   destruct STEPS_TO_TARGET as (dst & path_handle & STEPS_HANDLE).
   pose proof (proj1 (lr0_path_factorization alpha omega q0 dst) path_handle) as (p_target & path_alpha_target & path_omega & UNIQUE_TARGET_PREFIX).
   pose proof (path_deterministic alpha q0 p_target p_source path_alpha_target path_alpha_source) as P_EQ. subst p_target.
-  pose proof (lr0_reduce_then_shift_terminal_list_from_prod alpha omega suffix q0 p_source dst rest A dst' q_source path_handle path_alpha_source path_omega path_suffix_source IN_DST' PROD STEP_A) as (path_tgt & STEPS_BLOCK).
+  pose proof (proj1 (lr0_graph_step_delta p_source (inl A) dst') STEP_A) as STEP_A_DELTA.
+  pose proof (lr0_reduce_then_shift_terminal_list_from_prod alpha omega suffix q0 p_source dst rest A dst' q_source path_handle path_alpha_source path_omega path_suffix_source IN_DST' PROD STEP_A_DELTA) as (path_tgt & STEPS_BLOCK).
   exists path_tgt. eapply lr0_steps_trans; [exact STEPS_HANDLE | exact STEPS_BLOCK].
 Qed.
 
@@ -7266,8 +7286,9 @@ Proof.
     set (nq := state_index_nat q).
     assert (INDEX_MID : index_of q = Some nq).
     { unfold nq. eapply index_of_complete. exact IN_Q. }
+    pose proof (proj1 (lr0_graph_step_delta p X q) STEP) as DELTA.
     econstructor.
-    + eapply dN_delta_some; [exact INDEX_P | exact STEP | exact INDEX_MID].
+    + eapply dN_delta_some; [exact INDEX_P | exact DELTA | exact INDEX_MID].
     + eapply IH; [exact INDEX_MID | exact INDEX_Q].
 Qed.
 
@@ -7288,7 +7309,9 @@ Proof.
     pose proof (state_of_index_of p_mid mid INDEX_MID) as STATE_MID.
     pose proof (IH p_mid q STATE_MID STATE_M) as REST_PATH.
     pose proof (state_of_sound n p STATE_N) as (IN_P & _).
-    econstructor; [exact IN_P | exact DELTA | exact REST_PATH].
+    assert (GSTEP : lr0_graph_step p X p_mid).
+    { rewrite lr0_graph_step_delta. exact DELTA. }
+    econstructor; [exact IN_P | exact GSTEP | exact REST_PATH].
 Qed.
 
 Lemma npath_item_invariant_from_source alpha n m p A beta gamma
@@ -10047,10 +10070,12 @@ Proof.
   inversion REST_EOF; subst; clear REST_EOF.
   set (r := state_index_nat qS).
   set (s := state_index_nat qf).
+  pose proof (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS) STEP_START) as STEP_START_DELTA.
+  pose proof (proj1 (lr0_graph_step_delta qS (inr eof) qf) STEP_EOF) as STEP_EOF_DELTA.
   assert (STEP_START_N : dN nq0 (inl (lift_N Grammar.start)) = Some r).
-  { unfold nq0. unfold r. eapply dN_delta_some; [eapply index_of_complete; exact q0_in_Q | exact STEP_START | eapply index_of_complete; exact IN_QS]. }
+  { unfold nq0. unfold r. eapply dN_delta_some; [eapply index_of_complete; exact q0_in_Q | exact STEP_START_DELTA | eapply index_of_complete; exact IN_QS]. }
   assert (STEP_EOF_N : dN r (inr eof) = Some s).
-  { unfold r, s. eapply dN_delta_some; [eapply index_of_complete; exact IN_QS | exact STEP_EOF | eapply index_of_complete; exact IN_QF]. }
+  { unfold r, s. eapply dN_delta_some; [eapply index_of_complete; exact IN_QS | exact STEP_EOF_DELTA | eapply index_of_complete; exact IN_QF]. }
   eapply Follow_read_to_closure. eapply Read_direct; [exact STEP_START_N | exact STEP_EOF_N].
 Qed.
 
@@ -10721,9 +10746,10 @@ Proof.
     unfold accept_word in PATH_ACCEPT.
     inversion PATH_ACCEPT as [ | X' alpha' p0 qS r IN_Q0 STEP_START REST]; subst; clear PATH_ACCEPT.
     pose proof (path_source_in_Q [inr eof] qS qf REST) as IN_QS.
+    pose proof (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS) STEP_START) as STEP_START_DELTA.
     set (p_after := state_index_nat qS).
     assert (STEP_START_N : dN nq0 (inl (lift_N Grammar.start)) = Some p_after).
-    { unfold nq0, p_after. eapply dN_delta_some; [eapply index_of_complete; exact q0_in_Q | exact STEP_START | eapply index_of_complete; exact IN_QS]. }
+    { unfold nq0, p_after. eapply dN_delta_some; [eapply index_of_complete; exact q0_in_Q | exact STEP_START_DELTA | eapply index_of_complete; exact IN_QS]. }
     exists p_after. eapply npath_singleton. exact STEP_START_N.
   - simpl in TARGET. destruct X as [B | u]; [ | discriminate]. injection TARGET as START_EQ TAIL_EQ. destruct alpha_tail as [ | Y alpha_tail]; simpl in TAIL_EQ; [discriminate | ]. injection TAIL_EQ as HEAD_EQ NIL_EQ. exfalso.
     assert (LEN : length (@nil V') = length (alpha_tail ++ inl A :: suffix)) by (rewrite <- NIL_EQ; reflexivity).
@@ -18106,10 +18132,13 @@ Proof.
   - exists p_orig. split.
     + econstructor. exact IN_Q_ORIG.
     + exact INCL.
-  - pose proof (pruned_delta_erase p X q p_orig IN_Q_ORIG INCL STEP) as (q_orig & STEP_ORIG & IN_Q_NEXT & INCL_NEXT).
+  - pose proof (proj1 (Pruned.LR0.lr0_graph_step_delta p X q) STEP) as STEP_DELTA.
+    pose proof (pruned_delta_erase p X q p_orig IN_Q_ORIG INCL STEP_DELTA) as (q_orig & STEP_ORIG & IN_Q_NEXT & INCL_NEXT).
     pose proof (IH q_orig IN_Q_NEXT INCL_NEXT) as (r_orig & PATH_ORIG & INCL_R).
     exists r_orig. split.
-    + simpl. econstructor; [exact IN_Q_ORIG | exact STEP_ORIG | exact PATH_ORIG].
+    + assert (STEP_ORIG_GRAPH : Orig.LR0.lr0_graph_step p_orig (erase_aug_symbol X) q_orig).
+      { rewrite Orig.LR0.lr0_graph_step_delta. exact STEP_ORIG. }
+      simpl. econstructor; [exact IN_Q_ORIG | exact STEP_ORIG_GRAPH | exact PATH_ORIG].
     + exact INCL_R.
 Qed.
 
@@ -18607,7 +18636,8 @@ Proof.
   induction PATH as [p IN_Q | X alpha p mid q IN_P STEP REST IH].
   - exact IN_INIT.
   - pose proof (IH IN_INIT) as IN_MID.
-    exfalso. eapply orig_delta_target_initial_item_absurd; [exact IN_P | exact STEP | exact IN_MID].
+    pose proof (proj1 (Orig.LR0.lr0_graph_step_delta p X mid) STEP) as STEP_DELTA.
+    exfalso. eapply orig_delta_target_initial_item_absurd; [exact IN_P | exact STEP_DELTA | exact IN_MID].
 Qed.
 
 Lemma orig_path_from_q0_initial_item_target alpha q
@@ -18618,7 +18648,8 @@ Proof.
   destruct PATH as [p IN_Q | X beta p mid r IN_P STEP REST].
   - split; reflexivity.
   - pose proof (orig_path_initial_item_backwards beta mid r REST IN_INIT) as IN_MID.
-    exfalso. eapply orig_delta_target_initial_item_absurd; [exact IN_P | exact STEP | exact IN_MID].
+    pose proof (proj1 (Orig.LR0.lr0_graph_step_delta p X mid) STEP) as STEP_DELTA.
+    exfalso. eapply orig_delta_target_initial_item_absurd; [exact IN_P | exact STEP_DELTA | exact IN_MID].
 Qed.
 
 Lemma pruned_initial_item_in_q0

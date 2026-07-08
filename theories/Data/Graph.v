@@ -886,7 +886,7 @@ Proof.
   exact HH.
 Qed.
 
-Section BUILDER.
+Section LabeledFiniteGraph.
 
 #[local] Infix "∈" := L.In.
 
@@ -906,6 +906,108 @@ Lemma labels_of_edge_In (edges : list (V * V * L)) (edge : V * V) (label : L)
 Proof.
   induction edges as [ | [edge' label'] edges IH]; simpl; eauto.
   destruct (B.decide (edge = edge')) as [EQ | NE]; ss!.
+Qed.
+
+Lemma labels_of_edge_app (edges1 : list (V * V * L)) (edges2 : list (V * V * L)) (edge : V * V) (label : L)
+  : label ∈ labels_of_edge (edges1 ++ edges2) edge <-> label ∈ labels_of_edge edges1 edge \/ label ∈ labels_of_edge edges2 edge.
+Proof.
+  repeat rewrite labels_of_edge_In. rewrite L.in_app_iff. reflexivity.
+Qed.
+
+Fixpoint successors (edges : list (V * V * L)) (src : V) {struct edges} : list V :=
+  match edges with
+  | [] => []
+  | ((src', dst), _) :: edges' =>
+    if B.decide (src = src') then
+      dst :: successors edges' src
+    else
+      successors edges' src
+  end.
+
+Lemma successors_In (edges : list (V * V * L)) (src : V) (dst : V)
+  : dst ∈ successors edges src <-> exists label, ((src, dst), label) ∈ edges.
+Proof.
+  induction edges as [ | edge_label edges IH]; simpl.
+  - split; [intros [] | intros (label & [])].
+  - destruct edge_label as [[src0 dst0] label0]. simpl.
+    destruct (B.decide (src = src0)) as [EQ | NE].
+    + subst src0. simpl. rewrite IH. split.
+      * intros [EQ | [label IN]].
+        { subst dst0. exists label0. left. reflexivity. }
+        { exists label. right. exact IN. }
+      * intros (label & [EQ | IN]).
+        { inv EQ. left. reflexivity. }
+        { right. exists label. exact IN. }
+    + rewrite IH. split.
+      * intros (label & IN). exists label. right. exact IN.
+      * intros (label & [EQ | IN]).
+        { inv EQ. contradiction. }
+        { exists label. exact IN. }
+Qed.
+
+Lemma successors_labels_of_edge (edges : list (V * V * L)) (src : V) (dst : V)
+  : dst ∈ successors edges src <-> exists label, label ∈ labels_of_edge edges (src, dst).
+Proof.
+  rewrite successors_In. split.
+  - intros (label & IN). exists label. now rewrite labels_of_edge_In.
+  - intros (label & IN). exists label. now rewrite labels_of_edge_In in IN.
+Qed.
+
+Fixpoint successors_by_label `{L_hasEqDec : hasEqDec L} (edges : list (V * V * L)) (label : L) (src : V) {struct edges} : list V :=
+  match edges with
+  | [] => []
+  | ((src', dst), label') :: edges' =>
+    if B.decide (src = src') then
+      if B.decide (label = label') then
+        dst :: successors_by_label edges' label src
+      else
+        successors_by_label edges' label src
+    else
+      successors_by_label edges' label src
+  end.
+
+Lemma successors_by_label_In `{L_hasEqDec : hasEqDec L} (edges : list (V * V * L)) (src : V) (dst : V) (label : L)
+  : dst ∈ successors_by_label edges label src <-> ((src, dst), label) ∈ edges.
+Proof.
+  induction edges as [ | edge_label edges IH]; simpl.
+  - split; [intros [] | intros []].
+  - destruct edge_label as [[src0 dst0] label0]. simpl.
+    destruct (B.decide (src = src0)) as [EQ_SRC | NE_SRC]; destruct (B.decide (label = label0)) as [EQ_LABEL | NE_LABEL]; simpl; rewrite IH; clear IH; done.
+Qed.
+
+Lemma successors_by_label_labels_of_edge `{L_hasEqDec : hasEqDec L} (edges : list (V * V * L)) (src : V) (dst : V) (label : L)
+  : dst ∈ successors_by_label edges label src <-> label ∈ labels_of_edge edges (src, dst).
+Proof.
+  rewrite successors_by_label_In. symmetry. eapply labels_of_edge_In.
+Qed.
+
+Definition const_labeled_edges (label : L) (edges : list (V * V)) : list (V * V * L) :=
+  map (fun edge => (edge, label)) edges.
+
+Lemma const_labeled_edges_In (label0 : L) (edges : list (V * V)) (edge : V * V) (label : L)
+  : (edge, label) ∈ const_labeled_edges label0 edges <-> edge ∈ edges /\ label = label0.
+Proof.
+  unfold const_labeled_edges. rewrite L.in_map_iff. split.
+  - intros (edge' & EQ & IN). inv EQ. done.
+  - intros (IN & EQ). subst label. exists edge. done.
+Qed.
+
+Lemma const_labeled_edges_same_In (label : L) (edges : list (V * V)) (edge : V * V)
+  : (edge, label) ∈ const_labeled_edges label edges <-> edge ∈ edges.
+Proof.
+  rewrite const_labeled_edges_In. done.
+Qed.
+
+Lemma labels_of_edge_const_labeled_edges (label0 : L) (edges : list (V * V)) (edge : V * V) (label : L)
+  : label ∈ labels_of_edge (const_labeled_edges label0 edges) edge <-> edge ∈ edges /\ label = label0.
+Proof.
+  rewrite labels_of_edge_In. eapply const_labeled_edges_In.
+Qed.
+
+Lemma labels_of_edge_const_labeled_edges_same (label : L) (edges : list (V * V)) (edge : V * V)
+  : label ∈ labels_of_edge (const_labeled_edges label edges) edge <-> edge ∈ edges.
+Proof.
+  rewrite labels_of_edge_const_labeled_edges. done.
 Qed.
 
 Lemma in_labeled_edge_vertices_src (edges : list (V * V * L)) (v : V) (v' : V)
@@ -972,7 +1074,7 @@ Proof.
   - exact I.
 Defined.
 
-End BUILDER.
+End LabeledFiniteGraph.
 
 Section EXPORT.
 
