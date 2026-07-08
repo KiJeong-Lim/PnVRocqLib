@@ -1903,8 +1903,8 @@ Proof.
   assert (DELTA_IN : delta M M.(TaggedDFA.start_state) s ∈ M.(TaggedDFA.states)).
   { eapply delta_okay; [econs; eauto | exact START_OKAY]. }
   assert (Q_IN : q ∈ M.(TaggedDFA.states)) by done.
-  pose proof (index_of_inj _ _ M.(TaggedDFA.states) M.(TaggedDFA.start_state) DELTA_IN Q_IN EQ) as DELTA_EQ.
-  now subst q.
+  enough (delta M (start_state M) s = q) by done.
+  eapply index_of_inj; eauto.
 Qed.
 
 Theorem number_states_complete (s : Input.t) (tag : Token.t)

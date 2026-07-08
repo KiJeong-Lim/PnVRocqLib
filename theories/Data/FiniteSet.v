@@ -243,15 +243,15 @@ Proof.
   rewrite in_seq. pose proof (index_of_lt x xs IN). lia.
 Qed.
 
-Lemma index_of_inj {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (y : A) (xs : list A) (default : A)
-  (IN_X : x ∈ xs)
-  (IN_Y : y ∈ xs)
-  (EQ : index_of x xs = index_of y xs)
+Lemma index_of_inj {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (y : A) (zs : list A)
+  (IN_X : x ∈ zs)
+  (IN_Y : y ∈ zs)
+  (EQ : index_of x zs = index_of y zs)
   : x = y.
 Proof.
-  pose proof (lookup_index_of x xs default IN_X) as Hx.
-  pose proof (lookup_index_of y xs default IN_Y) as Hy.
-  congruence.
+  revert x y EQ IN_X IN_Y; induction zs as [ | z zs IH]; simpl; ii.
+  - tauto.
+  - des_ifs; des; try congruence. eapply IH; eauto.
 Qed.
 
 Lemma lookup_in {A : Type} (default : A) (n : nat) (xs : list A)
@@ -270,7 +270,7 @@ Theorem product_iff (A : Type) (B : Type) (xs : list A) (ys : list B)
 Proof.
   ii; unfold product; split; intros H_in.
   - repeat ss!.
-  - s!. exists (concat (map (fun y0 : B => pure (x, y0)) ys)). s!. split.
+  - s!. exists (concat (map (fun y : B => pure (x, y)) ys)). s!. split.
     + exists x. ss!.
     + exists [(x, y)]. ss!.
 Qed.
