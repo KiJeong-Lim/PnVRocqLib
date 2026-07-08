@@ -859,6 +859,8 @@ End FiniteGraph_CONSTRUCTION.
 #[global] Arguments GRAPH {V} {L} lG /.
 #[global] Existing Instance GRAPH.
 
+Module LabeledFiniteGraph.
+
 Lemma edges_Irreflexive_flags_true `(lG : LabeledFiniteGraph)
   (edges_Irreflexive_flags_true : lG.(edges_Irreflexive_flags) = true)
   : forall v, ~ (v, v) \in E lG.(GRAPH).
@@ -885,6 +887,10 @@ Proof.
   rewrite label_Symmetric_flags_true in HH.
   exact HH.
 Qed.
+
+Abbreviation t := LabeledFiniteGraph.
+
+End LabeledFiniteGraph.
 
 Section EXPORT.
 
