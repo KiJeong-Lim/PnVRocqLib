@@ -694,10 +694,11 @@ Module API.
 #[local] Infix "=~=" := is_similar_to.
 
 #[projections(primitive)]
-Class FiniteGraph : Type :=
-  { G : GRAPH.t
-  ; V_dec : hasEqDec G.(GRAPH.vertices)
-  ; E_dec v v' : B.Decision ((v, v') \in G.(GRAPH.edges)) 
+Class FiniteGraph `{V : Type} : Type :=
+  { E : ensemble (V * V)
+  ; G := {| GRAPH.vertices := V; GRAPH.edges := E |}
+  ; V_dec : hasEqDec V
+  ; E_dec (v : V) (v' : V) : B.Decision ((v, v') \in E) 
   ; enum_vertices : list G.(GRAPH.vertices)
   ; enum_vertices_all : enum_vertices =~= E.full
   } as GRAPH.
@@ -714,10 +715,7 @@ Abbreviation gmu := (DigraphFixedpoint.gmu (G := G)).
 
 Section EXPORT.
 
-Context `{GRAPH : !FiniteGraph}.
-
-#[local] Abbreviation V := GRAPH.(G).(GRAPH.vertices).
-#[local] Abbreviation E := GRAPH.(G).(GRAPH.edges).
+Context `{GRAPH : FiniteGraph}.
 
 Lemma walk_last (v : V) (v' : V) (w : list V)
   (WALK : v ~~~[ w ]~~>*( GRAPH ) v')
@@ -1070,7 +1068,7 @@ Theorem digraph_cl_impl_spec (v : V) (a : A)
   : a ∈ digraph_cl_impl v <-> a \in digraph_cl v.
 Proof.
   eapply digraph_cl_accum_good with (nodes := enum_vertices).
-  - lia.
+  - reflexivity.
   - ii; pose proof enum_vertices_all; ss!.
 Qed.
 
