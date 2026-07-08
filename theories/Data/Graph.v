@@ -311,16 +311,6 @@ Hypothesis seed_sim : forall v, seed' v =~= seed v.
 
 Variable vertices' : list V.
 
-Hypothesis vertices_sim : vertices' =~= E.full.
-
-Lemma vertices'_intro (v : V)
-  : In v vertices'.
-Proof.
-  pose proof vertices_sim as SIM.
-  rewrite list_corresponds_to_finite_ensemble_iff in SIM.
-  rewrite -> SIM. econs.
-Qed.
-
 Definition reachable (x : V) : ensemble V :=
   fun y => exists w, x ~~~[ w ]~~> y.
 
@@ -333,7 +323,7 @@ Fixpoint reachableb (fuel : nat) (x : V) (y : V) {struct fuel} : bool :=
   end.
 
 Definition reachable' (x : V) : list V :=
-  L.filter (reachableb (L.length vertices') x) vertices'.
+  x :: L.filter (reachableb (L.length vertices') x) vertices'.
 
 Lemma reachableb_elim (fuel : nat) (x : V) (y : V)
   (REACH : reachableb fuel x y = true)
@@ -352,6 +342,25 @@ Proof.
       exists (z :: w). split; [simpl; lia | econstructor 2; eauto].
 Qed.
 
+Hypothesis vertices_edge_target : forall x, forall y, (x, y) \in E -> L.In y vertices'.
+
+Lemma walk_elem_in_vertices (x : V) (y : V) (w : list V)
+  (WALK : x ~~~[ w ]~~> y)
+  : forall z, In z w -> In z vertices'.
+Proof.
+  induction WALK as [ | v0 v1 w EDGE WALK IH]; intros z IN; inv IN; eauto.
+Qed.
+
+Lemma walk_endpoint_in_vertices (x : V) (y : V) (w : list V)
+  (WALK : x ~~~[ w ]~~> y)
+  (NE : y ≠ x)
+  : In y vertices'.
+Proof.
+  induction WALK as [ | v0 v1 w EDGE WALK IH]; eauto with *.
+  pose proof (B.decide (y = v1)) as [EQ | NE']; eauto.
+  subst y. eapply vertices_edge_target; eauto.
+Qed.
+
 Lemma reachableb_intro (fuel : nat) (x : V) (y : V) (w : list V)
   (WALK : x ~~~[ w ]~~> y)
   (LENGTH : L.length w <= fuel)
@@ -364,8 +373,7 @@ Proof.
     + rewrite orb_true_iff. left. now rewrite eqb_eq.
   - destruct fuel as [ | fuel]; simpl in LENGTH; [lia | ].
     simpl. rewrite orb_true_iff. right. rewrite L.existsb_exists.
-    exists v1. split; [eapply vertices'_intro | ].
-    destruct (E_dec v0 v1) as [EDGE' | NO_EDGE]; ss!.
+    exists v1. split; eauto. destruct (E_dec v0 v1) as [EDGE' | NO_EDGE]; ss!.
 Qed.
 
 Lemma reachableb_iff_reachable (x : V) (y : V)
@@ -384,18 +392,23 @@ Proof.
     clear WALK. destruct PATH as [WALK NO_DUP].
     eapply reachableb_intro; eauto.
     eapply L.NoDup_incl_length; eauto.
-    ii; eapply vertices'_intro.
+    ii; eapply walk_elem_in_vertices; eauto.
 Qed.
 
 Lemma reachable_sim (x : V)
   : reachable' x =~= reachable x.
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff.
-  intros y. unfold reachable'. rewrite -> L.filter_In. split.
-  - intros [_ REACH]. now rewrite <- reachableb_iff_reachable.
-  - intros REACH. split.
-    + eapply vertices'_intro.
-    + now rewrite reachableb_iff_reachable.
+  intros y. unfold reachable'. simpl. rewrite -> L.filter_In. split.
+  - intros [EQ | [_ REACH]].
+    + subst y. exists []. econstructor 1.
+    + now rewrite <- reachableb_iff_reachable.
+  - intros REACH. destruct REACH as [w WALK].
+    destruct (B.decide (y = x)) as [EQ | NE].
+    + now left.
+    + right. split.
+      * eapply walk_endpoint_in_vertices; eauto.
+      * rewrite reachableb_iff_reachable. exists w. exact WALK.
 Qed.
 
 Lemma walk_gmu (x : V) (y : V) (w : list V)
@@ -693,15 +706,18 @@ Module API.
 
 #[local] Infix "=~=" := is_similar_to.
 
-#[projections(primitive)]
+#[universes(template), projections(primitive)]
 Class FiniteGraph `{V : Type} : Type :=
   { E : ensemble (V * V)
   ; G := {| GRAPH.vertices := V; GRAPH.edges := E |}
   ; V_dec : hasEqDec V
   ; E_dec (v : V) (v' : V) : B.Decision ((v, v') \in E) 
   ; enum_vertices : list V
-  ; enum_vertices_all : enum_vertices =~= E.full
+  ; enum_vertices_contains
+    : exists extra_vetices, enum_vertices =~= E.union { v : V | (exists v_in, (v_in, v) \in E) \/ (exists v_out, (v, v_out) \in E) } extra_vetices
   } as GRAPH.
+
+#[global] Arguments enum_vertices_contains {V} {GRAPH} : simpl never.
 
 #[local] Existing Instance G.
 #[global] Existing Instance V_dec.
@@ -712,6 +728,75 @@ Notation " src '---[' p ']-->*('  GRAPH  ')' tgt " := (@path GRAPH.(G) tgt src p
 Notation " src '===[' t ']==>*('  GRAPH  ')' tgt " := (@trail GRAPH.(G) tgt src t).
 
 Abbreviation gmu := (DigraphFixedpoint.gmu (G := G)).
+
+Section FiniteGraph_CONSTRUCTION.
+
+#[local] Obligation Tactic := i.
+
+#[refine]
+Definition emptyFiniteGraph {V : Type} `{V_hasEqDec : hasEqDec V} : @FiniteGraph V :=
+  {|
+    E := E.empty;
+    V_dec := V_hasEqDec;
+    E_dec := fun v : V => fun v' : V => _;
+    enum_vertices := [];
+  |}.
+Proof.
+  - red. right. intros [].
+  - exists E.empty. ss!.
+Defined.
+
+#[refine]
+Definition insertEdge {V : Type} (v_in : V) (v_out : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
+  {|
+    E := E.insert (v_in, v_out) GRAPH.(E);
+    V_dec := GRAPH.(V_dec);
+    E_dec := fun v : V => fun v' : V => _;
+    enum_vertices := [v_in; v_out] ++ GRAPH.(enum_vertices);
+  |}.
+Proof.
+  - cbv.
+    pose proof (GRAPH.(V_dec) v v_in) as [EQ1 | NE1]; pose proof (GRAPH.(V_dec) v' v_out) as [EQ2 | NE2].
+    + left. left. congruence.
+    + pose proof (GRAPH.(E_dec) v v') as [IN | NOT_IN].
+      * left. right. exact IN.
+      * right. intros [? | ?]; [congruence | contradiction NOT_IN].
+    + pose proof (GRAPH.(E_dec) v v') as [IN | NOT_IN].
+      * left. right. exact IN.
+      * right. intros [? | ?]; [congruence | contradiction NOT_IN].
+    + pose proof (GRAPH.(E_dec) v v') as [IN | NOT_IN].
+      * left. right. exact IN.
+      * right. intros [? | ?]; [congruence | contradiction NOT_IN].
+  - pose proof GRAPH.(enum_vertices_contains) as HH.
+    rewrite subset_lemma in *. done.
+Defined.
+
+#[refine]
+Definition removeEdge {V : Type} (v_in : V) (v_out : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
+  {|
+    E := E.delete (v_in, v_out) GRAPH.(E);
+    V_dec := GRAPH.(V_dec);
+    E_dec := fun v : V => fun v' : V => _;
+    enum_vertices := enum_vertices;
+  |}.
+Proof.
+  - cbv.
+    pose proof (GRAPH.(V_dec) v v_in) as [EQ1 | NE1]; pose proof (GRAPH.(V_dec) v' v_out) as [EQ2 | NE2].
+    + right. intros [H1 H2]. contradiction H1. congruence.
+    + pose proof (GRAPH.(E_dec) v v') as [IN | NOT_IN].
+      * left. split; eauto. congruence.
+      * right. intros [H1 H2]. contradiction NOT_IN.
+    + pose proof (GRAPH.(E_dec) v v') as [IN | NOT_IN].
+      * left. split; eauto. congruence.
+      * right. intros [H1 H2]. contradiction NOT_IN.
+    + pose proof (GRAPH.(E_dec) v v') as [IN | NOT_IN].
+      * left. split; eauto. congruence.
+      * right. intros [H1 H2]. contradiction NOT_IN.
+  - pose proof GRAPH.(enum_vertices_contains) as HH.
+    rewrite subset_lemma in *. intros v H_v. eapply HH. unfold E.In in *. done.
+Defined.
+
+End FiniteGraph_CONSTRUCTION.
 
 Section EXPORT.
 
@@ -807,6 +892,13 @@ Proof.
   exact (DigraphFixedpoint.reachable_step v v' v'' EDGE REACHABLE).
 Qed.
 
+Lemma enum_vertices_has_edge_tgt (v : V) (v' : V)
+  (EDGE : (v, v') \in E)
+  : L.In v' enum_vertices.
+Proof.
+  pose proof GRAPH.(enum_vertices_contains) as SIM. ss!.
+Qed.
+
 Fixpoint reachableb_accum (fuel : nat) (v : V) (v' : V) {struct fuel} : bool :=
   match fuel with
   | O => eqb v v'
@@ -825,7 +917,7 @@ Lemma reachableb_accum_intro (fuel : nat) (v : V) (v' : V) (w : list V)
   (LENGTH : L.length w <= fuel)
   : reachableb_accum fuel v v' = true.
 Proof.
-  exact (DigraphFixedpoint.reachableb_intro enum_vertices enum_vertices_all fuel v v' w WALK LENGTH).
+  exact (DigraphFixedpoint.reachableb_intro enum_vertices enum_vertices_has_edge_tgt fuel v v' w WALK LENGTH).
 Qed.
 
 Definition reachableb : forall v : V, forall v' : V, bool :=
@@ -834,16 +926,16 @@ Definition reachableb : forall v : V, forall v' : V, bool :=
 Theorem reachableb_spec (v : V) (v' : V)
   : reachableb v v' = true <-> v' \in reachable v.
 Proof.
-  exact (DigraphFixedpoint.reachableb_iff_reachable enum_vertices enum_vertices_all v v').
+  exact (DigraphFixedpoint.reachableb_iff_reachable enum_vertices enum_vertices_has_edge_tgt v v').
 Qed.
 
 Definition reachable_impl (v : V) : list V :=
-  L.filter (reachableb v) enum_vertices.
+  v :: L.filter (reachableb v) enum_vertices.
 
 Theorem reachable_sim
   : forall v, reachable_impl v =~= reachable v.
 Proof.
-  exact (DigraphFixedpoint.reachable_sim enum_vertices enum_vertices_all).
+  exact (DigraphFixedpoint.reachable_sim enum_vertices enum_vertices_has_edge_tgt).
 Qed.
 
 Section DIGRAPH.
@@ -889,7 +981,7 @@ Theorem gmu_sim (seed_impl : V -> list A)
   (seed_sim : forall v, seed_impl v =~= seed v)
   : forall v, gmu_impl seed_impl v =~= gmu seed v.
 Proof.
-  exact (DigraphFixedpoint.gmu_sim seed seed_impl seed_sim enum_vertices enum_vertices_all).
+  exact (DigraphFixedpoint.gmu_sim seed seed_impl seed_sim enum_vertices enum_vertices_has_edge_tgt).
 Qed.
 
 #[local] Abbreviation is_fixedpoint value := (forall v, forall a, a \in value v <-> ⟪ STEP : a \in seed v \/ (exists v', (v, v') \in E /\ a \in value v') ⟫).
@@ -920,8 +1012,9 @@ Definition deps (v : V) : list V :=
 Lemma in_deps_iff (v : V) (v' : V)
   : v' ∈ deps v <-> (v, v') \in E.
 Proof.
-  unfold deps. pose proof enum_vertices_all.
-  rewrite L.filter_In. destruct (E_dec _ _) as [YES | NO]; ss!.
+  unfold deps. rewrite L.filter_In.
+  destruct (E_dec _ _) as [YES | NO]; ss!.
+  eapply enum_vertices_has_edge_tgt; eauto.
 Qed.
 
 #[local] Hint Rewrite in_deps_iff : simplication_hints.
@@ -1069,7 +1162,7 @@ Theorem digraph_cl_impl_spec (v : V) (a : A)
 Proof.
   eapply digraph_cl_accum_good with (nodes := enum_vertices).
   - reflexivity.
-  - ii; pose proof enum_vertices_all; ss!.
+  - ii. rewrite in_deps_iff in H. eapply enum_vertices_has_edge_tgt. exact H.
 Qed.
 
 Corollary digraph_cl_sim

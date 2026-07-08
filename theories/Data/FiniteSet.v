@@ -2,6 +2,12 @@ Require Import PnV.Prelude.Prelude.
 Require Import PnV.Prelude.X.
 Require Export PnV.Math.ThN.
 
+#[local] Infix "=~=" := is_similar_to : type_scope.
+#[local] Infix "\in" := E.In.
+#[local] Infix "∈" := L.In.
+
+#[local] Hint Resolve S_lt_S_intro : core.
+
 Universe U_fs.
 
 Constraint U_fs <= U_discourse.
@@ -14,16 +20,11 @@ Definition fin_ensemble@{u | } (Elem : Type@{u}) : Type@{u} :=
 
 #[global] Typeclasses Opaque fin_ensemble.
 
-#[local] Hint Resolve S_lt_S_intro : core.
 #[global] Hint Rewrite L.in_concat : simplication_hints.
 #[global] Hint Rewrite L.in_map_iff : simplication_hints.
 #[global] Hint Rewrite L.in_flat_map : simplication_hints.
 #[global] Hint Rewrite length_app : simplication_hints.
 #[global] Hint Rewrite length_map : simplication_hints.
-
-#[local] Infix "=~=" := is_similar_to : type_scope.
-#[local] Infix "\in" := E.In.
-#[local] Infix "∈" := L.In.
 
 Definition Similarity_list_finite_ensemble {ELEM : Type} {ELEM' : Type} (ELEM_sim : Similarity ELEM ELEM') : Similarity (fin_ensemble ELEM) (ensemble ELEM') :=
   fun xs : list ELEM => fun X' : ensemble ELEM' => ⟪ SUBSET1 : forall x, x ∈ xs -> (exists x', x =~= x' /\ x' \in X') ⟫ /\ ⟪ SUBSET2 : forall x', x' \in X' -> (exists x, x =~= x' /\ x ∈ xs) ⟫.
@@ -333,3 +334,9 @@ Proof.
 Qed.
 
 End FS.
+
+Lemma subset_lemma (A : Type) (xs : list A) (X : ensemble A)
+  : (exists extra, xs =~= E.union X extra) <-> (forall x : A, E.In x X -> L.In x xs).
+Proof.
+  ss!. exists (E.fromList xs). ss!.
+Qed.
