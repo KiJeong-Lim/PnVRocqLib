@@ -739,7 +739,7 @@ Section FiniteGraph_CONSTRUCTION.
 
 Context {V : Type}.
 
-#[program]
+#[refine]
 Definition emptyFiniteGraph `{V_hasEqDec : hasEqDec V} : @FiniteGraph V :=
   {|
     E := fun '(v, v') => False;
@@ -747,9 +747,9 @@ Definition emptyFiniteGraph `{V_hasEqDec : hasEqDec V} : @FiniteGraph V :=
     E_dec := fun v : V => fun v' : V => B.decide _;
     enum_vertices := [];
   |}.
-Next Obligation.
-  rewrite subset_lemma in *. done.
-Qed.
+Proof.
+  rewrite FS.subset_lemma in *. done.
+Defined.
 
 Lemma emptyFiniteGraph_edge_spec {V_hasEqDec : hasEqDec V}
   : forall edge : V * V, edge \in (emptyFiniteGraph).(E) <-> edge \in E.empty.
@@ -757,7 +757,7 @@ Proof.
   intros [v v']; done.
 Qed.
 
-#[program]
+#[refine]
 Definition insertEdge (v_in : V) (v_out : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
   {|
     E := fun '(v, v') => (v = v_in /\ v' = v_out) \/ E.In (v, v') GRAPH.(E);
@@ -765,9 +765,10 @@ Definition insertEdge (v_in : V) (v_out : V) (GRAPH : @FiniteGraph V) : @FiniteG
     E_dec := fun v : V => fun v' : V => B.decide _;
     enum_vertices := v_in :: v_out :: GRAPH.(enum_vertices);
   |}.
-Next Obligation.
-  rewrite subset_lemma in *. done.
-Qed.
+Proof.
+  pose proof GRAPH.(enum_vertices_contains_all) as HH.
+  rewrite FS.subset_lemma in *. done.
+Defined.
 
 Lemma insertEdge_edge_spec v_in v_out GRAPH
   : forall edge : V * V, edge \in (insertEdge v_in v_out GRAPH).(E) <-> edge \in E.insert (v_in, v_out) GRAPH.(E).
@@ -775,7 +776,7 @@ Proof.
   intros [v v']; done.
 Qed.
 
-#[program]
+#[refine]
 Definition removeEdge (v_in : V) (v_out : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
   {|
     E := fun '(v, v') => (~ (v = v_in /\ v' = v_out)) /\ E.In (v, v') GRAPH.(E);
@@ -783,9 +784,10 @@ Definition removeEdge (v_in : V) (v_out : V) (GRAPH : @FiniteGraph V) : @FiniteG
     E_dec := fun v : V => fun v' : V => B.decide _;
     enum_vertices := GRAPH.(enum_vertices);
   |}.
-Next Obligation.
-  rewrite subset_lemma in *. done.
-Qed.
+Proof.
+  pose proof GRAPH.(enum_vertices_contains_all) as HH.
+  rewrite FS.subset_lemma in *. done.
+Defined.
 
 Lemma removeEdge_edge_spec v_in v_out GRAPH
   : forall edge : V * V, edge \in (removeEdge v_in v_out GRAPH).(E) <-> edge \in E.delete (v_in, v_out) GRAPH.(E).
@@ -793,7 +795,7 @@ Proof.
   intros [v v']; done.
 Qed.
 
-#[program]
+#[refine]
 Definition insertVertex (v_new : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
   {|
     E := GRAPH.(E);
@@ -801,9 +803,10 @@ Definition insertVertex (v_new : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
     E_dec := GRAPH.(E_dec);
     enum_vertices := v_new :: GRAPH.(enum_vertices);
   |}.
-Next Obligation.
-  rewrite subset_lemma in *. done.
-Qed.
+Proof.
+  pose proof GRAPH.(enum_vertices_contains_all) as HH.
+  rewrite FS.subset_lemma in *. done.
+Defined.
 
 Lemma insertVertex_edge_spec v_new GRAPH
   : forall edge : V * V, edge \in (insertVertex v_new GRAPH).(E) <-> edge \in GRAPH.(E).
@@ -811,7 +814,7 @@ Proof.
   intros [v v']; done.
 Qed.
 
-#[program]
+#[refine]
 Definition removeVertex (v_old : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
   {|
     E := fun '(v, v') => v ≠ v_old /\ v' ≠ v_old /\ E.In (v, v') GRAPH.(E);
@@ -819,9 +822,10 @@ Definition removeVertex (v_old : V) (GRAPH : @FiniteGraph V) : @FiniteGraph V :=
     E_dec := fun v : V => fun v' : V => B.decide _;
     enum_vertices := @L.remove V GRAPH.(V_dec) v_old GRAPH.(enum_vertices);
   |}.
-Next Obligation.
-  rewrite subset_lemma in *. done.
-Qed.
+Proof.
+  pose proof GRAPH.(enum_vertices_contains_all) as HH.
+  rewrite FS.subset_lemma in *. done.
+Defined.
 
 Lemma removeVertex_edge_spec v_old GRAPH
   : forall edge : V * V, edge \in (removeVertex v_old GRAPH).(E) <-> (fst edge ≠ v_old /\ snd edge ≠ v_old /\ edge \in GRAPH.(E)).

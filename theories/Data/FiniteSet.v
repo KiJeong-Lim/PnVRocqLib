@@ -333,10 +333,16 @@ Proof.
   - ii; eapply INJ; ss!.
 Qed.
 
-End FS.
-
-Lemma subset_lemma (A : Type) (xs : list A) (X : ensemble A)
-  : (exists extra, xs =~= E.union X extra) <-> (forall x : A, E.In x X -> L.In x xs).
+Lemma subset_lemma (A : Type@{U_fs}) (xs : list A) (X : ensemble A)
+  : (exists X' : ensemble@{U_fs} A, xs =~= E.union X X') <-> (forall x : A, E.In x X -> L.In x xs).
 Proof.
   ss!. exists (E.fromList xs). ss!.
 Qed.
+
+Lemma superset_lemma (A : Type@{U_fs}) (xs : list A) (X : ensemble A)
+  : (exists X' : ensemble@{U_fs} A, xs =~= E.intersection X X') <-> (forall x : A, L.In x xs -> E.In x X).
+Proof.
+  ss!. exists (E.fromList xs). ss!.
+Qed.
+
+End FS.
