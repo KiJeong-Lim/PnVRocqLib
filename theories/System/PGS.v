@@ -332,7 +332,7 @@ Lemma rm_steps_rm_steps_n xs ys
   (STEPS : rm_steps xs ys)
   : exists n, rm_steps_n n xs ys.
 Proof.
-  pose proof (Operators_Properties.clos_rt_rt1n (list V') rm_step xs ys STEPS) as STEPS1N.
+  use Operators_Properties.clos_rt_rt1n as STEPS1N with STEPS.
   clear STEPS.
   induction STEPS1N as [xs | xs ys zs STEP REST IH].
   - exists 0. constructor.
@@ -477,10 +477,10 @@ Lemma rm_steps_n_start_case n ys
   (STEPS : rm_steps_n n [inl start_prime] ys)
   : rm_steps_n_start_case_spec n ys.
 Proof.
-  pose proof (rm_steps_n_case n [inl start_prime] ys STEPS) as CASE.
+  use rm_steps_n_case as CASE with STEPS.
   destruct CASE as [EQ_N EQ_XY | n' mid EQ_N STEP REST].
   - econstructor; [exact EQ_N | symmetry; exact EQ_XY].
-  - pose proof (rm_step_start mid STEP) as MID. subst mid.
+  - use rm_step_start as MID with STEP. subst mid.
     econstructor 2; [exact EQ_N | exact REST].
 Qed.
 
@@ -507,7 +507,7 @@ Lemma map_inr_injective_list (xs : list T') (ys : list T')
 Proof.
   revert ys EQ. induction xs as [ | x xs IH]; intros ys EQ; destruct ys as [ | y ys]; simpl in EQ; inv EQ.
   - reflexivity.
-  - pose proof (IH ys H1) as EQ_TAIL. subst ys. reflexivity.
+  - use IH as EQ_TAIL with H1. subst ys. reflexivity.
 Qed.
 
 Lemma map_inr_app_inv_prefix (alpha : list V') (rest : list T') (all : list T')
@@ -515,10 +515,10 @@ Lemma map_inr_app_inv_prefix (alpha : list V') (rest : list T') (all : list T')
   : exists prefix, alpha = map inr prefix /\ all = prefix ++ rest.
 Proof.
   revert all EQ. induction alpha as [ | X alpha IH]; intros all EQ.
-  - simpl in EQ. pose proof (map_inr_injective_list rest all EQ) as REST_EQ. subst all. exists []. split; [reflexivity | reflexivity].
+  - simpl in EQ. use map_inr_injective_list as REST_EQ with EQ. subst all. exists []. split; [reflexivity | reflexivity].
   - destruct all as [ | t all]; simpl in EQ; [destruct X; discriminate | ].
     destruct X as [A | t0]; simpl in EQ; [discriminate | ].
-    inv EQ. pose proof (IH all H1) as (prefix & ALPHA & ALL). subst alpha.
+    inv EQ. use IH as (prefix & ALPHA & ALL) with H1. subst alpha.
     exists (t :: prefix). split; [reflexivity | rewrite ALL; reflexivity].
 Qed.
 
@@ -529,14 +529,14 @@ Proof.
   revert word rest z EQ. induction alpha as [ | X alpha IH]; intros word rest z EQ.
   - destruct word as [ | Y word].
     + simpl in EQ. destruct rest as [ | t rest]; simpl in EQ; discriminate.
-    + simpl in EQ. inv EQ. pose proof (map_inr_app_inv_prefix word rest z H1) as (suffix & WORD & Z). subst word.
+    + simpl in EQ. inv EQ. use map_inr_app_inv_prefix as (suffix & WORD & Z) with H1. subst word.
       exists suffix. split; [reflexivity | exact Z].
   - destruct word as [ | Y word].
     + simpl in EQ. destruct X as [B | t]; simpl in EQ.
       * destruct rest as [ | u rest]; simpl in EQ; discriminate.
       * destruct rest as [ | u rest]; simpl in EQ; [discriminate | ]. inv EQ.
-        pose proof (IH [] rest z H1) as (suffix & WORD & _). destruct alpha as [ | X alpha]; simpl in WORD; discriminate.
-    + simpl in EQ. inv EQ. pose proof (IH word rest z H1) as (suffix & WORD & Z). subst word.
+        use (IH [] rest z) as (suffix & WORD & _) with H1. destruct alpha as [ | X alpha]; simpl in WORD; discriminate.
+    + simpl in EQ. inv EQ. use IH as (suffix & WORD & Z) with H1. subst word.
       exists suffix. split; [reflexivity | exact Z].
 Qed.
 
@@ -616,7 +616,7 @@ Proof.
     + reflexivity.
   - destruct ts as [ | t ts]; simpl in EQ; [destruct X; discriminate | ].
     destruct X as [A | t0]; simpl in EQ; [discriminate | ].
-    inv EQ. pose proof (IH ys ts H1) as (ts_x & ts_y & XS & YS & TS).
+    inv EQ. use IH as (ts_x & ts_y & XS & YS & TS) with H1.
     subst xs. exists (t :: ts_x). exists ts_y. splits.
     + reflexivity.
     + exact YS.
@@ -646,7 +646,7 @@ Lemma terminal_suffix_image_head_case gamma z_parent t z
   : terminal_suffix_image_head_spec gamma z_parent t z.
 Proof.
   destruct gamma as [ | X gamma_tail].
-  - simpl in IMAGE. change (map (@inr N' T') z_parent = map (@inr N' T') (t :: z)) in IMAGE. pose proof (map_inr_injective_list z_parent (t :: z) IMAGE) as Z_PARENT. subst z_parent. econstructor 1; reflexivity.
+  - simpl in IMAGE. change (map (@inr N' T') z_parent = map (@inr N' T') (t :: z)) in IMAGE. use map_inr_injective_list as Z_PARENT with IMAGE. subst z_parent. econstructor 1; reflexivity.
   - simpl in IMAGE. injection IMAGE as HEAD TAIL. subst X. econstructor 2 with (gamma_tail := gamma_tail); [reflexivity | exact TAIL].
 Qed.
 
@@ -671,7 +671,7 @@ Proof.
     + simpl in EQ. injection EQ as HEAD TAIL. subst Z. econstructor 1 with (beta := left); [reflexivity | exact TAIL].
   - destruct left as [ | Z left].
     + simpl in EQ. econstructor 2 with (beta := Y :: alpha) (gamma := suffix); [reflexivity | exact EQ | reflexivity].
-    + simpl in EQ. injection EQ as HEAD TAIL. subst Z. pose proof (IH left TAIL) as SPLIT. destruct SPLIT as [beta LEFT SUFFIX | beta gamma ALPHA RIGHT SUFFIX].
+    + simpl in EQ. injection EQ as HEAD TAIL. subst Z. use IH as SPLIT with TAIL. destruct SPLIT as [beta LEFT SUFFIX | beta gamma ALPHA RIGHT SUFFIX].
       * econstructor 1 with (beta := beta); [rewrite LEFT; reflexivity | exact SUFFIX].
       * econstructor 2 with (beta := beta) (gamma := gamma); [rewrite ALPHA; reflexivity | exact RIGHT | exact SUFFIX].
 Qed.
@@ -687,7 +687,7 @@ Proof.
     + simpl in EQ. injection EQ as HEAD TAIL. subst Z. exists left. split; [reflexivity | exact TAIL].
   - destruct left as [ | Z left].
     + simpl in EQ. subst tail. exfalso. eapply NO_TAIL. simpl. right. rewrite L.in_app_iff. right. simpl. left. reflexivity.
-    + simpl in EQ. injection EQ as HEAD TAIL. subst Z. pose proof (IH left TAIL) as (mid & LEFT & MID). exists mid. split; [rewrite LEFT; reflexivity | exact MID].
+    + simpl in EQ. injection EQ as HEAD TAIL. subst Z. use IH as (mid & LEFT & MID) with TAIL. exists mid. split; [rewrite LEFT; reflexivity | exact MID].
 Qed.
 
 Variant app_middle_occurrence_split_spec (prefix : list V') (middle : list V') (tail : list V') (alpha : list V') (X : V') (suffix : list V') : Prop :=
@@ -707,8 +707,8 @@ Lemma app_middle_occurrence_split prefix middle tail alpha X suffix
   : app_middle_occurrence_split_spec prefix middle tail alpha X suffix.
 Proof.
   assert (EQ_COMBINED : (prefix ++ middle) ++ tail = alpha ++ X :: suffix) by (rewrite <- app_assoc; exact EQ).
-  pose proof (app_cons_not_in_tail_inv (prefix ++ middle) tail alpha X suffix NO_TAIL EQ_COMBINED) as (mid & COMBINED & MID).
-  pose proof (app_cons_split prefix middle alpha X mid COMBINED) as SPLIT.
+  use app_cons_not_in_tail_inv as (mid & COMBINED & MID) with NO_TAIL EQ_COMBINED.
+  use app_cons_split as SPLIT with COMBINED.
   destruct SPLIT as [beta PREFIX SUFFIX | beta gamma ALPHA MIDDLE SUFFIX].
   - subst mid. rewrite <- app_assoc in MID. econstructor 1 with (beta := beta); [exact PREFIX | exact MID].
   - subst mid. econstructor 2 with (beta := beta) (gamma := gamma); [exact ALPHA | exact MIDDLE | exact MID].
@@ -753,7 +753,8 @@ Proof.
       + simpl in SRC. injection SRC as X_EQ TAIL_EQ. subst Y.
       assert (STEP_TAIL : plain_step (xs ++ ys) (alpha ++ omega ++ beta)).
       { rewrite <- TAIL_EQ. econstructor. exact PROD. }
-      pose proof (IH ys (alpha ++ omega ++ beta) STEP_TAIL) as [LEFT | RIGHT].
+      use IH as CASE with STEP_TAIL.
+      destruct CASE as [LEFT | RIGHT].
       * destruct LEFT as (xs' & TARGET & STEP_XS).
         left. exists (X :: xs'). split.
         { simpl. rewrite TARGET. reflexivity. }
@@ -768,7 +769,7 @@ Lemma plain_steps_app_inv_terminal xs ys ts
   (STEPS : plain_steps (xs ++ ys) (map inr ts))
   : exists ts_x, exists ts_y, ts = ts_x ++ ts_y /\ plain_steps xs (map inr ts_x) /\ plain_steps ys (map inr ts_y).
 Proof.
-  pose proof (Operators_Properties.clos_rt_rt1n (list V') plain_step (xs ++ ys) (map inr ts) STEPS) as STEPS1N.
+  use Operators_Properties.clos_rt_rt1n as STEPS1N with STEPS.
   clear STEPS.
   remember (xs ++ ys) as source eqn: SOURCE.
   set (final := map inr ts) in STEPS1N.
@@ -778,21 +779,22 @@ Proof.
   induction STEPS1N as [source | source mid final STEP REST IH]; intros xs ys SOURCE.
   - rewrite FINAL in SOURCE.
     symmetry in SOURCE.
-    pose proof (map_inr_app_inv xs ys ts SOURCE) as (ts_x & ts_y & XS & YS & TS).
+    use map_inr_app_inv as (ts_x & ts_y & XS & YS & TS) with SOURCE.
     subst xs. subst ys. exists ts_x. exists ts_y. splits.
     + exact TS.
     + constructor 2.
     + constructor 2.
   - subst source.
-    pose proof (plain_step_app_inv xs ys mid STEP) as [LEFT | RIGHT].
+    use plain_step_app_inv as CASE with STEP.
+    destruct CASE as [LEFT | RIGHT].
     + destruct LEFT as (xs' & MID & STEP_XS). subst mid.
-      pose proof (IH FINAL xs' ys eq_refl) as (ts_x & ts_y & TS & STEPS_XS' & STEPS_YS).
+      use! IH as (ts_x & ts_y & TS & STEPS_XS' & STEPS_YS) with FINAL.
       exists ts_x. exists ts_y. splits.
       * exact TS.
       * eapply rt_trans; [constructor 1; exact STEP_XS | exact STEPS_XS'].
       * exact STEPS_YS.
     + destruct RIGHT as (ys' & MID & STEP_YS). subst mid.
-      pose proof (IH FINAL xs ys' eq_refl) as (ts_x & ts_y & TS & STEPS_XS & STEPS_YS').
+      use! IH as (ts_x & ts_y & TS & STEPS_XS & STEPS_YS') with FINAL.
       exists ts_x. exists ts_y. splits.
       * exact TS.
       * exact STEPS_XS.
@@ -815,7 +817,7 @@ Lemma plain_steps_terminal_inv ts ys
   (STEPS : plain_steps (map inr ts) ys)
   : ys = map inr ts.
 Proof.
-  pose proof (Operators_Properties.clos_rt_rt1n (list V') plain_step (map inr ts) ys STEPS) as STEPS1N.
+  use Operators_Properties.clos_rt_rt1n as STEPS1N with STEPS.
   clear STEPS.
   remember (map inr ts) as source eqn: SOURCE.
   change (clos_refl_trans_1n (list V') plain_step source ys) in STEPS1N.
@@ -892,8 +894,8 @@ Proof.
   induction lhs as [ | X lhs IH]; simpl in STR.
   - split; [constructor | exact STR].
   - destruct X as [A | t].
-    + inversion STR as [ | | A0 rhs0 GEN REST EQ]; subst A0 rhs0. pose proof (IH REST) as (LHS & RHS). split; [econstructor; [exact GEN | exact LHS] | exact RHS].
-    + inversion STR as [ | t0 rhs0 REST EQ | ]; subst t0 rhs0. pose proof (IH REST) as (LHS & RHS). split; [constructor; exact LHS | exact RHS].
+    + inversion STR as [ | | A0 rhs0 GEN REST EQ]; subst A0 rhs0. use IH as (LHS & RHS) with REST. split; [econstructor; [exact GEN | exact LHS] | exact RHS].
+    + inversion STR as [ | t0 rhs0 REST EQ | ]; subst t0 rhs0. use IH as (LHS & RHS) with REST. split; [constructor; exact LHS | exact RHS].
 Qed.
 
 Lemma Gen_productive A
@@ -904,7 +906,7 @@ with GenStr_productive rhs
   : ProductiveStr rhs.
 Proof.
   - destruct GEN as [A rhs PROD RHS].
-    pose proof (GenStr_productive rhs RHS) as (z & RHS_STEPS).
+    use GenStr_productive as (z & RHS_STEPS) with RHS.
     exists z. eapply rt_trans; [ | exact RHS_STEPS].
     constructor 1.
     change [inl A] with ([] ++ inl A :: map (@inr N' T') (@nil T')).
@@ -913,7 +915,7 @@ Proof.
   - induction GEN as [ | t rhs REST IH | A rhs GEN REST IH].
     + exists []. constructor 2.
     + destruct IH as (z & STEPS). exists (t :: z). simpl. eapply rm_steps_prefix with (prefix := [inr t]) in STEPS. simpl in STEPS. exact STEPS.
-    + pose proof (Gen_productive A GEN) as (zA & STEPS_A). destruct IH as (zR & STEPS_R). exists (zA ++ zR).
+    + use Gen_productive as (zA & STEPS_A) with GEN. destruct IH as (zR & STEPS_R). exists (zA ++ zR).
       replace (inl A :: rhs) with ([inl A] ++ rhs) by reflexivity.
       replace (map inr (zA ++ zR)) with (map (@inr N' T') zA ++ map (@inr N' T') zR) by (rewrite map_app; reflexivity).
       eapply rt_trans.
@@ -927,8 +929,8 @@ Lemma rm_step_source_GenStr xs ys
   : GenStr xs.
 Proof.
   destruct STEP as [A omega alpha z PROD].
-  pose proof (GenStr_app_inv alpha (omega ++ map inr z) TARGET) as (ALPHA & OMEGA_SUFFIX).
-  pose proof (GenStr_app_inv omega (map inr z) OMEGA_SUFFIX) as (OMEGA & TERMINALS).
+  use GenStr_app_inv as (ALPHA & OMEGA_SUFFIX) with TARGET.
+  use GenStr_app_inv as (OMEGA & TERMINALS) with OMEGA_SUFFIX.
   eapply GenStr_app; [exact ALPHA | ].
   econstructor.
   - econstructor; [exact PROD | exact OMEGA].
@@ -949,7 +951,7 @@ Lemma rm_steps_terminal_GenStr rhs ts
   (STEPS : rm_steps rhs (map inr ts))
   : GenStr rhs.
 Proof.
-  pose proof (rm_steps_rm_steps_n rhs (map inr ts) STEPS) as (n & STEPS_N).
+  use rm_steps_rm_steps_n as (n & STEPS_N) with STEPS.
   eapply rm_steps_n_terminal_GenStr. exact STEPS_N.
 Qed.
 
@@ -958,7 +960,7 @@ Lemma Productive_Gen A
   : Gen A.
 Proof.
   destruct PRODUCTIVE as (z & STEPS).
-  pose proof (rm_steps_terminal_GenStr [inl A] z STEPS) as STR.
+  use rm_steps_terminal_GenStr as STR with STEPS.
   inversion STR as [ | | A0 rhs GEN REST EQ]; subst A0 rhs.
   inversion REST; subst. exact GEN.
 Qed.
@@ -1064,7 +1066,7 @@ Proof.
   unfold gen_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply KNOWN_SOUND. exact IN.
-  - pose proof (list_bind_sound _ _ _ IN) as (p & PROD & IN_PROD).
+  - use list_bind_sound as (p & PROD & IN_PROD) with IN.
     unfold gen_prod_in in IN_PROD.
     destruct (gen_rhs_in known p.(p_rhs)) eqn: RHS; [ | contradiction].
     destruct IN_PROD as [EQ | []]. subst A.
@@ -1126,7 +1128,7 @@ Proof.
   unfold gen_step in *. rewrite L.nodup_In in *. rewrite in_app_iff in *.
   destruct IN as [IN | IN].
   - left. eapply INCL. exact IN.
-  - right. pose proof (list_bind_sound _ _ _ IN) as (p & PROD & IN_PROD).
+  - right. use list_bind_sound as (p & PROD & IN_PROD) with IN.
     eapply list_bind_complete with (x := p); [exact PROD | ].
     unfold gen_prod_in in *.
     destruct (gen_rhs_in known1 p.(p_rhs)) eqn: RHS1; [ | contradiction].
@@ -1185,7 +1187,7 @@ Lemma gen_list_subsetb_sound xs ys
   : forall x, x ∈ xs -> x ∈ ys.
 Proof.
   unfold gen_list_subsetb in SUBSET. rewrite forallb_forall in SUBSET.
-  intros x IN. pose proof (SUBSET x IN) as MEM. rewrite mem_true_iff in MEM. exact MEM.
+  intros x IN. use SUBSET as MEM with IN. rewrite mem_true_iff in MEM. exact MEM.
 Qed.
 
 Lemma gen_list_subsetb_complete xs ys
@@ -1200,7 +1202,7 @@ Lemma gen_list_subsetb_false_new xs ys
   (SUBSET : gen_list_subsetb xs ys = false)
   : exists x, x ∈ xs /\ ~ x ∈ ys.
 Proof.
-  unfold gen_list_subsetb in SUBSET. pose proof (forallb_false_exists _ _ SUBSET) as (x & IN & MEM).
+  unfold gen_list_subsetb in SUBSET. use forallb_false_exists as (x & IN & MEM) with SUBSET.
   exists x. split; [exact IN | ]. rewrite mem_false_iff in MEM. exact MEM.
 Qed.
 
@@ -1213,7 +1215,7 @@ Lemma gen_NoDup_incl_remove_length_lt (xs : list N') (ys : list N') (x : N')
   : length ys < length xs.
 Proof.
   enough (LE : length ys <= length (remove (N'_hasEqDec) x xs)).
-  { pose proof (@remove_length_lt N' N'_hasEqDec x xs IN_XS) as LT.
+  { use (@remove_length_lt N' N'_hasEqDec) as LT with IN_XS.
     eapply Nat.le_lt_trans; [exact LE | exact LT].
   }
   eapply L.NoDup_incl_length.
@@ -1228,7 +1230,7 @@ Lemma gen_step_length_if_not_subset known
   (NOT_SUBSET : gen_list_subsetb (gen_step known) known = false)
   : length known < length (gen_step known).
 Proof.
-  pose proof (gen_list_subsetb_false_new _ _ NOT_SUBSET) as (A & IN_STEP & NOT_IN).
+  use gen_list_subsetb_false_new as (A & IN_STEP & NOT_IN) with NOT_SUBSET.
   eapply gen_NoDup_incl_remove_length_lt with (x := A).
   - eapply gen_step_no_dup.
   - exact NO_DUP.
@@ -1275,10 +1277,12 @@ Proof.
   rewrite iter_succ.
   assert (NO_DUP : NoDup (iter n gen_step [])).
   { eapply gen_iter_no_dup_from_empty. }
-  pose proof (gen_step_length_if_not_subset (iter n gen_step []) NO_DUP (NOT_FIXED_PREFIX n (Nat.lt_succ_diag_r n))) as LT.
+  assert (NOT_FIXED_N : gen_list_subsetb (gen_step (iter n gen_step [])) (iter n gen_step []) = false).
+  { eapply NOT_FIXED_PREFIX. lia. }
+  use gen_step_length_if_not_subset as LT with NO_DUP NOT_FIXED_N.
   assert (PREFIX : forall i, i < n -> gen_list_subsetb (gen_step (iter i gen_step [])) (iter i gen_step []) = false).
   { intros i LT_I. eapply NOT_FIXED_PREFIX. lia. }
-  pose proof (IH PREFIX) as LE. lia.
+  use IH as LE with PREFIX. lia.
 Qed.
 
 Lemma gen_first_fixed_before_bound
@@ -1294,11 +1298,10 @@ Proof.
       { rewrite existsb_exists. exists i. split; [exact IN_SEQ | exact FIXED]. }
       congruence.
     }
-    pose proof (gen_not_fixed_length_lower (S gen_fuel)) as LOWER.
     assert (PREFIX : forall i, i < S gen_fuel -> gen_list_subsetb (gen_step (iter i gen_step [])) (iter i gen_step []) = false).
     { intros i LT_I. eapply NOT_FIXED. lia. }
-    pose proof (LOWER PREFIX) as LE_LOWER.
-    pose proof (gen_iter_length_bound (S gen_fuel)) as LE_BOUND.
+    use gen_not_fixed_length_lower as LE_LOWER with PREFIX.
+    use! (gen_iter_length_bound (S gen_fuel)) as LE_BOUND with *.
     unfold gen_fuel in *. lia.
 Qed.
 
@@ -1321,7 +1324,7 @@ Qed.
 Lemma gen_fixed_at_fuel
   : forall A, A ∈ gen_step gen_set -> A ∈ gen_set.
 Proof.
-  pose proof gen_first_fixed_before_bound as (i & LE_I & FIXED_I).
+  use! gen_first_fixed_before_bound as (i & LE_I & FIXED_I) with *.
   assert (FIXED_SUBSET : forall A, A ∈ gen_step (iter i gen_step []) -> A ∈ iter i gen_step []).
   { eapply gen_step_fixed_if_subset. exact FIXED_I. }
   intros A IN_A.
@@ -1333,7 +1336,7 @@ Proof.
     - exact FUEL_SUBSET_I.
     - exact IN_A.
   }
-  pose proof (FIXED_SUBSET A IN_STEP_I) as IN_I.
+  use FIXED_SUBSET as IN_I with IN_STEP_I.
   eapply gen_iter_mono_fuel with (n := i); [exact LE_I | exact IN_I].
 Qed.
 
@@ -1385,14 +1388,14 @@ Lemma genb_complete A
   : genb A = true.
 Proof.
   unfold genb. rewrite mem_true_iff.
-  pose proof gen_complete_mutual as (COMPLETE & _). eapply COMPLETE. exact GEN.
+  use! gen_complete_mutual as (COMPLETE & _) with *. eapply COMPLETE. exact GEN.
 Qed.
 
 Lemma genstrb_complete rhs
   (GEN : GenStr rhs)
   : genstrb rhs = true.
 Proof.
-  pose proof gen_complete_mutual as (_ & COMPLETE). eapply COMPLETE. exact GEN.
+  use! gen_complete_mutual as (_ & COMPLETE) with *. eapply COMPLETE. exact GEN.
 Qed.
 
 Theorem genb_correct A
@@ -1419,7 +1422,7 @@ Proof.
   - exists []. constructor 2.
   - destruct IH as (zR & STEPS_R).
     destruct X as [A | t].
-    + pose proof (PRODUCTIVE A) as (zA & STEPS_A). exists (zA ++ zR).
+    + use! (PRODUCTIVE A) as (zA & STEPS_A) with *. exists (zA ++ zR).
       replace (inl A :: rhs) with ([inl A] ++ rhs) by reflexivity.
       replace (map inr (zA ++ zR)) with (map (@inr N' T') zA ++ map (@inr N' T') zR) by (rewrite map_app; reflexivity).
       eapply rt_trans.
@@ -1459,7 +1462,7 @@ Lemma plain_steps_plain_steps_n xs ys
   (STEPS : plain_steps xs ys)
   : exists n, plain_steps_n n xs ys.
 Proof.
-  pose proof (Operators_Properties.clos_rt_rt1n (list V') plain_step xs ys STEPS) as STEPS1N.
+  use Operators_Properties.clos_rt_rt1n as STEPS1N with STEPS.
   clear STEPS.
   induction STEPS1N as [xs | xs ys zs STEP REST IH].
   - exists 0. constructor.
@@ -1495,7 +1498,7 @@ Proof.
   induction STEPS as [source | n source mid final STEP REST IH]; intros xs ys SOURCE FINAL.
   - rewrite FINAL in SOURCE.
     symmetry in SOURCE.
-    pose proof (map_inr_app_inv xs ys ts SOURCE) as (ts_x & ts_y & XS & YS & TS).
+    use map_inr_app_inv as (ts_x & ts_y & XS & YS & TS) with SOURCE.
     subst xs. subst ys.
     exists 0. exists 0. exists ts_x. exists ts_y. splits.
     + lia.
@@ -1503,16 +1506,17 @@ Proof.
     + constructor.
     + constructor.
   - subst source.
-    pose proof (plain_step_app_inv xs ys mid STEP) as [LEFT | RIGHT].
+    use plain_step_app_inv as CASE with STEP.
+    destruct CASE as [LEFT | RIGHT].
     + destruct LEFT as (xs' & MID & STEP_XS). subst mid.
-      pose proof (IH xs' ys eq_refl FINAL) as (nx & ny & ts_x & ts_y & LE & TS & STEPS_XS & STEPS_YS).
+      use! IH as (nx & ny & ts_x & ts_y & LE & TS & STEPS_XS & STEPS_YS) with FINAL.
       exists (S nx). exists ny. exists ts_x. exists ts_y. splits.
       * lia.
       * exact TS.
       * econstructor; [exact STEP_XS | exact STEPS_XS].
       * exact STEPS_YS.
     + destruct RIGHT as (ys' & MID & STEP_YS). subst mid.
-      pose proof (IH xs ys' eq_refl FINAL) as (nx & ny & ts_x & ts_y & LE & TS & STEPS_XS & STEPS_YS).
+      use! IH as (nx & ny & ts_x & ts_y & LE & TS & STEPS_XS & STEPS_YS) with FINAL.
       exists nx. exists (S ny). exists ts_x. exists ts_y. splits.
       * lia.
       * exact TS.
@@ -1525,7 +1529,7 @@ Lemma plain_steps_bounded_app_inv_terminal n xs ys ts
   : exists ts_x, exists ts_y, ts = ts_x ++ ts_y /\ plain_steps_bounded n xs (map inr ts_x) /\ plain_steps_bounded n ys (map inr ts_y).
 Proof.
   destruct STEPS as (k & LE_K & STEPS).
-  pose proof (plain_steps_n_app_inv_terminal k xs ys ts STEPS) as (nx & ny & ts_x & ts_y & LE & TS & STEPS_XS & STEPS_YS).
+  use plain_steps_n_app_inv_terminal as (nx & ny & ts_x & ts_y & LE & TS & STEPS_XS & STEPS_YS) with STEPS.
   exists ts_x. exists ts_y. splits.
   - exact TS.
   - exists nx. splits; [lia | exact STEPS_XS].
@@ -1552,7 +1556,7 @@ Lemma plain_steps_n_single_nonterminal_inv n A ts
   : exists omega, {| p_lhs := A; p_rhs := omega |} ∈ P' /\ plain_steps_n n omega (map inr ts).
 Proof.
   inversion STEPS as [| n' source mid final STEP REST EQ_N EQ_SRC EQ_FINAL]; subst.
-  pose proof (plain_step_single_nonterminal_inv A mid STEP) as (omega & PROD & MID).
+  use plain_step_single_nonterminal_inv as (omega & PROD & MID) with STEP.
   subst mid. exists omega. split; [exact PROD | exact REST].
 Qed.
 
@@ -1594,69 +1598,71 @@ Proof.
   - intros xs ts LEN STEPS.
     destruct STEPS as (k & LE_K & STEPS_N).
     assert (EQ_K : k = 0) by lia. subst k.
-    pose proof (plain_steps_n_zero_inv xs (map inr ts) STEPS_N) as EQ.
+    use plain_steps_n_zero_inv as EQ with STEPS_N.
     rewrite EQ. constructor 2.
   - induction m as [ | m IHm]; intros xs ts LEN STEPS.
     + destruct xs as [ | X xs]; [ | simpl in LEN; lia].
-      pose proof (plain_steps_bounded_terminal_inv (S n) [] (map inr ts) STEPS) as EQ.
+      use (plain_steps_bounded_terminal_inv (S n) []) as EQ with STEPS.
       destruct ts as [ | t ts]; [constructor 2 | simpl in EQ; discriminate].
-    + pose proof (word_terminal_or_rightmost_nonterminal xs) as [(ts0 & XS) | (prefix & A & suffix & XS)].
+    + use! (word_terminal_or_rightmost_nonterminal xs) as CASE with *.
+      destruct CASE as [(ts0 & XS) | (prefix & A & suffix & XS)].
       * subst xs.
-        pose proof (plain_steps_bounded_terminal_inv (S n) ts0 (map inr ts) STEPS) as EQ.
-        pose proof (map_inr_injective_list ts ts0 EQ) as TS. subst ts.
+        use plain_steps_bounded_terminal_inv as EQ with STEPS.
+        use map_inr_injective_list as TS with EQ. subst ts.
         constructor 2.
       * subst xs.
         destruct prefix as [ | X prefix']; destruct suffix as [ | t suffix'].
         { destruct STEPS as (k & LE_K & STEPS_N).
           destruct k as [ | k].
-          - pose proof (plain_steps_n_zero_inv ([] ++ inl A :: map inr []) (map inr ts) STEPS_N) as EQ.
+          - use plain_steps_n_zero_inv as EQ with STEPS_N.
             exfalso. eapply map_inr_no_nonterminal with (A := A).
             rewrite <- EQ. simpl. left. reflexivity.
           - assert (LE_REST : k <= n) by lia.
-            pose proof (plain_steps_n_single_nonterminal_inv k A ts STEPS_N) as (omega & PROD & REST_N).
+            use plain_steps_n_single_nonterminal_inv as (omega & PROD & REST_N) with STEPS_N.
             assert (REST_BOUNDED : plain_steps_bounded n omega (map inr ts)).
             { exists k. split; [exact LE_REST | exact REST_N]. }
-            pose proof (IHn (length omega) omega ts (le_n _) REST_BOUNDED) as REST_RM.
+            use! (IHn (length omega) omega ts) as REST_RM with REST_BOUNDED.
             eapply rt_trans; [ | exact REST_RM].
             constructor 1. change [inl A] with ([] ++ inl A :: map inr []).
             replace omega with ([] ++ omega ++ map inr []) by (simpl; rewrite app_nil_r; reflexivity).
             econstructor. exact PROD.
         }
-        { pose proof (plain_steps_bounded_app_inv_terminal (S n) [] (inl A :: map inr (t :: suffix')) ts STEPS) as (ts_prefix & ts_right & TS & STEPS_PREFIX & STEPS_RIGHT).
-          pose proof (plain_steps_bounded_app_inv_terminal (S n) [@inl N' T' A] (map inr (t :: suffix')) ts_right STEPS_RIGHT) as (ts_A & ts_suffix & TS_RIGHT & STEPS_A & STEPS_SUFFIX).
-          pose proof (plain_steps_bounded_terminal_inv (S n) (t :: suffix') (map inr ts_suffix) STEPS_SUFFIX) as SUFFIX_EQ.
-          pose proof (map_inr_injective_list ts_suffix (t :: suffix') SUFFIX_EQ) as TS_SUFFIX. subst ts_suffix.
+        { use plain_steps_bounded_app_inv_terminal as (ts_prefix & ts_right & TS & STEPS_PREFIX & STEPS_RIGHT) with STEPS.
+          use (plain_steps_bounded_app_inv_terminal (S n) [@inl N' T' A] (map inr (t :: suffix'))) as (ts_A & ts_suffix & TS_RIGHT & STEPS_A & STEPS_SUFFIX) with STEPS_RIGHT.
+          use plain_steps_bounded_terminal_inv as SUFFIX_EQ with STEPS_SUFFIX.
+          use map_inr_injective_list as TS_SUFFIX with SUFFIX_EQ. subst ts_suffix.
           subst ts_right. subst ts.
           assert (LEN_A : length [@inl N' T' A] <= m).
           { repeat rewrite length_app in LEN. repeat rewrite length_map in LEN. simpl in LEN. simpl. lia. }
-          pose proof (IHm [@inl N' T' A] ts_A LEN_A STEPS_A) as RM_A.
-          pose proof (IHm [] ts_prefix (le_0_n _) STEPS_PREFIX) as RM_PREFIX.
+          use IHm as RM_A with LEN_A STEPS_A.
+          assert (LEN_PREFIX_NIL : length (@nil V') <= m) by (simpl; apply le_0_n).
+          use (IHm (@nil V') ts_prefix) as RM_PREFIX with LEN_PREFIX_NIL STEPS_PREFIX.
           exact (rm_steps_rightmost_context [] A (t :: suffix') ts_prefix ts_A RM_PREFIX RM_A).
         }
-        { pose proof (plain_steps_bounded_app_inv_terminal (S n) (X :: prefix') (inl A :: map inr []) ts STEPS) as (ts_prefix & ts_right & TS & STEPS_PREFIX & STEPS_RIGHT).
-          pose proof (plain_steps_bounded_app_inv_terminal (S n) ([@inl N' T' A]) (map inr []) ts_right STEPS_RIGHT) as (ts_A & ts_suffix & TS_RIGHT & STEPS_A & STEPS_SUFFIX).
-          pose proof (plain_steps_bounded_terminal_inv (S n) [] (map inr ts_suffix) STEPS_SUFFIX) as SUFFIX_EQ.
-          pose proof (map_inr_injective_list ts_suffix [] SUFFIX_EQ) as TS_SUFFIX. subst ts_suffix.
+        { use plain_steps_bounded_app_inv_terminal as (ts_prefix & ts_right & TS & STEPS_PREFIX & STEPS_RIGHT) with STEPS.
+          use (plain_steps_bounded_app_inv_terminal (S n) [@inl N' T' A] (map inr [])) as (ts_A & ts_suffix & TS_RIGHT & STEPS_A & STEPS_SUFFIX) with STEPS_RIGHT.
+          use plain_steps_bounded_terminal_inv as SUFFIX_EQ with STEPS_SUFFIX.
+          use map_inr_injective_list as TS_SUFFIX with SUFFIX_EQ. subst ts_suffix.
           subst ts_right. subst ts.
           assert (LEN_PREFIX : length (X :: prefix') <= m).
           { repeat rewrite length_app in LEN. repeat rewrite length_map in LEN. simpl in LEN. simpl. lia. }
           assert (LEN_A : length ([@inl N' T' A]) <= m).
           { repeat rewrite length_app in LEN. repeat rewrite length_map in LEN. simpl in LEN. simpl. lia. }
-          pose proof (IHm (X :: prefix') ts_prefix LEN_PREFIX STEPS_PREFIX) as RM_PREFIX.
-          pose proof (IHm ([@inl N' T' A]) ts_A LEN_A STEPS_A) as RM_A.
+          use IHm as RM_PREFIX with LEN_PREFIX STEPS_PREFIX.
+          use IHm as RM_A with LEN_A STEPS_A.
           exact (rm_steps_rightmost_context (X :: prefix') A [] ts_prefix ts_A RM_PREFIX RM_A).
         }
-        { pose proof (plain_steps_bounded_app_inv_terminal (S n) (X :: prefix') (inl A :: map inr (t :: suffix')) ts STEPS) as (ts_prefix & ts_right & TS & STEPS_PREFIX & STEPS_RIGHT).
-          pose proof (plain_steps_bounded_app_inv_terminal (S n) [@inl N' T' A] (map inr (t :: suffix')) ts_right STEPS_RIGHT) as (ts_A & ts_suffix & TS_RIGHT & STEPS_A & STEPS_SUFFIX).
-          pose proof (plain_steps_bounded_terminal_inv (S n) (t :: suffix') (map inr ts_suffix) STEPS_SUFFIX) as SUFFIX_EQ.
-          pose proof (map_inr_injective_list ts_suffix (t :: suffix') SUFFIX_EQ) as TS_SUFFIX. subst ts_suffix.
+        { use plain_steps_bounded_app_inv_terminal as (ts_prefix & ts_right & TS & STEPS_PREFIX & STEPS_RIGHT) with STEPS.
+          use (plain_steps_bounded_app_inv_terminal (S n) [@inl N' T' A] (map inr (t :: suffix'))) as (ts_A & ts_suffix & TS_RIGHT & STEPS_A & STEPS_SUFFIX) with STEPS_RIGHT.
+          use plain_steps_bounded_terminal_inv as SUFFIX_EQ with STEPS_SUFFIX.
+          use map_inr_injective_list as TS_SUFFIX with SUFFIX_EQ. subst ts_suffix.
           subst ts_right. subst ts.
           assert (LEN_PREFIX : length (X :: prefix') <= m).
           { repeat rewrite length_app in LEN. repeat rewrite length_map in LEN. simpl in LEN. simpl. lia. }
           assert (LEN_A : length [@inl N' T' A] <= m).
           { repeat rewrite length_app in LEN. repeat rewrite length_map in LEN. simpl in LEN. simpl. lia. }
-          pose proof (IHm (X :: prefix') ts_prefix LEN_PREFIX STEPS_PREFIX) as RM_PREFIX.
-          pose proof (IHm [@inl N' T' A] ts_A LEN_A STEPS_A) as RM_A.
+          use IHm as RM_PREFIX with LEN_PREFIX STEPS_PREFIX.
+          use IHm as RM_A with LEN_A STEPS_A.
           exact (rm_steps_rightmost_context (X :: prefix') A (t :: suffix') ts_prefix ts_A RM_PREFIX RM_A).
         }
 Qed.
@@ -1665,7 +1671,7 @@ Theorem plain_steps_terminal_rm_steps xs ts
   (STEPS : plain_steps xs (map inr ts))
   : rm_steps xs (map inr ts).
 Proof.
-  pose proof (plain_steps_plain_steps_n xs (map inr ts) STEPS) as (n & STEPS_N).
+  use plain_steps_plain_steps_n as (n & STEPS_N) with STEPS.
   eapply plain_steps_bounded_terminal_rm_steps with
     (n := n) (m := length xs).
   - reflexivity.
@@ -1744,11 +1750,11 @@ Proof.
   change (plain_step src ys) in STEP. revert core NO_START SRC.
   induction STEP as [A omega alpha beta PROD]; intros core NO_START SRC.
   assert (BETA_NONEMPTY : ~ beta = []).
-  { intros BETA_EMPTY. subst beta. symmetry in SRC. pose proof (@app_inj_tail V' core alpha (inr eof) (inl A) SRC) as (_ & EQ_SYMBOL). discriminate. }
-  pose proof (@exists_last V' beta BETA_NONEMPTY) as (beta0 & last_symbol & BETA_EQ). subst beta.
+  { intros BETA_EMPTY. subst beta. symmetry in SRC. use (@app_inj_tail V') as (_ & EQ_SYMBOL) with SRC. discriminate. }
+  use (@exists_last V') as (beta0 & last_symbol & BETA_EQ) with BETA_NONEMPTY. subst beta.
   assert (SRC_TAIL : (alpha ++ inl A :: beta0) ++ [last_symbol] = core ++ [inr eof]).
   { rewrite <- app_assoc. exact SRC. }
-  symmetry in SRC_TAIL. pose proof (@app_inj_tail V' core (alpha ++ inl A :: beta0) (inr eof) last_symbol SRC_TAIL) as (CORE_EQ & LAST_EQ). subst core. subst last_symbol.
+  symmetry in SRC_TAIL. use (@app_inj_tail V') as (CORE_EQ & LAST_EQ) with SRC_TAIL. subst core. subst last_symbol.
   assert (A_NOT_START : ~ A = start_prime).
   { intros EQ. subst A. eapply NO_START. rewrite L.in_app_iff. right. simpl. left. reflexivity. }
   unfold P' in PROD. simpl in PROD. destruct PROD as [PROD | PROD].
@@ -1770,11 +1776,11 @@ Proof.
   remember (core ++ [inr eof]) as src eqn: SRC.
   change (plain_steps src ys) in STEPS. revert core NO_START SRC.
   induction STEPS as [x y STEP | x | x y z STEPS1 IH1 STEPS2 IH2]; intros core NO_START SRC.
-  - subst x. pose proof (plain_step_eof_suffix_grammar_step core y NO_START STEP) as (core' & YIELD & GR & NO_START').
+  - subst x. use plain_step_eof_suffix_grammar_step as (core' & YIELD & GR & NO_START') with NO_START STEP.
     exists core'. splits; auto. constructor 1. exact GR.
   - subst x. exists core. repeat split; try reflexivity; try exact NO_START. constructor 2.
-  - pose proof (IH1 core NO_START SRC) as (mid & MID_EQ & GR1 & NO_MID).
-    pose proof (IH2 mid NO_MID MID_EQ) as (core' & FINAL_EQ & GR2 & NO_FINAL).
+  - use IH1 as (mid & MID_EQ & GR1 & NO_MID) with NO_START SRC.
+    use IH2 as (core' & FINAL_EQ & GR2 & NO_FINAL) with NO_MID MID_EQ.
     exists core'. splits; auto. eapply rt_trans; eauto.
 Qed.
 
@@ -1785,9 +1791,9 @@ Proof.
   change augmented_start_sentence with ([inl (lift_N Grammar.start)] ++ [inr eof]) in STEPS.
   assert (NO_START : ~ inl start_prime ∈ [(inl (lift_N Grammar.start) : V')]).
   { simpl. intros [EQ | []]. discriminate. }
-  pose proof (plain_steps_eof_suffix_grammar_steps [(inl (lift_N Grammar.start) : V')] (accept_sentence w) NO_START STEPS) as (core & TARGET_EQ & GR & _).
+  use plain_steps_eof_suffix_grammar_steps as (core & TARGET_EQ & GR & _) with NO_START STEPS.
   unfold grammar_accepts. unfold accept_sentence in TARGET_EQ.
-  pose proof (@app_inj_tail V' (terminal_lift w) core (inr eof) (inr eof) TARGET_EQ) as (CORE_EQ & _). rewrite CORE_EQ. exact GR.
+  use (@app_inj_tail V') as (CORE_EQ & _) with TARGET_EQ. rewrite CORE_EQ. exact GR.
 Qed.
 
 Lemma eof_not_in_injected_rhs p
@@ -1807,441 +1813,9 @@ Proof.
     exfalso. eapply eof_not_in_injected_rhs. exact EOF.
 Qed.
 
-Module Abs.
 
-Abbreviation prod' := prod'.
 
-Abbreviation P' := P'.
 
-Abbreviation rm_step := rm_step.
-
-Abbreviation rm_steps := rm_steps.
-
-Abbreviation rm_steps_n := rm_steps_n.
-
-Abbreviation rm_steps_bounded := rm_steps_bounded.
-
-Abbreviation Productive := Productive.
-
-Abbreviation ProductiveStr := ProductiveStr.
-
-Abbreviation Gen := Gen.
-
-Abbreviation GenStr := GenStr.
-
-Abbreviation all_nonterminals_productive := all_nonterminals_productive.
-
-Abbreviation genb := genb.
-
-Abbreviation genstrb := genstrb.
-
-Abbreviation rm_steps_n_case_spec := rm_steps_n_case_spec.
-
-Abbreviation rm_steps_n_last_case_spec := rm_steps_n_last_case_spec.
-
-Abbreviation rm_steps_n_start_case_spec := rm_steps_n_start_case_spec.
-
-Abbreviation terminal_suffix_image_head_spec := terminal_suffix_image_head_spec.
-
-Abbreviation app_cons_split_spec := app_cons_split_spec.
-
-Abbreviation app_middle_occurrence_split_spec := app_middle_occurrence_split_spec.
-
-Abbreviation plain_step := plain_step.
-
-Abbreviation plain_steps := plain_steps.
-
-Abbreviation terminal_lift := terminal_lift.
-
-Abbreviation accept_sentence := accept_sentence.
-
-Abbreviation augmented_start_sentence := augmented_start_sentence.
-
-Abbreviation grammar_step := grammar_step.
-
-Abbreviation grammar_steps := grammar_steps.
-
-Abbreviation grammar_accepts := grammar_accepts.
-
-End Abs.
-
-Module Impl.
-
-Abbreviation inject := inject.
-
-Abbreviation augmented_prod := augmented_prod.
-
-Abbreviation P' := P'.
-
-Abbreviation gen_symbol_in := gen_symbol_in.
-
-Abbreviation gen_rhs_in := gen_rhs_in.
-
-Abbreviation gen_prod_in := gen_prod_in.
-
-Abbreviation gen_step := gen_step.
-
-Abbreviation gen_fuel := gen_fuel.
-
-Abbreviation gen_set := gen_set.
-
-Abbreviation genb := genb.
-
-Abbreviation gen_symbolb := gen_symbolb.
-
-Abbreviation genstrb := genstrb.
-
-End Impl.
-
-Module Refine.
-
-Abbreviation N'_all_complete_refines := N'_all_complete.
-
-Abbreviation T'_all_complete_refines := T'_all_complete.
-
-Abbreviation V'_all_complete_refines := V'_all_complete.
-
-Abbreviation N'_all_no_dup_refines := N'_all_no_dup.
-
-Abbreviation T'_all_no_dup_refines := T'_all_no_dup.
-
-Abbreviation V'_all_no_dup_refines := V'_all_no_dup.
-
-Abbreviation start_prime_not_in_rhs_refines := start_prime_not_in_rhs.
-
-Abbreviation eof_not_in_injected_rhs_refines := eof_not_in_injected_rhs.
-
-Abbreviation eof_in_rhs_only_augmented_refines := eof_in_rhs_only_augmented.
-
-Abbreviation terminal_lift_app_eof_refines := terminal_lift_app_eof.
-
-Abbreviation rm_steps_n_case_spec_refines := rm_steps_n_case_spec.
-
-Abbreviation rm_steps_n_case_refines := rm_steps_n_case.
-
-Abbreviation rm_steps_n_last_case_spec_refines := rm_steps_n_last_case_spec.
-
-Abbreviation rm_steps_n_last_case_refines := rm_steps_n_last_case.
-
-Abbreviation rm_step_start_augmented_refines := rm_step_start_augmented.
-
-Abbreviation rm_step_start_refines := rm_step_start.
-
-Abbreviation rm_steps_n_start_case_spec_refines := rm_steps_n_start_case_spec.
-
-Abbreviation rm_steps_n_start_case_refines := rm_steps_n_start_case.
-
-Abbreviation map_inr_injective_list_refines := map_inr_injective_list.
-
-Abbreviation map_inr_app_inv_prefix_refines := map_inr_app_inv_prefix.
-
-Abbreviation rm_step_source_decompose_refines := rm_step_source_decompose.
-
-Abbreviation map_inr_app_inv_refines := map_inr_app_inv.
-
-Abbreviation map_inr_no_nonterminal_refines := map_inr_no_nonterminal.
-
-Abbreviation terminal_suffix_image_head_spec_refines := terminal_suffix_image_head_spec.
-
-Abbreviation terminal_suffix_image_head_case_refines := terminal_suffix_image_head_case.
-
-Abbreviation app_cons_split_spec_refines := app_cons_split_spec.
-
-Abbreviation app_cons_split_refines := app_cons_split.
-
-Abbreviation app_cons_not_in_tail_inv_refines := app_cons_not_in_tail_inv.
-
-Abbreviation app_middle_occurrence_split_spec_refines := app_middle_occurrence_split_spec.
-
-Abbreviation app_middle_occurrence_split_refines := app_middle_occurrence_split.
-
-Abbreviation grammar_step_plain_step_refines := grammar_step_plain_step.
-
-Abbreviation grammar_step_plain_step_suffix_refines := grammar_step_plain_step_suffix.
-
-Abbreviation grammar_steps_plain_steps_refines := grammar_steps_plain_steps.
-
-Abbreviation grammar_steps_plain_steps_suffix_refines := grammar_steps_plain_steps_suffix.
-
-Abbreviation grammar_accepts_plain_augmented_refines := grammar_accepts_plain_augmented.
-
-Abbreviation plain_step_eof_suffix_grammar_step_refines := plain_step_eof_suffix_grammar_step.
-
-Abbreviation plain_steps_eof_suffix_grammar_steps_refines := plain_steps_eof_suffix_grammar_steps.
-
-Abbreviation plain_augmented_grammar_accepts_refines := plain_augmented_grammar_accepts.
-
-Abbreviation rm_step_plain_step_refines := rm_step_plain_step.
-
-Abbreviation rm_steps_n_rm_steps_refines := rm_steps_n_rm_steps.
-
-Abbreviation rm_steps_rm_steps_n_refines := rm_steps_rm_steps_n.
-
-Abbreviation rm_steps_bounded_rm_steps_refines := rm_steps_bounded_rm_steps.
-
-Abbreviation GenStr_terminals_refines := GenStr_terminals.
-
-Abbreviation GenStr_app_refines := GenStr_app.
-
-Abbreviation GenStr_app_inv_refines := GenStr_app_inv.
-
-Abbreviation Gen_productive_refines := Gen_productive.
-
-Abbreviation GenStr_productive_refines := GenStr_productive.
-
-Abbreviation rm_step_source_GenStr_refines := rm_step_source_GenStr.
-
-Abbreviation rm_steps_n_terminal_GenStr_refines := rm_steps_n_terminal_GenStr.
-
-Abbreviation rm_steps_terminal_GenStr_refines := rm_steps_terminal_GenStr.
-
-Abbreviation Productive_Gen_refines := Productive_Gen.
-
-Abbreviation ProductiveStr_GenStr_refines := ProductiveStr_GenStr.
-
-Abbreviation Gen_correct_refines := Gen_correct.
-
-Abbreviation GenStr_correct_refines := GenStr_correct.
-
-Abbreviation genb_sound_refines := genb_sound.
-
-Abbreviation genstrb_sound_refines := genstrb_sound.
-
-Abbreviation gen_fixed_at_fuel_refines := gen_fixed_at_fuel.
-
-Abbreviation genb_complete_refines := genb_complete.
-
-Abbreviation genstrb_complete_refines := genstrb_complete.
-
-Abbreviation genb_correct_refines := genb_correct.
-
-Abbreviation genstrb_correct_refines := genstrb_correct.
-
-Abbreviation all_nonterminals_productive_string_refines := all_nonterminals_productive_string.
-
-Abbreviation rm_steps_plain_steps_refines := rm_steps_plain_steps.
-
-Abbreviation plain_step_prefix_refines := plain_step_prefix.
-
-Abbreviation plain_steps_prefix_refines := plain_steps_prefix.
-
-Abbreviation plain_step_app_inv_refines := plain_step_app_inv.
-
-Abbreviation plain_steps_app_inv_terminal_refines := plain_steps_app_inv_terminal.
-
-Abbreviation plain_step_terminal_absurd_refines := plain_step_terminal_absurd.
-
-Abbreviation plain_steps_terminal_inv_refines := plain_steps_terminal_inv.
-
-Abbreviation rm_step_prefix_refines := rm_step_prefix.
-
-Abbreviation rm_steps_prefix_refines := rm_steps_prefix.
-
-Abbreviation rm_step_terminal_suffix_refines := rm_step_terminal_suffix.
-
-Abbreviation rm_steps_terminal_suffix_refines := rm_steps_terminal_suffix.
-
-Abbreviation plain_steps_n_plain_steps_refines := plain_steps_n_plain_steps.
-
-Abbreviation plain_steps_plain_steps_n_refines := plain_steps_plain_steps_n.
-
-Abbreviation plain_steps_bounded_plain_steps_refines := plain_steps_bounded_plain_steps.
-
-Abbreviation plain_steps_n_app_inv_terminal_refines := plain_steps_n_app_inv_terminal.
-
-Abbreviation plain_steps_bounded_app_inv_terminal_refines := plain_steps_bounded_app_inv_terminal.
-
-Abbreviation plain_steps_bounded_terminal_rm_steps_refines := plain_steps_bounded_terminal_rm_steps.
-
-Abbreviation plain_steps_terminal_rm_steps_refines := plain_steps_terminal_rm_steps.
-
-Abbreviation grammar_accepts_rm_steps_refines := grammar_accepts_rm_steps.
-
-End Refine.
-
-Module API.
-
-Abbreviation N := N.
-
-Abbreviation T := T.
-
-Abbreviation N' := N'.
-
-Abbreviation T' := T'.
-
-Abbreviation V := V.
-
-Abbreviation V' := V'.
-
-Abbreviation prod' := prod'.
-
-Abbreviation P' := P'.
-
-Abbreviation start_prime := start_prime.
-
-Abbreviation eof := eof.
-
-Abbreviation inject := inject.
-
-Abbreviation rm_step := rm_step.
-
-Abbreviation rm_steps := rm_steps.
-
-Abbreviation rm_steps_n := rm_steps_n.
-
-Abbreviation rm_steps_bounded := rm_steps_bounded.
-
-Abbreviation Productive := Productive.
-
-Abbreviation ProductiveStr := ProductiveStr.
-
-Abbreviation Gen := Gen.
-
-Abbreviation GenStr := GenStr.
-
-Abbreviation all_nonterminals_productive := all_nonterminals_productive.
-
-Abbreviation gen_fuel := gen_fuel.
-
-Abbreviation gen_set := gen_set.
-
-Abbreviation genb := genb.
-
-Abbreviation genstrb := genstrb.
-
-Abbreviation rm_steps_n_case_spec := rm_steps_n_case_spec.
-
-Abbreviation rm_steps_n_last_case_spec := rm_steps_n_last_case_spec.
-
-Abbreviation rm_steps_n_start_case_spec := rm_steps_n_start_case_spec.
-
-Abbreviation plain_step := plain_step.
-
-Abbreviation plain_steps := plain_steps.
-
-Abbreviation terminal_lift := terminal_lift.
-
-Abbreviation accept_sentence := accept_sentence.
-
-Abbreviation augmented_start_sentence := augmented_start_sentence.
-
-Abbreviation grammar_step := grammar_step.
-
-Abbreviation grammar_steps := grammar_steps.
-
-Abbreviation grammar_accepts := grammar_accepts.
-
-Abbreviation map_inr_injective_list := map_inr_injective_list.
-
-Abbreviation map_inr_app_inv_prefix := map_inr_app_inv_prefix.
-
-Abbreviation rm_step_source_decompose := rm_step_source_decompose.
-
-Abbreviation rm_steps_n_rm_steps := rm_steps_n_rm_steps.
-
-Abbreviation rm_steps_rm_steps_n := rm_steps_rm_steps_n.
-
-Abbreviation rm_steps_bounded_rm_steps := rm_steps_bounded_rm_steps.
-
-Abbreviation GenStr_terminals := GenStr_terminals.
-
-Abbreviation GenStr_app := GenStr_app.
-
-Abbreviation GenStr_app_inv := GenStr_app_inv.
-
-Abbreviation Gen_productive := Gen_productive.
-
-Abbreviation GenStr_productive := GenStr_productive.
-
-Abbreviation rm_step_source_GenStr := rm_step_source_GenStr.
-
-Abbreviation rm_steps_n_terminal_GenStr := rm_steps_n_terminal_GenStr.
-
-Abbreviation rm_steps_terminal_GenStr := rm_steps_terminal_GenStr.
-
-Abbreviation Productive_Gen := Productive_Gen.
-
-Abbreviation ProductiveStr_GenStr := ProductiveStr_GenStr.
-
-Abbreviation Gen_correct := Gen_correct.
-
-Abbreviation GenStr_correct := GenStr_correct.
-
-Abbreviation genb_correct := genb_correct.
-
-Abbreviation genstrb_correct := genstrb_correct.
-
-Abbreviation all_nonterminals_productive_string := all_nonterminals_productive_string.
-
-Abbreviation rm_steps_n_case := rm_steps_n_case.
-
-Abbreviation rm_steps_n_last_case := rm_steps_n_last_case.
-
-Abbreviation rm_step_start_augmented := rm_step_start_augmented.
-
-Abbreviation rm_step_start := rm_step_start.
-
-Abbreviation rm_steps_n_start_case := rm_steps_n_start_case.
-
-Abbreviation map_inr_app_inv := map_inr_app_inv.
-
-Abbreviation map_inr_no_nonterminal := map_inr_no_nonterminal.
-
-Abbreviation terminal_suffix_image_head_spec := terminal_suffix_image_head_spec.
-
-Abbreviation terminal_suffix_image_head_case := terminal_suffix_image_head_case.
-
-Abbreviation app_cons_split_spec := app_cons_split_spec.
-
-Abbreviation app_cons_split := app_cons_split.
-
-Abbreviation app_cons_not_in_tail_inv := app_cons_not_in_tail_inv.
-
-Abbreviation app_middle_occurrence_split_spec := app_middle_occurrence_split_spec.
-
-Abbreviation app_middle_occurrence_split := app_middle_occurrence_split.
-
-Abbreviation plain_step_prefix := plain_step_prefix.
-
-Abbreviation plain_steps_prefix := plain_steps_prefix.
-
-Abbreviation plain_step_app_inv := plain_step_app_inv.
-
-Abbreviation plain_steps_app_inv_terminal := plain_steps_app_inv_terminal.
-
-Abbreviation plain_step_terminal_absurd := plain_step_terminal_absurd.
-
-Abbreviation plain_steps_terminal_inv := plain_steps_terminal_inv.
-
-Abbreviation rm_step_prefix := rm_step_prefix.
-
-Abbreviation rm_steps_prefix := rm_steps_prefix.
-
-Abbreviation rm_step_terminal_suffix := rm_step_terminal_suffix.
-
-Abbreviation rm_steps_terminal_suffix := rm_steps_terminal_suffix.
-
-Abbreviation plain_steps_n := plain_steps_n.
-
-Abbreviation plain_steps_bounded := plain_steps_bounded.
-
-Abbreviation plain_steps_n_plain_steps := plain_steps_n_plain_steps.
-
-Abbreviation plain_steps_plain_steps_n := plain_steps_plain_steps_n.
-
-Abbreviation plain_steps_bounded_plain_steps := plain_steps_bounded_plain_steps.
-
-Abbreviation plain_steps_n_app_inv_terminal := plain_steps_n_app_inv_terminal.
-
-Abbreviation plain_steps_bounded_app_inv_terminal := plain_steps_bounded_app_inv_terminal.
-
-Abbreviation plain_steps_bounded_terminal_rm_steps := plain_steps_bounded_terminal_rm_steps.
-
-Abbreviation plain_steps_terminal_rm_steps := plain_steps_terminal_rm_steps.
-
-Abbreviation grammar_accepts_rm_steps := grammar_accepts_rm_steps.
-
-End API.
 
 End GrammarSyntax.
 
@@ -2265,11 +1839,11 @@ Instance item_hasEqDec
   : hasEqDec item.
 Proof.
   intros [lhs1 left1 right1] [lhs2 left2 right2].
-  pose proof (B.decide (lhs1 = lhs2)) as [EQ_LHS | NE_LHS].
+  destruct (B.decide (lhs1 = lhs2)) as [EQ_LHS | NE_LHS].
   - subst lhs2.
-    pose proof ((list_hasEqDec V'_hasEqDec) left1 left2) as [EQ_LEFT | NE_LEFT].
+    destruct ((list_hasEqDec V'_hasEqDec) left1 left2) as [EQ_LEFT | NE_LEFT].
     + subst left2.
-      pose proof ((list_hasEqDec V'_hasEqDec) right1 right2) as [EQ_RIGHT | NE_RIGHT].
+      destruct ((list_hasEqDec V'_hasEqDec) right1 right2) as [EQ_RIGHT | NE_RIGHT].
       * subst right2. left. reflexivity.
       * right. intros EQ. inv EQ. contradiction.
     + right. intros EQ. inv EQ. contradiction.
@@ -2370,11 +1944,11 @@ Lemma valid_item_all_items it
   : valid_item it.
 Proof.
   unfold all_items in IN. rewrite L.nodup_In in IN.
-  unfold raw_all_items in IN. pose proof (list_bind_sound _ _ _ IN) as (p & PROD & IN_ITEMS).
+  unfold raw_all_items in IN. use list_bind_sound as (p & PROD & IN_ITEMS) with IN.
   unfold items_of_prod in IN_ITEMS. rewrite L.in_map_iff in IN_ITEMS.
   destruct IN_ITEMS as ([left right] & EQ & IN_SPLIT). subst it.
   destruct p as [lhs rhs]. simpl in *.
-  pose proof (splits_sound rhs left right IN_SPLIT) as EQ_RHS. subst rhs.
+  use splits_sound as EQ_RHS with IN_SPLIT. subst rhs.
   exact PROD.
 Qed.
 
@@ -2435,7 +2009,7 @@ Lemma closure_seed_for_valid A it
   (IN : it ∈ closure_seed_for A)
   : valid_item it.
 Proof.
-  pose proof (closure_seed_for_sound A it IN) as (omega & EQ & PROD). subst it.
+  use closure_seed_for_sound as (omega & EQ & PROD) with IN. subst it.
   unfold valid_item, item_prod. simpl. exact PROD.
 Qed.
 
@@ -2494,10 +2068,10 @@ Proof.
   unfold closure_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply INCL. exact IN.
-  - pose proof (list_bind_sound _ _ _ IN) as (parent & IN_PARENT & IN_CHILD).
+  - use list_bind_sound as (parent & IN_PARENT & IN_CHILD) with IN.
     destruct parent as [B beta right]. destruct right as [ | X gamma]; simpl in IN_CHILD; [contradiction | ].
     destruct X as [A | t]; simpl in IN_CHILD; [ | contradiction].
-    pose proof (closure_seed_for_sound A it IN_CHILD) as (omega & EQ & PROD). subst it.
+    use closure_seed_for_sound as (omega & EQ & PROD) with IN_CHILD. subst it.
     eapply cl_step; [exact PROD | ]. eapply INCL. exact IN_PARENT.
 Qed.
 
@@ -2509,7 +2083,7 @@ Proof.
   unfold closure_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply VALID_Q. exact IN.
-  - pose proof (list_bind_sound _ _ _ IN) as (parent & _ & IN_CHILD).
+  - use list_bind_sound as (parent & _ & IN_CHILD) with IN.
     eapply closure_step_items_valid. exact IN_CHILD.
 Qed.
 
@@ -2529,7 +2103,7 @@ Proof.
   unfold closure_step in *. rewrite L.nodup_In in *. rewrite in_app_iff in *.
   destruct IN as [IN | IN].
   - left. eapply INCL. exact IN.
-  - right. pose proof (list_bind_sound _ _ _ IN) as (parent & IN_PARENT & IN_CHILD).
+  - right. use list_bind_sound as (parent & IN_PARENT & IN_CHILD) with IN.
     eapply list_bind_complete with (x := parent); [eapply INCL; exact IN_PARENT | exact IN_CHILD].
 Qed.
 
@@ -2688,9 +2262,9 @@ Lemma closure_complete q it
   (REL : closure_rel q it)
   : it ∈ closure q.
 Proof.
-  pose proof (closure_rel_item_digraph q it REL) as (root & ROOT & CLOS).
-  pose proof (digraph_closure_trace item_seed item_deps root it CLOS) as (trace & TRACE).
-  pose proof (@digraph_trace_simple_bounded item item item_hasEqDec all_items item_seed item_deps root it trace item_deps_closed TRACE) as (simple & SIMPLE_TRACE & LE).
+  use closure_rel_item_digraph as (root & ROOT & CLOS) with REL.
+  use digraph_closure_trace as (trace & TRACE) with CLOS.
+  use (@digraph_trace_simple_bounded item item item_hasEqDec all_items item_seed item_deps root it trace item_deps_closed) as (simple & SIMPLE_TRACE & LE) with TRACE.
   unfold closure. eapply item_trace_iter with (root := root) (trace := simple).
   - rewrite L.nodup_In. exact ROOT.
   - exact SIMPLE_TRACE.
@@ -2814,7 +2388,7 @@ Lemma shift_dot_valid it X it'
   (SHIFT : shift_dot it X = Some it')
   : valid_item it'.
 Proof.
-  pose proof (shift_dot_sound it X it' SHIFT) as (gamma & RIGHT & EQ). subst it'.
+  use shift_dot_sound as (gamma & RIGHT & EQ) with SHIFT. subst it'.
   unfold valid_item, item_prod in *. rewrite RIGHT in VALID. simpl in VALID.
   simpl. rewrite <- app_assoc. simpl. exact VALID.
 Qed.
@@ -2823,10 +2397,11 @@ Lemma goto_kernel_sound q X it'
   (IN : it' ∈ goto_kernel q X)
   : exists it, exists gamma, it ∈ q /\ it.(i_right) = X :: gamma /\ it' = {| i_lhs := it.(i_lhs); i_left := it.(i_left) ++ [X]; i_right := gamma |}.
 Proof.
-  unfold goto_kernel in IN. pose proof (list_bind_sound _ _ _ IN) as (it & IN_IT & IN_SHIFT).
+  unfold goto_kernel in IN. use list_bind_sound as (it & IN_IT & IN_SHIFT) with IN.
+  cbn in IN_SHIFT.
   destruct (shift_dot it X) as [shifted | ] eqn: SHIFT; simpl in IN_SHIFT; [ | contradiction].
   destruct IN_SHIFT as [EQ | []]. subst shifted.
-  pose proof (shift_dot_sound it X it' SHIFT) as (gamma & RIGHT & EQ). subst it'.
+  use shift_dot_sound as (gamma & RIGHT & EQ) with SHIFT. subst it'.
   exists it. exists gamma. splits; auto.
 Qed.
 
@@ -2854,7 +2429,8 @@ Lemma goto_kernel_valid q X it
   (IN : it ∈ goto_kernel q X)
   : valid_item it.
 Proof.
-  unfold goto_kernel in IN. pose proof (list_bind_sound _ _ _ IN) as (parent & IN_PARENT & IN_SHIFT).
+  unfold goto_kernel in IN. use list_bind_sound as (parent & IN_PARENT & IN_SHIFT) with IN.
+  cbn in IN_SHIFT.
   destruct (shift_dot parent X) as [shifted | ] eqn: SHIFT; simpl in IN_SHIFT; [ | contradiction].
   destruct IN_SHIFT as [EQ | []]. subst shifted.
   eapply shift_dot_valid; [eapply VALID_Q; exact IN_PARENT | exact SHIFT].
@@ -2865,7 +2441,7 @@ Lemma goto_kernel_monotone q1 q2 X it
   (IN : it ∈ goto_kernel q1 X)
   : it ∈ goto_kernel q2 X.
 Proof.
-  unfold goto_kernel in *. pose proof (list_bind_sound _ _ _ IN) as (parent & IN_PARENT & IN_SHIFT).
+  unfold goto_kernel in *. use list_bind_sound as (parent & IN_PARENT & IN_SHIFT) with IN.
   eapply list_bind_complete with (x := parent); [eapply INCL; exact IN_PARENT | exact IN_SHIFT].
 Qed.
 
@@ -2931,10 +2507,10 @@ Lemma goto_kernel_start_prime_absurd q it
   (IN : it ∈ goto_kernel q (inl start_prime))
   : False.
 Proof.
-  pose proof (goto_kernel_sound q (inl start_prime) it IN) as (parent & gamma & IN_PARENT & RIGHT & EQ).
-  pose proof (VALID_Q parent IN_PARENT) as VALID_PARENT.
+  use goto_kernel_sound as (parent & gamma & IN_PARENT & RIGHT & EQ) with IN.
+  use VALID_Q as VALID_PARENT with IN_PARENT.
   unfold valid_item, item_prod in VALID_PARENT. rewrite RIGHT in VALID_PARENT. simpl in VALID_PARENT.
-  pose proof (start_prime_not_in_rhs {| p_lhs := parent.(i_lhs); p_rhs := parent.(i_left) ++ inl start_prime :: gamma |} VALID_PARENT) as NO_START.
+  use start_prime_not_in_rhs as NO_START with VALID_PARENT.
   eapply NO_START. simpl. rewrite L.in_app_iff. right. simpl. left. reflexivity.
 Qed.
 
@@ -2967,105 +2543,9 @@ Proof.
   intros it0 [EQ | []]. subst it0. eapply initial_item_valid.
 Qed.
 
-Module Abs.
 
-Abbreviation item := item.
 
-Abbreviation state := state.
 
-Abbreviation valid_item := valid_item.
-
-Abbreviation closure_rel := closure_rel.
-
-End Abs.
-
-Module Impl.
-
-Abbreviation all_items := all_items.
-
-Abbreviation closure := closure.
-
-Abbreviation goto := goto.
-
-Abbreviation kernel := kernel.
-
-Abbreviation shift_dot := shift_dot.
-
-Abbreviation closure_no_dup := closure_no_dup.
-
-Abbreviation goto_no_dup := goto_no_dup.
-
-End Impl.
-
-Module Refine.
-
-Abbreviation all_items_complete_refines := all_items_complete.
-
-Abbreviation all_items_no_dup_refines := all_items_no_dup.
-
-Abbreviation closure_rel_valid_refines := closure_rel_valid.
-
-Abbreviation closure_correct_refines := closure_correct.
-
-Abbreviation closure_sound_refines := closure_sound.
-
-Abbreviation closure_complete_refines := closure_complete.
-
-Abbreviation closure_monotone_refines := closure_monotone.
-
-Abbreviation closure_idempotent_refines := closure_idempotent.
-
-Abbreviation closure_valid_refines := closure_valid.
-
-Abbreviation closure_no_dup_refines := closure_no_dup.
-
-Abbreviation goto_sound_refines := goto_sound.
-
-Abbreviation goto_correct_refines := goto_correct.
-
-Abbreviation goto_kernel_correct_refines := goto_kernel_correct.
-
-Abbreviation goto_monotone_refines := goto_monotone.
-
-Abbreviation goto_valid_refines := goto_valid.
-
-Abbreviation goto_all_items_refines := goto_all_items.
-
-Abbreviation goto_no_dup_refines := goto_no_dup.
-
-Abbreviation goto_kernel_start_prime_absurd_refines := goto_kernel_start_prime_absurd.
-
-Abbreviation goto_start_prime_absurd_refines := goto_start_prime_absurd.
-
-End Refine.
-
-Module API.
-
-Abbreviation item := item.
-
-Abbreviation state := state.
-
-Abbreviation valid_item := valid_item.
-
-Abbreviation closure_rel := closure_rel.
-
-Abbreviation closure := closure.
-
-Abbreviation goto := goto.
-
-Abbreviation kernel := kernel.
-
-Abbreviation closure_no_dup := closure_no_dup.
-
-Abbreviation goto_no_dup := goto_no_dup.
-
-Abbreviation all_items := all_items.
-
-Abbreviation goto_kernel_start_prime_absurd := goto_kernel_start_prime_absurd.
-
-Abbreviation goto_start_prime_absurd := goto_start_prime_absurd.
-
-End API.
 
 End Item.
 
@@ -3208,11 +2688,11 @@ Lemma delta_some_parent_item q X q'
   (DELTA : delta q X = Some q')
   : exists parent, exists gamma, parent ∈ q /\ parent.(i_right) = X :: gamma.
 Proof.
-  pose proof (delta_some_nonempty q X q' DELTA) as (EQ & NONEMPTY). subst q'.
-  pose proof (nonempty_exists (goto q X) NONEMPTY) as (it & IN_GOTO).
-  pose proof (goto_sound q X it IN_GOTO) as REL.
-  pose proof (closure_rel_item_digraph (goto_kernel q X) it REL) as (root & ROOT & _).
-  pose proof (goto_kernel_sound q X root ROOT) as (parent & gamma & IN_PARENT & RIGHT & _).
+  use delta_some_nonempty as (EQ & NONEMPTY) with DELTA. subst q'.
+  use nonempty_exists as (it & IN_GOTO) with NONEMPTY.
+  use goto_sound as REL with IN_GOTO.
+  use closure_rel_item_digraph as (root & ROOT & _) with REL.
+  use goto_kernel_sound as (parent & gamma & IN_PARENT & RIGHT & _) with ROOT.
   exists parent. exists gamma. split; [exact IN_PARENT | exact RIGHT].
 Qed.
 
@@ -3227,7 +2707,8 @@ Lemma lr0_labeled_successors_sound p q q' X
   : q = p /\ X ∈ all_symbols /\ delta p X = Some q'.
 Proof.
   unfold lr0_labeled_successors in IN.
-  pose proof (list_bind_sound _ _ _ IN) as (Y & IN_Y & IN_EDGE).
+  use list_bind_sound as (Y & IN_Y & IN_EDGE) with IN.
+  change (((q, q'), X) ∈ (if nonempty (goto p Y) then [((p, goto p Y), Y)] else [])) in IN_EDGE.
   destruct (nonempty (goto p Y)) eqn: NONEMPTY; simpl in IN_EDGE; [ | contradiction].
   destruct IN_EDGE as [EQ | []]. inv EQ.
   splits; eauto.
@@ -3260,8 +2741,8 @@ Lemma lr0_labeled_edges_sound qs q q' X
   : q ∈ qs /\ X ∈ all_symbols /\ delta q X = Some q'.
 Proof.
   unfold lr0_labeled_edges in IN.
-  pose proof (list_bind_sound _ _ _ IN) as (p & IN_P & IN_SUCC).
-  pose proof (lr0_labeled_successors_sound _ _ _ _ IN_SUCC) as (EQ & IN_X & DELTA).
+  use list_bind_sound as (p & IN_P & IN_SUCC) with IN.
+  use lr0_labeled_successors_sound as (EQ & IN_X & DELTA) with IN_SUCC.
   subst q. splits; eauto.
 Qed.
 
@@ -3319,7 +2800,7 @@ Lemma state_successors_sound q q'
   (IN : q' ∈ state_successors q)
   : exists X, X ∈ all_symbols /\ delta q X = Some q'.
 Proof.
-  pose proof (proj1 (state_successors_lgraph_correct q q') IN) as (X & LABEL).
+  use (proj1 (state_successors_lgraph_correct q q')) as (X & LABEL) with IN.
   rewrite lr0_lgraph_labels_correct in LABEL.
   destruct LABEL as (_ & IN_X & DELTA).
   exists X. split; assumption.
@@ -3348,8 +2829,8 @@ Lemma state_successors_valid q q'
   (IN : q' ∈ state_successors q)
   : forall it, it ∈ q' -> valid_item it.
 Proof.
-  pose proof (state_successors_sound q q' IN) as (X & _ & DELTA).
-  pose proof (delta_some_nonempty q X q' DELTA) as (EQ & _). subst q'.
+  use state_successors_sound as (X & _ & DELTA) with IN.
+  use delta_some_nonempty as (EQ & _) with DELTA. subst q'.
   intros it IN_IT. eapply goto_valid; [exact VALID_Q | exact IN_IT].
 Qed.
 
@@ -3361,7 +2842,7 @@ Proof.
   unfold states_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply VALID_QS. exact IN.
-  - pose proof (list_bind_sound _ _ _ IN) as (q0 & IN_Q0 & IN_SUCC).
+  - use list_bind_sound as (q0 & IN_Q0 & IN_SUCC) with IN.
     eapply state_successors_valid; [eapply VALID_QS; exact IN_Q0 | exact IN_SUCC].
 Qed.
 
@@ -3384,7 +2865,7 @@ Proof.
   unfold states_step in *. rewrite L.nodup_In in *. rewrite in_app_iff in *.
   destruct IN as [IN | IN].
   - left. eapply INCL. exact IN.
-  - right. pose proof (list_bind_sound _ _ _ IN) as (p & IN_P & IN_SUCC).
+  - right. use list_bind_sound as (p & IN_P & IN_SUCC) with IN.
     eapply list_bind_complete with (x := p); [eapply INCL; exact IN_P | exact IN_SUCC].
 Qed.
 
@@ -3474,11 +2955,11 @@ Lemma state_fuel_two
 Proof.
   unfold state_fuel, all_state_lists.
   destruct all_items as [ | it items] eqn: ALL_ITEMS.
-  - pose proof all_items_nonempty as (it & IN). rewrite ALL_ITEMS in IN. contradiction.
+  - use! all_items_nonempty as (it & IN) with *. rewrite ALL_ITEMS in IN. contradiction.
   - simpl length. simpl lists_upto_length. rewrite length_app.
     change (2 <= length (lists_upto_length (it :: items) (length items)) + length (lists_of_length (it :: items) (S (length items)))).
-    pose proof (lists_upto_length_nonempty (it :: items) (length items)) as UPTO.
-    pose proof (lists_of_length_cons_nonempty it items (S (length items))) as EXACT.
+    use! (lists_upto_length_nonempty (it :: items) (length items)) as UPTO with *.
+    use! (lists_of_length_cons_nonempty it items (S (length items))) as EXACT with *.
     destruct (length (lists_upto_length (it :: items) (length items))) as [ | fuel1] eqn: LEN_UPTO.
     + inversion UPTO.
     + destruct (length (lists_of_length (it :: items) (S (length items)))) as [ | fuel2] eqn: LEN_EXACT.
@@ -3496,8 +2977,8 @@ Lemma state_successors_state_no_dup q q'
   (IN : q' ∈ state_successors q)
   : NoDup q'.
 Proof.
-  pose proof (state_successors_sound q q' IN) as (X & _ & DELTA).
-  pose proof (delta_some_nonempty q X q' DELTA) as (EQ & _). subst q'.
+  use state_successors_sound as (X & _ & DELTA) with IN.
+  use delta_some_nonempty as (EQ & _) with DELTA. subst q'.
   eapply goto_no_dup.
 Qed.
 
@@ -3509,7 +2990,7 @@ Proof.
   unfold states_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply NO_DUP_QS. exact IN.
-  - pose proof (list_bind_sound _ _ _ IN) as (q0 & _ & IN_SUCC).
+  - use list_bind_sound as (q0 & _ & IN_SUCC) with IN.
     eapply state_successors_state_no_dup. exact IN_SUCC.
 Qed.
 
@@ -3563,7 +3044,7 @@ Lemma state_list_subsetb_sound xs ys
   : forall q, q ∈ xs -> q ∈ ys.
 Proof.
   unfold state_list_subsetb in SUBSET. rewrite forallb_forall in SUBSET.
-  intros q IN. pose proof (SUBSET q IN) as MEM. rewrite mem_true_iff in MEM. exact MEM.
+  intros q IN. use SUBSET as MEM with IN. rewrite mem_true_iff in MEM. exact MEM.
 Qed.
 
 Lemma state_list_subsetb_complete xs ys
@@ -3579,7 +3060,7 @@ Lemma state_list_subsetb_false_new xs ys
   : exists q, q ∈ xs /\ ~ q ∈ ys.
 Proof.
   unfold state_list_subsetb in SUBSET.
-  pose proof (forallb_false_exists _ _ SUBSET) as (q & IN & MEM).
+  use forallb_false_exists as (q & IN & MEM) with SUBSET.
   exists q. split; [exact IN | ]. rewrite mem_false_iff in MEM. exact MEM.
 Qed.
 
@@ -3592,7 +3073,7 @@ Lemma state_NoDup_incl_remove_length_lt (xs : list state) (ys : list state) (q :
   : length ys < length xs.
 Proof.
   enough (LE : length ys <= length (remove (Item.state_hasEqDec) q xs)).
-  { pose proof (@remove_length_lt state Item.state_hasEqDec q xs IN_XS) as LT.
+  { use (@remove_length_lt state Item.state_hasEqDec) as LT with IN_XS.
     eapply Nat.le_lt_trans; [exact LE | exact LT].
   }
   eapply L.NoDup_incl_length.
@@ -3622,7 +3103,7 @@ Lemma states_step_length_if_not_subset known
   (NOT_SUBSET : state_list_subsetb (states_step known) known = false)
   : length known < length (states_step known).
 Proof.
-  pose proof (state_list_subsetb_false_new _ _ NOT_SUBSET) as (q & IN_STEP & NOT_IN).
+  use state_list_subsetb_false_new as (q & IN_STEP & NOT_IN) with NOT_SUBSET.
   eapply state_NoDup_incl_remove_length_lt with (q := q).
   - eapply states_step_no_dup.
   - exact NO_DUP.
@@ -3660,10 +3141,12 @@ Proof.
   rewrite iter_succ.
   assert (NO_DUP : NoDup (iter n states_step [q0])).
   { eapply states_iter_no_dup_from_start. }
-  pose proof (states_step_length_if_not_subset (iter n states_step [q0]) NO_DUP (NOT_FIXED_PREFIX n (Nat.lt_succ_diag_r n))) as LT.
+  assert (NOT_FIXED_N : state_list_subsetb (states_step (iter n states_step [q0])) (iter n states_step [q0]) = false).
+  { eapply NOT_FIXED_PREFIX. lia. }
+  use states_step_length_if_not_subset as LT with NO_DUP NOT_FIXED_N.
   assert (PREFIX : forall i, i < n -> state_list_subsetb (states_step (iter i states_step [q0])) (iter i states_step [q0]) = false).
   { intros i LT_I. eapply NOT_FIXED_PREFIX. lia. }
-  pose proof (IH PREFIX) as LE. lia.
+  use IH as LE with PREFIX. lia.
 Qed.
 
 Lemma states_first_fixed_before_bound
@@ -3682,11 +3165,10 @@ Proof.
       { rewrite existsb_exists. exists i. split; [exact IN_SEQ | exact FIXED]. }
       congruence.
     }
-    pose proof (states_not_fixed_length_lower (S fuel)) as LOWER.
     assert (PREFIX : forall i, i < S fuel -> state_list_subsetb (states_step (iter i states_step [q0])) (iter i states_step [q0]) = false).
     { intros i LT_I. eapply NOT_FIXED. lia. }
-    pose proof (LOWER PREFIX) as LE_LOWER.
-    pose proof (LENGTH_BOUND (S fuel)) as LE_BOUND.
+    use states_not_fixed_length_lower as LE_LOWER with PREFIX.
+    use! (LENGTH_BOUND (S fuel)) as LE_BOUND with *.
     unfold fuel in *. lia.
 Qed.
 
@@ -3709,7 +3191,7 @@ Theorem PT_step_closed_of_length_bound
   (LENGTH_BOUND : forall n, length (iter n states_step [q0]) <= state_fuel)
   : forall q, q ∈ states_step PT -> q ∈ PT.
 Proof.
-  pose proof (states_first_fixed_before_bound LENGTH_BOUND) as (i & LE_I & FIXED_I).
+  use states_first_fixed_before_bound as (i & LE_I & FIXED_I) with LENGTH_BOUND.
   assert (FIXED_SUBSET : forall q, q ∈ states_step (iter i states_step [q0]) -> q ∈ iter i states_step [q0]).
   { eapply states_step_fixed_if_subset. exact FIXED_I. }
   unfold PT, compute_states.
@@ -3718,7 +3200,7 @@ Proof.
   assert (IN_NEXT : q ∈ iter (S fuel) states_step [q0]).
   { rewrite iter_succ. exact IN. }
   assert (LE_NEXT : i <= S fuel) by lia.
-  pose proof (states_iter_after_fixed_subset i (S fuel) FIXED_SUBSET LE_NEXT q IN_NEXT) as IN_I.
+  use states_iter_after_fixed_subset as IN_I with FIXED_SUBSET LE_NEXT IN_NEXT.
   eapply states_iter_mono_fuel with (n := i); [lia | exact IN_I].
 Qed.
 
@@ -3787,8 +3269,8 @@ Lemma state_successors_closed q q'
   (IN : q' ∈ state_successors q)
   : forall it, it ∈ closure q' -> it ∈ q'.
 Proof.
-  pose proof (state_successors_sound q q' IN) as (X & _ & DELTA).
-  pose proof (delta_some_nonempty q X q' DELTA) as (EQ & _). subst q'.
+  use state_successors_sound as (X & _ & DELTA) with IN.
+  use delta_some_nonempty as (EQ & _) with DELTA. subst q'.
   intros it IN_CLOSURE. eapply goto_closed. exact IN_CLOSURE.
 Qed.
 
@@ -3800,7 +3282,7 @@ Proof.
   unfold states_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply CLOSED_QS. exact IN.
-  - pose proof (list_bind_sound _ _ _ IN) as (q0 & _ & IN_SUCC).
+  - use list_bind_sound as (q0 & _ & IN_SUCC) with IN.
     eapply state_successors_closed. exact IN_SUCC.
 Qed.
 
@@ -3857,7 +3339,7 @@ Lemma delta_nonterminal_seed q A q' omega
   (STEP : delta q (inl A) = Some q')
   : {| i_lhs := A; i_left := []; i_right := omega |} ∈ q.
 Proof.
-  pose proof (delta_some_parent_item q (inl A) q' STEP) as (parent & gamma & IN_PARENT & RIGHT).
+  use delta_some_parent_item as (parent & gamma & IN_PARENT & RIGHT) with STEP.
   destruct parent as [B beta right]. simpl in RIGHT. subst right.
   eapply Q_closure_seed_for; [exact IN_Q | exact IN_PARENT | exact PROD].
 Qed.
@@ -3875,7 +3357,7 @@ Proof.
     + exact IN_PT.
     + unfold all_symbols. eapply V'_all_complete.
     + exact DELTA.
-  - pose proof (delta_some_nonempty q X q' DELTA) as (_ & NONEMPTY). exact NONEMPTY.
+  - use delta_some_nonempty as (_ & NONEMPTY) with DELTA. exact NONEMPTY.
 Qed.
 
 Inductive path : list V' -> state -> state -> Prop :=
@@ -3932,7 +3414,7 @@ Lemma lr0_item_valid_for_path_realization (eta : list V') (it : item)
 Proof.
   destruct it as [A left right]. unfold lr0_item_valid_for_path in VALID_PATH. simpl in *.
   destruct VALID_PATH as (prefix & z0 & ETA & STEPS_TO_A).
-  pose proof (all_nonterminals_productive_string right PRODUCTIVE) as (z_right & STEPS_RIGHT).
+  use (all_nonterminals_productive_string right) as (z_right & STEPS_RIGHT) with PRODUCTIVE.
   exists (z_right ++ z0). subst eta.
   replace ((prefix ++ left) ++ map inr (z_right ++ z0)) with ((prefix ++ left) ++ map inr z_right ++ map inr z0) by (rewrite map_app; repeat rewrite <- app_assoc; reflexivity).
   eapply rt_trans; [exact STEPS_TO_A | ].
@@ -3942,8 +3424,8 @@ Proof.
     replace (prefix ++ left ++ right ++ map inr z0) with (prefix ++ (left ++ right) ++ map inr z0) by (repeat rewrite <- app_assoc; reflexivity).
     econstructor. exact VALID_ITEM.
   - simpl.
-    pose proof (rm_steps_terminal_suffix z0 right (map inr z_right) STEPS_RIGHT) as STEPS_RIGHT_SUFFIX.
-    pose proof (rm_steps_prefix (prefix ++ left) (right ++ map inr z0) (map inr z_right ++ map inr z0) STEPS_RIGHT_SUFFIX) as STEPS_RIGHT_CTX.
+    use (rm_steps_terminal_suffix z0) as STEPS_RIGHT_SUFFIX with STEPS_RIGHT.
+    use (rm_steps_prefix (prefix ++ left) (right ++ map inr z0) (map inr z_right ++ map inr z0)) as STEPS_RIGHT_CTX with STEPS_RIGHT_SUFFIX.
     repeat rewrite <- app_assoc in STEPS_RIGHT_CTX.
     assert (EQ_SRC : prefix ++ (left ++ right) ++ map inr z0 = prefix ++ left ++ right ++ map inr z0) by (repeat rewrite app_assoc; reflexivity).
     assert (EQ_TGT : (prefix ++ left) ++ map inr z_right ++ map inr z0 = prefix ++ left ++ map inr z_right ++ map inr z0) by (repeat rewrite app_assoc; reflexivity).
@@ -3963,9 +3445,9 @@ Proof.
   - unfold lr0_item_valid_for_path in *.
     destruct IH as (prefix & z_parent & ETA & STEPS_PARENT).
     simpl in ETA, STEPS_PARENT.
-    pose proof (closure_rel_valid seed {| i_lhs := B; i_left := beta; i_right := inl A :: gamma |} SEED_VALID PARENT) as VALID_PARENT.
+    use closure_rel_valid as VALID_PARENT with SEED_VALID PARENT.
     unfold valid_item, item_prod in VALID_PARENT. simpl in VALID_PARENT.
-    pose proof (all_nonterminals_productive_string gamma PRODUCTIVE) as (z_gamma & STEPS_GAMMA).
+    use (all_nonterminals_productive_string gamma) as (z_gamma & STEPS_GAMMA) with PRODUCTIVE.
     exists (prefix ++ beta). exists (z_gamma ++ z_parent). split.
     + simpl. rewrite ETA. rewrite app_nil_r. reflexivity.
     + eapply rt_trans; [exact STEPS_PARENT | ].
@@ -3975,8 +3457,8 @@ Proof.
         replace (prefix ++ beta ++ inl A :: gamma ++ map inr z_parent) with (prefix ++ (beta ++ inl A :: gamma) ++ map inr z_parent) by (repeat rewrite <- app_assoc; reflexivity).
         econstructor. exact VALID_PARENT.
       * simpl.
-        pose proof (rm_steps_terminal_suffix z_parent gamma (map inr z_gamma) STEPS_GAMMA) as STEPS_GAMMA_SUFFIX.
-        pose proof (rm_steps_prefix (prefix ++ beta ++ [inl A]) (gamma ++ map inr z_parent) (map inr z_gamma ++ map inr z_parent) STEPS_GAMMA_SUFFIX) as STEPS_GAMMA_CTX.
+        use (rm_steps_terminal_suffix z_parent) as STEPS_GAMMA_SUFFIX with STEPS_GAMMA.
+        use (rm_steps_prefix (prefix ++ beta ++ [inl A]) (gamma ++ map inr z_parent) (map inr z_gamma ++ map inr z_parent)) as STEPS_GAMMA_CTX with STEPS_GAMMA_SUFFIX.
         repeat rewrite <- app_assoc in STEPS_GAMMA_CTX.
         assert (EQ_SRC : prefix ++ (beta ++ inl A :: gamma) ++ map inr z_parent = prefix ++ beta ++ [inl A] ++ gamma ++ map inr z_parent) by (simpl; repeat rewrite <- app_assoc; reflexivity).
         assert (STEPS_GAMMA_CTX_SRC : rm_steps (prefix ++ (beta ++ inl A :: gamma) ++ map inr z_parent) (prefix ++ beta ++ [inl A] ++ map inr z_gamma ++ map inr z_parent)).
@@ -3990,8 +3472,8 @@ Lemma lr0_goto_kernel_item_valid_for_path_productive (eta : list V') (p : state)
   (IN : it ∈ goto_kernel p X)
   : lr0_item_valid_for_path (eta ++ [X]) it.
 Proof.
-  pose proof (goto_kernel_sound p X it IN) as (parent & gamma & IN_PARENT & RIGHT & EQ).
-  pose proof (SOURCE parent IN_PARENT) as (prefix & z & ETA & STEPS).
+  use goto_kernel_sound as (parent & gamma & IN_PARENT & RIGHT & EQ) with IN.
+  use SOURCE as (prefix & z & ETA & STEPS) with IN_PARENT.
   subst it. unfold lr0_item_valid_for_path in *. simpl in *.
   exists prefix. exists z. split; [rewrite ETA; repeat rewrite <- app_assoc; reflexivity | exact STEPS].
 Qed.
@@ -4036,8 +3518,8 @@ Proof.
   - replace (prefix ++ X :: eta) with ((prefix ++ [X]) ++ eta) by (rewrite <- app_assoc; reflexivity).
     eapply IH.
     + intros q_it IN_Q.
-      pose proof (proj1 (lr0_graph_step_delta p X q) STEP) as DELTA.
-      pose proof (delta_some_nonempty p X q DELTA) as (Q_EQ & _).
+      use (proj1 (lr0_graph_step_delta p X q)) as DELTA with STEP.
+      use delta_some_nonempty as (Q_EQ & _) with DELTA.
       subst q.
       eapply lr0_goto_item_valid_for_path_productive; [exact PRODUCTIVE | eapply Q_items_valid; exact IN_P | exact SOURCE | exact IN_Q].
     + exact IN_IT.
@@ -4058,12 +3540,13 @@ Theorem lr0_path_productive_realization (eta : list V') (q : state)
   (PATH : path eta q0 q)
   : exists z, rm_steps [inl start_prime] (eta ++ map inr z).
 Proof.
-  pose proof (path_target_in_Q eta q0 q PATH) as IN_Q.
+  use path_target_in_Q as IN_Q with PATH.
+  assert (IN_Q_COPY : q ∈ Q) by exact IN_Q.
   unfold Q in IN_Q. rewrite filter_In in IN_Q.
   destruct IN_Q as (_ & NONEMPTY).
-  pose proof (nonempty_exists q NONEMPTY) as (it & IN_IT).
-  pose proof (lr0_path_items_valid_for_path_productive eta q PRODUCTIVE PATH it IN_IT) as VALID_PATH.
-  pose proof (Q_items_valid q (path_target_in_Q eta q0 q PATH) it IN_IT) as VALID_ITEM.
+  use nonempty_exists as (it & IN_IT) with NONEMPTY.
+  use lr0_path_items_valid_for_path_productive as VALID_PATH with PRODUCTIVE PATH IN_IT.
+  use Q_items_valid as VALID_ITEM with IN_Q_COPY IN_IT.
   eapply lr0_item_valid_for_path_realization; [exact PRODUCTIVE | exact VALID_PATH | exact VALID_ITEM].
 Qed.
 
@@ -4072,7 +3555,7 @@ Theorem lr0_path_productive_viable A t alpha gamma qs
   (PATH_FULL : path (alpha ++ [inl A] ++ gamma ++ [inr t]) q0 qs)
   : exists z, rm_steps [inl start_prime] (alpha ++ inl A :: gamma ++ inr t :: map inr z).
 Proof.
-  pose proof (lr0_path_productive_realization (alpha ++ [inl A] ++ gamma ++ [inr t]) qs PRODUCTIVE PATH_FULL) as (z & STEPS).
+  use lr0_path_productive_realization as (z & STEPS) with PRODUCTIVE PATH_FULL.
   exists z.
   replace (alpha ++ inl A :: gamma ++ inr t :: map inr z) with ((alpha ++ [inl A] ++ gamma ++ [inr t]) ++ map inr z) by (repeat rewrite <- app_assoc; reflexivity).
   exact STEPS.
@@ -4098,8 +3581,8 @@ Lemma lr0_goto_kernel_item_plain_viable (eta : list V') (p : state) (X : V') (it
   (IN : it ∈ goto_kernel p X)
   : lr0_item_plain_viable (eta ++ [X]) it.
 Proof.
-  pose proof (goto_kernel_sound p X it IN) as (parent & gamma & IN_PARENT & RIGHT & EQ).
-  pose proof (SOURCE parent IN_PARENT) as (suffix & STEPS).
+  use goto_kernel_sound as (parent & gamma & IN_PARENT & RIGHT & EQ) with IN.
+  use SOURCE as (suffix & STEPS) with IN_PARENT.
   exists suffix. subst it. simpl.
   rewrite RIGHT in STEPS.
   now replace ((eta ++ [X]) ++ gamma ++ suffix) with (eta ++ X :: gamma ++ suffix) by (simpl; repeat rewrite <- app_assoc; reflexivity).
@@ -4143,8 +3626,8 @@ Proof.
   - replace (prefix ++ X :: eta) with ((prefix ++ [X]) ++ eta) by (rewrite <- app_assoc; reflexivity).
     eapply IH.
     + intros q_it IN_Q.
-      pose proof (proj1 (lr0_graph_step_delta p X q) STEP) as DELTA.
-      pose proof (delta_some_nonempty p X q DELTA) as (Q_EQ & _).
+      use (proj1 (lr0_graph_step_delta p X q)) as DELTA with STEP.
+      use delta_some_nonempty as (Q_EQ & _) with DELTA.
       subst q.
       eapply lr0_goto_item_plain_viable; [exact SOURCE | exact IN_Q].
     + exact IN_IT.
@@ -4154,11 +3637,11 @@ Lemma lr0_path_plain_viable_prefix (eta : list V') (q : state)
   (PATH : path eta q0 q)
   : exists suffix, plain_steps [inl start_prime] (eta ++ suffix).
 Proof.
-  pose proof (path_target_in_Q eta q0 q PATH) as IN_Q.
+  use path_target_in_Q as IN_Q with PATH.
   unfold Q in IN_Q. rewrite filter_In in IN_Q.
   destruct IN_Q as (_ & NONEMPTY).
-  pose proof (nonempty_exists q NONEMPTY) as (it & IN_IT).
-  pose proof (lr0_path_items_plain_viable_from eta [] q0 q PATH q0_item_plain_viable it IN_IT) as (suffix & STEPS).
+  use nonempty_exists as (it & IN_IT) with NONEMPTY.
+  use (lr0_path_items_plain_viable_from eta [] q0 q PATH q0_item_plain_viable) as (suffix & STEPS) with IN_IT.
   simpl in STEPS.
   exists (it.(i_right) ++ suffix).
   exact STEPS.
@@ -4172,7 +3655,7 @@ Proof.
   revert n qs IN. induction PATH as [p IN_Q | X alpha p q r IN_Q STEP REST IH]; intros n qs IN_ITER; simpl.
   - rewrite Nat.add_0_r. exact IN_ITER.
   - replace (n + S (length alpha)) with (S n + length alpha) by lia.
-    pose proof (proj1 (lr0_graph_step_delta p X q) STEP) as DELTA.
+    use (proj1 (lr0_graph_step_delta p X q)) as DELTA with STEP.
     eapply IH. eapply states_iter_successor; [exact IN_ITER | | exact DELTA].
     unfold all_symbols. eapply V'_all_complete.
 Qed.
@@ -4215,7 +3698,7 @@ Proof.
     + constructor. eapply path_source_in_Q. exact PATH.
     + exact PATH.
   - inversion PATH as [ | X' alpha' p' q' r' IN STEP REST]; subst; clear PATH.
-    pose proof (IH q' r REST) as (mid & PATH_ALPHA & PATH_OMEGA). exists mid. split.
+    use IH as (mid & PATH_ALPHA & PATH_OMEGA) with REST. exists mid. split.
     + econstructor; [exact IN | exact STEP | exact PATH_ALPHA].
     + exact PATH_OMEGA.
 Qed.
@@ -4228,8 +3711,8 @@ Proof.
   revert q2 PATH2. induction PATH1 as [p IN | X alpha p q r IN STEP REST IH]; intros q2 PATH2.
   - inversion PATH2; subst. reflexivity.
   - inversion PATH2 as [ | X' alpha' p' q' r' IN' STEP' REST']; subst; clear PATH2.
-    pose proof (proj1 (lr0_graph_step_delta p X q) STEP) as DELTA.
-    pose proof (proj1 (lr0_graph_step_delta p X q') STEP') as DELTA'.
+    use (proj1 (lr0_graph_step_delta p X q)) as DELTA with STEP.
+    use (proj1 (lr0_graph_step_delta p X q')) as DELTA' with STEP'.
     rewrite DELTA in DELTA'. inversion DELTA'; subst; clear DELTA'.
     eapply IH. exact REST'.
 Qed.
@@ -4239,7 +3722,7 @@ Theorem lr0_path_factorization alpha omega r q
 Proof.
   split.
   - intros PATH.
-    pose proof (path_app_inv alpha omega r q PATH) as (p & PATH_ALPHA & PATH_OMEGA).
+    use path_app_inv as (p & PATH_ALPHA & PATH_OMEGA) with PATH.
     exists p. splits; auto.
     intros p' PATH_ALPHA' PATH_OMEGA'. eapply path_deterministic; [exact PATH_ALPHA' | exact PATH_ALPHA].
   - intros (p & PATH_ALPHA & PATH_OMEGA & _).
@@ -4261,14 +3744,15 @@ Theorem lr0_source_handle_prod_path alpha omega suffix A q_source
   (PROD : {| p_lhs := A; p_rhs := omega |} ∈ P')
   : lr0_source_handle_prod_path_spec alpha omega suffix A q_source path_source.
 Proof.
-  pose proof (proj1 (lr0_path_factorization (alpha ++ [inl A]) (map inr suffix) q0 q_source) path_source) as (dst' & path_source_prefix & path_suffix & UNIQUE_SOURCE).
-  pose proof (proj1 (lr0_path_factorization alpha [inl A] q0 dst') path_source_prefix) as (p & path_alpha & path_A & UNIQUE_SOURCE_PREFIX).
-  pose proof path_A as path_A_copy.
-  pose proof (path_target_in_Q [inl A] p dst' path_A) as IN_DST'.
+  use (proj1 (lr0_path_factorization (alpha ++ [inl A]) (map inr suffix) q0 q_source)) as (dst' & path_source_prefix & path_suffix & UNIQUE_SOURCE) with path_source.
+  use (proj1 (lr0_path_factorization alpha [inl A] q0 dst')) as (p & path_alpha & path_A & UNIQUE_SOURCE_PREFIX) with path_source_prefix.
+  assert (path_A_copy : path [inl A] p dst') by exact path_A.
+  use path_target_in_Q as IN_DST' with path_A.
   inversion path_A as [ | X tail p0 dst0 r IN_P STEP_A REST_A]; subst; clear path_A.
   inversion REST_A; subst; clear REST_A.
-  pose proof (proj1 (lr0_graph_step_delta p (inl A) dst') STEP_A) as STEP_A_DELTA.
-  pose proof (delta_nonterminal_seed p A dst' omega (path_target_in_Q alpha q0 p path_alpha) PROD STEP_A_DELTA) as SEED.
+  use (proj1 (lr0_graph_step_delta p (inl A) dst')) as STEP_A_DELTA with STEP_A.
+  use path_target_in_Q as IN_P_ALPHA with path_alpha.
+  use delta_nonterminal_seed as SEED with IN_P_ALPHA PROD STEP_A_DELTA.
   eapply lr0_source_handle_prod_path_spec_intro with (p := p) (dst' := dst').
   - exact path_alpha.
   - exact path_A_copy.
@@ -4297,9 +3781,9 @@ Theorem lr0_rm_step_source_handle_prod_path word rest next q_source
   : lr0_rm_step_source_handle_prod_path_spec word rest next q_source path_source.
 Proof.
   inversion STEP as [A omega alpha z PROD]; subst; clear STEP.
-  symmetry in H. pose proof (rm_step_source_decompose alpha A z word rest H) as (suffix & WORD & Z).
+  symmetry in H. use rm_step_source_decompose as (suffix & WORD & Z) with H.
   subst word.
-  pose proof (lr0_source_handle_prod_path alpha omega suffix A q_source path_source PROD) as SOURCE.
+  use (lr0_source_handle_prod_path alpha omega suffix A q_source path_source) as SOURCE with PROD.
   destruct SOURCE as [p dst' PATH_ALPHA PATH_A PATH_SUFFIX IN_DST' STEP_A SEED].
   eapply lr0_rm_step_source_handle_prod_path_spec_intro with (alpha := alpha) (omega := omega) (suffix := suffix) (A := A) (p := p) (dst' := dst').
   - exact PROD.
@@ -4346,16 +3830,16 @@ Proof.
     rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
     destruct IN as [IN_PREV | IN_NEXT].
     + eapply IH; [lia | exact IN_PREV].
-    + pose proof (list_bind_sound _ _ _ IN_NEXT) as (p & IN_P & IN_SUCC).
+    + use list_bind_sound as (p & IN_P & IN_SUCC) with IN_NEXT.
       assert (LE_N : n <= state_fuel) by lia.
-      pose proof (IH p LE_N IN_P) as (alpha & PATH_P).
-      pose proof (state_successors_sound p q IN_SUCC) as (X & IN_X & DELTA).
+      use IH as (alpha & PATH_P) with LE_N IN_P.
+      use state_successors_sound as (X & IN_X & DELTA) with IN_SUCC.
       assert (IN_ITER : q ∈ iter (S n) states_step [q0]).
       { eapply states_iter_successor; [exact IN_P | exact IN_X | exact DELTA]. }
       assert (IN_PT : q ∈ PT).
       { unfold PT, compute_states. eapply states_iter_mono_fuel with (n := S n); [lia | exact IN_ITER]. }
       assert (NONEMPTY : nonempty q = true).
-      { pose proof (delta_some_nonempty p X q DELTA) as (_ & NONEMPTY). exact NONEMPTY. }
+      { use delta_some_nonempty as (_ & NONEMPTY) with DELTA. exact NONEMPTY. }
       assert (IN_Q : q ∈ Q).
       { unfold Q. rewrite filter_In. split; [exact IN_PT | exact NONEMPTY]. }
       exists (alpha ++ [X]). eapply path_snoc; [exact PATH_P | exact IN_Q | exact DELTA].
@@ -4371,17 +3855,17 @@ Proof.
   - rewrite iter_succ in IN. unfold states_step in IN.
     rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
     destruct IN as [IN_PREV | IN_NEXT].
-    + assert (LE_N : n <= state_fuel) by lia. pose proof (IH q LE_N IN_PREV) as (alpha & PATH & LEN). exists alpha. split; [exact PATH | lia].
-    + pose proof (list_bind_sound _ _ _ IN_NEXT) as (p & IN_P & IN_SUCC).
+    + assert (LE_N : n <= state_fuel) by lia. use IH as (alpha & PATH & LEN) with LE_N IN_PREV. exists alpha. split; [exact PATH | lia].
+    + use list_bind_sound as (p & IN_P & IN_SUCC) with IN_NEXT.
       assert (LE_N : n <= state_fuel) by lia.
-      pose proof (IH p LE_N IN_P) as (alpha & PATH_P & LEN_P).
-      pose proof (state_successors_sound p q IN_SUCC) as (X & IN_X & DELTA).
+      use IH as (alpha & PATH_P & LEN_P) with LE_N IN_P.
+      use state_successors_sound as (X & IN_X & DELTA) with IN_SUCC.
       assert (IN_ITER : q ∈ iter (S n) states_step [q0]).
       { eapply states_iter_successor; [exact IN_P | exact IN_X | exact DELTA]. }
       assert (IN_PT : q ∈ PT).
       { unfold PT, compute_states. eapply states_iter_mono_fuel with (n := S n); [lia | exact IN_ITER]. }
       assert (NONEMPTY : nonempty q = true).
-      { pose proof (delta_some_nonempty p X q DELTA) as (_ & NONEMPTY). exact NONEMPTY. }
+      { use delta_some_nonempty as (_ & NONEMPTY) with DELTA. exact NONEMPTY. }
       assert (IN_Q : q ∈ Q).
       { unfold Q. rewrite filter_In. split; [exact IN_PT | exact NONEMPTY]. }
       exists (alpha ++ [X]). split.
@@ -4410,7 +3894,7 @@ Lemma goto_shift_item q X q' A beta gamma
   (IN : {| i_lhs := A; i_left := beta; i_right := X :: gamma |} ∈ q)
   : {| i_lhs := A; i_left := beta ++ [X]; i_right := gamma |} ∈ q'.
 Proof.
-  pose proof (delta_some_nonempty q X q' DELTA) as (EQ & _). subst q'.
+  use delta_some_nonempty as (EQ & _) with DELTA. subst q'.
   eapply closure_contains. eapply goto_kernel_complete with (it := {| i_lhs := A; i_left := beta; i_right := X :: gamma |}) (gamma := gamma).
   - exact IN.
   - reflexivity.
@@ -4426,7 +3910,7 @@ Proof.
   - exists p. split.
     + constructor. exact IN_P.
     + replace (beta ++ []) with beta by (rewrite app_nil_r; reflexivity). exact ITEM.
-  - pose proof ITEM as ITEM_COPY.
+  - assert (ITEM_COPY : {| i_lhs := A; i_left := beta; i_right := X :: right |} ∈ p) by exact ITEM.
     set (shifted := {| i_lhs := A; i_left := beta ++ [X]; i_right := right |}).
     assert (IN_GOTO : shifted ∈ goto p X).
     { unfold shifted. eapply closure_contains.
@@ -4434,13 +3918,13 @@ Proof.
       - exact ITEM_COPY.
       - reflexivity.
     }
-    pose proof (nonempty_of_in (goto p X) shifted IN_GOTO) as NONEMPTY.
+    use nonempty_of_in as NONEMPTY with IN_GOTO.
     set (p' := goto p X).
     assert (STEP : delta p X = Some p').
     { subst p'. unfold delta. destruct (nonempty (goto p X)) eqn: NONEMPTY'; [reflexivity | discriminate]. }
-    pose proof (DELTA_CLOSED p X p' IN_P STEP) as IN_P'.
-    pose proof (goto_shift_item p X p' A beta right STEP ITEM) as ITEM_SHIFT.
-    pose proof (IH p' (beta ++ [X]) IN_P' ITEM_SHIFT) as (q & PATH & DONE).
+    use DELTA_CLOSED as IN_P' with IN_P STEP.
+    use goto_shift_item as ITEM_SHIFT with STEP ITEM.
+    use IH as (q & PATH & DONE) with IN_P' ITEM_SHIFT.
     exists q. split.
     + assert (GSTEP : lr0_graph_step p X p').
       { rewrite lr0_graph_step_delta. exact STEP. }
@@ -4455,8 +3939,8 @@ Theorem lr0_seed_item_prefix_path_under_delta_closed alpha omega p A
   (SEED : {| i_lhs := A; i_left := []; i_right := omega |} ∈ p)
   : exists q, path (alpha ++ omega) q0 q /\ {| i_lhs := A; i_left := omega; i_right := [] |} ∈ q.
 Proof.
-  pose proof (path_target_in_Q alpha q0 p path_alpha) as IN_P.
-  pose proof (lr0_item_suffix_path_under_delta_closed omega p A [] DELTA_CLOSED IN_P SEED) as (q & path_omega & DONE).
+  use path_target_in_Q as IN_P with path_alpha.
+  use lr0_item_suffix_path_under_delta_closed as (q & path_omega & DONE) with DELTA_CLOSED IN_P SEED.
   exists q. split.
   - eapply path_app; [exact path_alpha | exact path_omega].
   - simpl in DONE. exact DONE.
@@ -4469,9 +3953,9 @@ Theorem lr0_path_item_invariant alpha p q A beta gamma
 Proof.
   revert A beta gamma IN. induction PATH as [p IN_Q | X alpha p q r IN_Q STEP REST IH]; intros A beta gamma IN; simpl in *.
   - replace (beta ++ []) with beta by (rewrite app_nil_r; reflexivity). exact IN.
-  - pose proof (proj1 (lr0_graph_step_delta p X q) STEP) as DELTA.
-    pose proof (goto_shift_item p X q A beta (alpha ++ gamma) DELTA IN) as IN_SHIFT.
-    pose proof (IH A (beta ++ [X]) gamma IN_SHIFT) as IN_REST.
+  - use (proj1 (lr0_graph_step_delta p X q)) as DELTA with STEP.
+    use goto_shift_item as IN_SHIFT with DELTA IN.
+    use IH as IN_REST with IN_SHIFT.
     replace (beta ++ X :: alpha) with ((beta ++ [X]) ++ alpha) by (rewrite <- app_assoc; reflexivity).
     exact IN_REST.
 Qed.
@@ -4482,7 +3966,7 @@ Lemma path_completed_item omega p q A
   : {| i_lhs := A; i_left := omega; i_right := [] |} ∈ q.
 Proof.
   replace {| i_lhs := A; i_left := []; i_right := omega |} with {| i_lhs := A; i_left := []; i_right := omega ++ [] |} in IN by (f_equal; rewrite app_nil_r; reflexivity).
-  pose proof (lr0_path_item_invariant omega p q A [] [] PATH IN) as IN_DONE.
+  use lr0_path_item_invariant as IN_DONE with PATH IN.
   exact IN_DONE.
 Qed.
 
@@ -4516,7 +4000,7 @@ Lemma reduce_sound q pr
   (IN : pr ∈ reduce q)
   : exists it, it ∈ q /\ it.(i_right) = [] /\ pr = {| p_lhs := it.(i_lhs); p_rhs := it.(i_left) |} /\ pr ∈ P'.
 Proof.
-  unfold reduce in IN. pose proof (list_bind_sound _ _ _ IN) as (it & IN_IT & IN_PR).
+  unfold reduce in IN. use list_bind_sound as (it & IN_IT & IN_PR) with IN.
   destruct it as [A beta right]. destruct right as [ | X gamma]; simpl in IN_PR; [ | contradiction].
   destruct (mem (EQ_DEC := prod'_hasEqDec) {| p_lhs := A; p_rhs := beta |} P') eqn: MEM; [ | contradiction].
   destruct IN_PR as [EQ | []]. subst pr. exists {| i_lhs := A; i_left := beta; i_right := [] |}.
@@ -4544,7 +4028,7 @@ Theorem lr0_reduce_completed_item_iff q A omega
 Proof.
   split.
   - intros IN_REDUCE.
-    pose proof (reduce_sound q {| p_lhs := A; p_rhs := omega |} IN_REDUCE) as (it & IN_IT & DONE & EQ & _).
+    use reduce_sound as (it & IN_IT & DONE & EQ & _) with IN_REDUCE.
     destruct it as [A' beta right]. simpl in *. subst right. inv EQ. exact IN_IT.
   - intros IN_ITEM.
     eapply reduce_complete with (it := {| i_lhs := A; i_left := omega; i_right := [] |}).
@@ -4558,9 +4042,9 @@ Theorem lr0_handle_reduce_core omega p q A
   (SEED : {| i_lhs := A; i_left := []; i_right := omega |} ∈ p)
   : {| p_lhs := A; p_rhs := omega |} ∈ reduce q.
 Proof.
-  pose proof (path_completed_item omega p q A PATH SEED) as IN_DONE.
-  pose proof (path_source_in_Q omega p q PATH) as IN_P.
-  pose proof (Q_items_valid p IN_P {| i_lhs := A; i_left := []; i_right := omega |} SEED) as VALID_SEED.
+  use path_completed_item as IN_DONE with PATH SEED.
+  use path_source_in_Q as IN_P with PATH.
+  use Q_items_valid as VALID_SEED with IN_P SEED.
   unfold valid_item, item_prod in VALID_SEED. simpl in VALID_SEED.
   eapply reduce_complete with (it := {| i_lhs := A; i_left := omega; i_right := [] |}).
   - exact IN_DONE.
@@ -4573,7 +4057,7 @@ Theorem lr0_handle_completed_item_and_reduce omega p q A
   (SEED : {| i_lhs := A; i_left := []; i_right := omega |} ∈ p)
   : {| i_lhs := A; i_left := omega; i_right := [] |} ∈ q /\ {| p_lhs := A; p_rhs := omega |} ∈ reduce q.
 Proof.
-  pose proof (path_completed_item omega p q A PATH SEED) as COMPLETED.
+  use path_completed_item as COMPLETED with PATH SEED.
   split.
   - exact COMPLETED.
   - rewrite lr0_reduce_completed_item_iff.
@@ -4600,8 +4084,8 @@ Lemma lr0_handle_reduce_from_delta_prod omega p q A dst'
   (STEP : delta p (inl A) = Some dst')
   : {| p_lhs := A; p_rhs := omega |} ∈ reduce q.
 Proof.
-  pose proof (path_source_in_Q omega p q PATH) as IN_P.
-  pose proof (delta_nonterminal_seed p A dst' omega IN_P PROD STEP) as SEED.
+  use path_source_in_Q as IN_P with PATH.
+  use delta_nonterminal_seed as SEED with IN_P PROD STEP.
   eapply lr0_handle_reduce_core; [exact PATH | exact SEED].
 Qed.
 
@@ -4611,7 +4095,8 @@ Theorem lr0_handle_from_parent_completed_item_and_reduce omega p q A B beta gamm
   (PROD : {| p_lhs := A; p_rhs := omega |} ∈ P')
   : {| i_lhs := A; i_left := omega; i_right := [] |} ∈ q /\ {| p_lhs := A; p_rhs := omega |} ∈ reduce q.
 Proof.
-  pose proof (Q_closure_seed_for p A omega B beta gamma (path_source_in_Q omega p q PATH) PARENT PROD) as SEED.
+  use path_source_in_Q as IN_P with PATH.
+  use Q_closure_seed_for as SEED with IN_P PARENT PROD.
   eapply lr0_handle_completed_item_and_reduce; [exact PATH | exact SEED].
 Qed.
 
@@ -4693,8 +4178,8 @@ Lemma lr0_reduce_step_from_prod alpha omega src p dst rest A dst'
   (STEP : delta p (inl A) = Some dst')
   : step {| c_word := alpha ++ omega; c_src := src; c_dst := dst; c_rest := rest; c_path := path_src |} {| c_word := alpha ++ [inl A]; c_src := src; c_dst := dst'; c_rest := rest; c_path := path_snoc alpha src p (inl A) dst' path_alpha IN_DST' STEP |}.
 Proof.
-  pose proof (path_target_in_Q alpha src p path_alpha) as IN_P.
-  pose proof (delta_nonterminal_seed p A dst' omega IN_P PROD STEP) as SEED.
+  use path_target_in_Q as IN_P with path_alpha.
+  use delta_nonterminal_seed as SEED with IN_P PROD STEP.
   exact (lr0_reduce_step_from_seed alpha omega src p dst rest A dst' path_src path_alpha path_omega IN_DST' SEED STEP).
 Qed.
 
@@ -4715,7 +4200,7 @@ Proof.
   - constructor 2. unfold yield. simpl.
     replace ((alpha ++ [inl A]) ++ map inr rest) with (alpha ++ inl A :: map inr rest) by (rewrite <- app_assoc; reflexivity).
     replace ((alpha ++ omega) ++ map inr rest) with (alpha ++ omega ++ map inr rest) by (rewrite <- app_assoc; reflexivity).
-    pose proof (reduce_sound dst {| p_lhs := A; p_rhs := omega |} REDUCE) as (_ & _ & _ & _ & PROD).
+    use reduce_sound as (_ & _ & _ & _ & PROD) with REDUCE.
     econstructor. exact PROD.
 Qed.
 
@@ -4747,10 +4232,10 @@ Proof.
   revert alpha src dst rest path_src path_ts. induction ts as [ | t ts IH]; intros alpha src dst rest path_src path_ts.
   - simpl in path_ts. inversion path_ts; subst. simpl. rewrite app_nil_r. exists path_src. constructor 2.
   - simpl in path_ts. inversion path_ts as [ | X alpha' p q1 r IN_DST STEP_T REST]; subst; clear path_ts.
-    pose proof (path_source_in_Q (map inr ts) q1 q REST) as IN_Q1.
-    pose proof (proj1 (lr0_graph_step_delta dst (inr t) q1) STEP_T) as STEP_T_DELTA.
-    pose proof (lr0_shift_steps alpha src dst (ts ++ rest) t q1 path_src IN_Q1 STEP_T_DELTA) as STEPS_SHIFT.
-    pose proof (IH (alpha ++ [inr t]) src q1 rest (path_snoc alpha src dst (inr t) q1 path_src IN_Q1 STEP_T_DELTA) REST) as (path_tgt & STEPS_REST).
+    use path_source_in_Q as IN_Q1 with REST.
+    use (proj1 (lr0_graph_step_delta dst (inr t) q1)) as STEP_T_DELTA with STEP_T.
+    use! (lr0_shift_steps alpha src dst (ts ++ rest) t q1 path_src) as STEPS_SHIFT with IN_Q1 STEP_T_DELTA.
+    use (IH (alpha ++ [inr t]) src q1 rest (path_snoc alpha src dst (inr t) q1 path_src IN_Q1 STEP_T_DELTA)) as (path_tgt & STEPS_REST) with REST.
     simpl.
     replace (alpha ++ inr t :: map inr ts) with ((alpha ++ [inr t]) ++ map inr ts) by (rewrite <- app_assoc; reflexivity).
     eexists. eapply lr0_steps_trans; [exact STEPS_SHIFT | exact STEPS_REST].
@@ -4832,8 +4317,8 @@ Lemma lr0_reduce_then_shift_terminal_list_from_reduce alpha omega suffix src p d
   (STEP : delta p (inl A) = Some dst')
   : exists path_tgt, steps {| c_word := alpha ++ omega; c_src := src; c_dst := dst; c_rest := suffix ++ rest; c_path := path_src |} {| c_word := (alpha ++ [inl A]) ++ map inr suffix; c_src := src; c_dst := q; c_rest := rest; c_path := path_tgt |}.
 Proof.
-  pose proof (lr0_reduce_steps_from_reduce alpha omega src p dst (suffix ++ rest) A dst' path_src path_alpha path_omega IN_DST' REDUCE STEP) as STEPS_REDUCE.
-  pose proof (lr0_shift_terminal_list_steps (alpha ++ [inl A]) src dst' suffix rest q (path_snoc alpha src p (inl A) dst' path_alpha IN_DST' STEP) path_suffix) as (path_tgt & STEPS_SHIFT).
+  use! (lr0_reduce_steps_from_reduce alpha omega src p dst (suffix ++ rest) A dst' path_src path_alpha path_omega) as STEPS_REDUCE with REDUCE STEP.
+  use (lr0_shift_terminal_list_steps (alpha ++ [inl A]) src dst' suffix rest q (path_snoc alpha src p (inl A) dst' path_alpha IN_DST' STEP)) as (path_tgt & STEPS_SHIFT) with path_suffix.
   exists path_tgt. eapply lr0_steps_trans; [exact STEPS_REDUCE | exact STEPS_SHIFT].
 Qed.
 
@@ -4862,7 +4347,7 @@ Lemma lr0_reduce_then_shift_terminal_list_from_prod alpha omega suffix src p dst
   (STEP : delta p (inl A) = Some dst')
   : exists path_tgt, steps {| c_word := alpha ++ omega; c_src := src; c_dst := dst; c_rest := suffix ++ rest; c_path := path_src |} {| c_word := (alpha ++ [inl A]) ++ map inr suffix; c_src := src; c_dst := q; c_rest := rest; c_path := path_tgt |}.
 Proof.
-  pose proof (lr0_handle_reduce_from_delta_prod omega p dst A dst' path_omega PROD STEP) as REDUCE.
+  use lr0_handle_reduce_from_delta_prod as REDUCE with path_omega PROD STEP.
   exact (lr0_reduce_then_shift_terminal_list_from_reduce alpha omega suffix src p dst rest A dst' q path_src path_alpha path_omega path_suffix IN_DST' REDUCE STEP).
 Qed.
 
@@ -4893,12 +4378,12 @@ Theorem lr0_parent_handle_completed_reduce_and_shift_terminal_list (alpha : list
   (STEP : delta p (inl A) = Some dst')
   : {| i_lhs := A; i_left := []; i_right := omega |} ∈ p /\ {| i_lhs := A; i_left := omega; i_right := [] |} ∈ dst /\ {| p_lhs := A; p_rhs := omega |} ∈ reduce dst /\ (exists path_tgt, steps {| c_word := alpha ++ omega; c_src := src; c_dst := dst; c_rest := suffix ++ rest; c_path := path_src |} {| c_word := (alpha ++ [inl A]) ++ map inr suffix; c_src := src; c_dst := q; c_rest := rest; c_path := path_tgt |}).
 Proof.
-  pose proof (path_source_in_Q omega p dst path_omega) as IN_P.
-  pose proof (Q_closure_seed_for p A omega B beta gamma IN_P PARENT PROD) as SEED.
-  pose proof (path_completed_item omega p dst A path_omega SEED) as COMPLETED.
+  use path_source_in_Q as IN_P with path_omega.
+  use Q_closure_seed_for as SEED with IN_P PARENT PROD.
+  use path_completed_item as COMPLETED with path_omega SEED.
   assert (REDUCE : {| p_lhs := A; p_rhs := omega |} ∈ reduce dst).
   { rewrite lr0_reduce_completed_item_iff; auto. eapply path_target_in_Q; eauto. }
-  pose proof (lr0_reduce_then_shift_terminal_list_from_reduce alpha omega suffix src p dst rest A dst' q path_src path_alpha path_omega path_suffix IN_DST' REDUCE STEP) as (path_tgt & STEPS).
+  use (lr0_reduce_then_shift_terminal_list_from_reduce alpha omega suffix src p dst rest A dst' q path_src path_alpha path_omega path_suffix) as (path_tgt & STEPS) with IN_DST' REDUCE STEP.
   splits; eauto.
 Qed.
 
@@ -4907,7 +4392,8 @@ Theorem lr0_steps_yield_invariant c c'
   : rm_steps (yield c') (yield c).
 Proof.
   unfold steps in STEPS. induction STEPS as [c c' STEP | c | c c_mid c' STEPS1 IH1 STEPS2 IH2].
-  - pose proof (lr0_step_yield_invariant c c' STEP) as [EQ | RM].
+  - use lr0_step_yield_invariant as CASE with STEP.
+    destruct CASE as [EQ | RM].
     + rewrite EQ. constructor 2.
     + constructor 1. exact RM.
   - constructor 2.
@@ -4954,7 +4440,7 @@ Proof.
   change ((delta q0 (inl (lift_N Grammar.start)) >>= fun qS => delta qS (inr eof)) = Some qf) in FINAL.
   destruct (delta q0 (inl (lift_N Grammar.start))) as [qS | ] eqn: STEP_START; simpl in FINAL; [ | discriminate].
   destruct (delta qS (inr eof)) as [qf' | ] eqn: STEP_EOF; simpl in FINAL; [ | discriminate]. inv FINAL.
-  pose proof state_fuel_two as FUEL_TWO.
+  use! state_fuel_two as FUEL_TWO with *.
   assert (IN_QS_ITER : qS ∈ iter 1 states_step [q0]).
   { eapply states_iter_successor with (q := q0) (X := inl (lift_N Grammar.start)).
     - simpl. left. reflexivity.
@@ -4965,7 +4451,7 @@ Proof.
   { unfold PT, compute_states. eapply states_iter_mono_fuel with (n := 1); [lia | exact IN_QS_ITER]. }
   assert (IN_QS : qS ∈ Q).
   { unfold Q. rewrite filter_In. split; [exact IN_QS_PT | ].
-    pose proof (delta_some_nonempty q0 (inl (lift_N Grammar.start)) qS STEP_START) as (_ & NONEMPTY). exact NONEMPTY. }
+    use delta_some_nonempty as (_ & NONEMPTY) with STEP_START. exact NONEMPTY. }
   assert (IN_QF_ITER : qf ∈ iter 2 states_step [q0]).
   { change 2 with (S 1). eapply states_iter_successor with (q := qS) (X := inr eof).
     - exact IN_QS_ITER.
@@ -4975,7 +4461,7 @@ Proof.
   assert (IN_QF_PT : qf ∈ PT).
   { unfold PT, compute_states. eapply states_iter_mono_fuel with (n := 2); [lia | exact IN_QF_ITER]. }
   assert (IN_QF : qf ∈ Q).
-  { unfold Q. rewrite filter_In. split; [exact IN_QF_PT | ]. pose proof (delta_some_nonempty qS (inr eof) qf STEP_EOF) as (_ & NONEMPTY). exact NONEMPTY. }
+  { unfold Q. rewrite filter_In. split; [exact IN_QF_PT | ]. use delta_some_nonempty as (_ & NONEMPTY) with STEP_EOF. exact NONEMPTY. }
   assert (GSTEP_START : lr0_graph_step q0 (inl (lift_N Grammar.start)) qS).
   { rewrite lr0_graph_step_delta. exact STEP_START. }
   assert (GSTEP_EOF : lr0_graph_step qS (inr eof) qf).
@@ -4991,8 +4477,8 @@ Proof.
   unfold accept_word in PATH. inversion PATH as [ | X alpha p qS r IN_Q0 STEP_START REST]; subst; clear PATH.
   inversion REST as [ | X' alpha' p' qf' r' IN_QS STEP_EOF REST_EOF]; subst; clear REST.
   inversion REST_EOF; subst; clear REST_EOF.
-  pose proof (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS) STEP_START) as STEP_START_DELTA.
-  pose proof (proj1 (lr0_graph_step_delta qS (inr eof) qf) STEP_EOF) as STEP_EOF_DELTA.
+  use (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS)) as STEP_START_DELTA with STEP_START.
+  use (proj1 (lr0_graph_step_delta qS (inr eof) qf)) as STEP_EOF_DELTA with STEP_EOF.
   unfold q_f. change ((delta q0 (inl (lift_N Grammar.start)) >>= fun qS0 => delta qS0 (inr eof)) = Some qf).
   rewrite STEP_START_DELTA. exact STEP_EOF_DELTA.
 Qed.
@@ -5008,7 +4494,7 @@ Qed.
 Theorem q_f_exists_path
   : exists qf, q_f = Some qf /\ path accept_word q0 qf.
 Proof.
-  pose proof q_f_exists as (qf & FINAL).
+  use! q_f_exists as (qf & FINAL) with *.
   exists qf. split.
   - exact FINAL.
   - eapply q_f_accept_path. exact FINAL.
@@ -5018,15 +4504,15 @@ Lemma lr0_final_eof_shift_steps qf
   (FINAL : q_f = Some qf)
   : exists qS, exists path_start, exists path_accept, steps {| c_word := [inl (lift_N Grammar.start)]; c_src := q0; c_dst := qS; c_rest := [eof]; c_path := path_start |} {| c_word := accept_word; c_src := q0; c_dst := qf; c_rest := []; c_path := path_accept |}.
 Proof.
-  pose proof (q_f_accept_path qf FINAL) as PATH.
+  use q_f_accept_path as PATH with FINAL.
   unfold accept_word in PATH. inversion PATH as [ | X alpha p qS r IN_Q0 STEP_START REST]; subst; clear PATH.
-  pose proof (path_target_in_Q [inr eof] qS qf REST) as IN_QF.
+  use path_target_in_Q as IN_QF with REST.
   inversion REST as [ | X' alpha' p' qf' r' IN_QS STEP_EOF REST_EOF]; subst; clear REST.
   inversion REST_EOF; subst; clear REST_EOF.
-  pose proof (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS) STEP_START) as STEP_START_DELTA.
-  pose proof (proj1 (lr0_graph_step_delta qS (inr eof) qf) STEP_EOF) as STEP_EOF_DELTA.
-  pose proof (path_symbol q0 qS (inl (lift_N Grammar.start)) q0_in_Q IN_QS STEP_START_DELTA) as path_start.
-  pose proof (lr0_shift_steps [inl (lift_N Grammar.start)] q0 qS [] eof qf path_start IN_QF STEP_EOF_DELTA) as STEPS.
+  use (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS)) as STEP_START_DELTA with STEP_START.
+  use (proj1 (lr0_graph_step_delta qS (inr eof) qf)) as STEP_EOF_DELTA with STEP_EOF.
+  use (path_symbol q0 qS (inl (lift_N Grammar.start)) q0_in_Q) as path_start with IN_QS STEP_START_DELTA.
+  use! (lr0_shift_steps [inl (lift_N Grammar.start)] q0 qS [] eof qf path_start IN_QF STEP_EOF_DELTA) as STEPS with *.
   exists qS. exists path_start. unfold accept_word. simpl. eexists. exact STEPS.
 Qed.
 
@@ -5040,7 +4526,7 @@ Lemma lr0_shift_input_eof_steps w q
   (path_input : path (map inr (map lift_T w ++ [eof])) q0 q)
   : exists path_tgt, steps (init_config w) {| c_word := map inr (map lift_T w ++ [eof]); c_src := q0; c_dst := q; c_rest := []; c_path := path_tgt |} /\ yield (init_config w) = accept_sentence w /\ yield {| c_word := map inr (map lift_T w ++ [eof]); c_src := q0; c_dst := q; c_rest := []; c_path := path_tgt |} = accept_sentence w.
 Proof.
-  pose proof (lr0_shift_terminal_list_steps [] q0 q0 (map lift_T w ++ [eof]) [] q (path_nil q0 q0_in_Q) path_input) as (path_tgt & STEPS).
+  use (lr0_shift_terminal_list_steps [] q0 q0 (map lift_T w ++ [eof]) [] q (path_nil q0 q0_in_Q)) as (path_tgt & STEPS) with path_input.
   simpl in path_tgt, STEPS. rewrite app_nil_r in STEPS. exists path_tgt. splits.
   - exact STEPS.
   - unfold yield, init_config. simpl. eapply terminal_lift_app_eof.
@@ -5053,7 +4539,7 @@ Lemma lr0_shift_accept_sentence_steps w q
 Proof.
   assert (PATH_RAW : path (map inr (map lift_T w ++ [eof])) q0 q).
   { rewrite terminal_lift_app_eof. exact path_input. }
-  pose proof (lr0_shift_input_eof_steps w q PATH_RAW) as (path_tgt & STEPS & INIT_YIELD & TARGET_YIELD).
+  use lr0_shift_input_eof_steps as (path_tgt & STEPS & INIT_YIELD & TARGET_YIELD) with PATH_RAW.
   exists path_tgt. splits; eauto.
 Qed.
 
@@ -5063,9 +4549,9 @@ Lemma lr0_init_accept_sentence_prefix_steps w alpha rest q
   : exists path_tgt, steps (init_config w) {| c_word := alpha; c_src := q0; c_dst := q; c_rest := rest; c_path := path_tgt |}.
 Proof.
   symmetry in EQ. rewrite <- terminal_lift_app_eof in EQ.
-  pose proof (map_inr_app_inv_prefix alpha rest (map lift_T w ++ [eof]) EQ) as (prefix & ALPHA & INPUT).
+  use map_inr_app_inv_prefix as (prefix & ALPHA & INPUT) with EQ.
   subst alpha.
-  pose proof (lr0_shift_terminal_list_steps [] q0 q0 prefix rest q (path_nil q0 q0_in_Q) path_alpha) as (path_tgt & STEPS).
+  use (lr0_shift_terminal_list_steps [] q0 q0 prefix rest q (path_nil q0 q0_in_Q)) as (path_tgt & STEPS) with path_alpha.
   exists path_tgt. unfold init_config. rewrite INPUT. exact STEPS.
 Qed.
 
@@ -5078,18 +4564,19 @@ Theorem lr0_start_stack_steps_accept w qf qS
   (STEPS_TO_START : steps (init_config w) {| c_word := [inl (lift_N Grammar.start)]; c_src := q0; c_dst := qS; c_rest := [eof]; c_path := path_start |})
   : L_LRA w.
 Proof.
-  pose proof FINAL as FINAL_COPY.
+  assert (FINAL_COPY : q_f = Some qf) by exact FINAL.
   unfold q_f in FINAL.
   change ((delta q0 (inl (lift_N Grammar.start)) >>= fun qS0 => delta qS0 (inr eof)) = Some qf) in FINAL.
   destruct (delta q0 (inl (lift_N Grammar.start))) as [qS0 | ] eqn: STEP_START_QF; simpl in FINAL; [ | discriminate].
   destruct (delta qS0 (inr eof)) as [qf0 | ] eqn: STEP_EOF; simpl in FINAL; [ | discriminate]. inv FINAL.
   inversion path_start as [ | X alpha p q1 r IN_Q0 STEP_START REST]; subst.
   inversion REST; subst.
-  pose proof (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS) STEP_START) as STEP_START_DELTA.
+  use (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS)) as STEP_START_DELTA with STEP_START.
   rewrite STEP_START_QF in STEP_START_DELTA. inv STEP_START_DELTA.
-  pose proof (path_target_in_Q accept_word q0 qf (q_f_accept_path qf FINAL_COPY)) as IN_QF.
+  use q_f_accept_path as PATH_ACCEPT with FINAL_COPY.
+  use path_target_in_Q as IN_QF with PATH_ACCEPT.
   set (path_accept := path_snoc [inl (lift_N Grammar.start)] q0 qS (inr eof) qf path_start IN_QF STEP_EOF).
-  pose proof (lr0_shift_steps [inl (lift_N Grammar.start)] q0 qS [] eof qf path_start IN_QF STEP_EOF) as STEPS_FINAL.
+  use! (lr0_shift_steps [inl (lift_N Grammar.start)] q0 qS [] eof qf path_start IN_QF STEP_EOF) as STEPS_FINAL with *.
   unfold L_LRA. exists qf. exists path_accept. split; [exact FINAL_COPY | ].
   eapply lr0_steps_trans; [exact STEPS_TO_START | ].
   unfold accept_config, accept_word. simpl. exact STEPS_FINAL.
@@ -5100,7 +4587,7 @@ Theorem lr0_start_stack_steps_accept_exists w qS
   (STEPS_TO_START : steps (init_config w) {| c_word := [inl (lift_N Grammar.start)]; c_src := q0; c_dst := qS; c_rest := [eof]; c_path := path_start |})
   : L_LRA w.
 Proof.
-  pose proof q_f_exists as (qf & FINAL).
+  use! q_f_exists as (qf & FINAL) with *.
   eapply lr0_start_stack_steps_accept with (qf := qf) (qS := qS) (path_start := path_start); eauto.
 Qed.
 
@@ -5111,8 +4598,8 @@ Theorem lr0_shifted_input_to_start_stack_steps_accept w q qf qS
   (STEPS_FROM_SHIFTED : forall path_shifted, steps {| c_word := map inr (map lift_T w ++ [eof]); c_src := q0; c_dst := q; c_rest := []; c_path := path_shifted |} {| c_word := [inl (lift_N Grammar.start)]; c_src := q0; c_dst := qS; c_rest := [eof]; c_path := path_start |})
   : L_LRA w.
 Proof.
-  pose proof (lr0_shift_input_eof_steps w q path_input) as (path_shifted & STEPS_INIT & _ & _).
-  pose proof (STEPS_FROM_SHIFTED path_shifted) as STEPS_MIDDLE.
+  use lr0_shift_input_eof_steps as (path_shifted & STEPS_INIT & _ & _) with path_input.
+  use! STEPS_FROM_SHIFTED as STEPS_MIDDLE with path_shifted.
   eapply lr0_start_stack_steps_accept with (qf := qf) (qS := qS) (path_start := path_start).
   - exact FINAL.
   - eapply lr0_steps_trans; [exact STEPS_INIT | exact STEPS_MIDDLE].
@@ -5124,7 +4611,7 @@ Theorem lr0_shifted_input_to_start_stack_steps_accept_exists w q qS
   (STEPS_FROM_SHIFTED : forall path_shifted, steps {| c_word := map inr (map lift_T w ++ [eof]); c_src := q0; c_dst := q; c_rest := []; c_path := path_shifted |} {| c_word := [inl (lift_N Grammar.start)]; c_src := q0; c_dst := qS; c_rest := [eof]; c_path := path_start |})
   : L_LRA w.
 Proof.
-  pose proof q_f_exists as (qf & FINAL).
+  use! q_f_exists as (qf & FINAL) with *.
   eapply lr0_shifted_input_to_start_stack_steps_accept with (q := q) (qf := qf) (qS := qS) (path_start := path_start).
   - exact path_input.
   - exact FINAL.
@@ -5138,8 +4625,8 @@ Theorem lr0_accept_sentence_to_start_stack_steps_accept w q qf qS
   (STEPS_FROM_SHIFTED : forall path_shifted, steps {| c_word := map inr (map lift_T w ++ [eof]); c_src := q0; c_dst := q; c_rest := []; c_path := path_shifted |} {| c_word := [inl (lift_N Grammar.start)]; c_src := q0; c_dst := qS; c_rest := [eof]; c_path := path_start |})
   : L_LRA w.
 Proof.
-  pose proof (lr0_shift_accept_sentence_steps w q path_input) as (path_shifted & STEPS_INIT & _ & _ & _).
-  pose proof (STEPS_FROM_SHIFTED path_shifted) as STEPS_MIDDLE.
+  use lr0_shift_accept_sentence_steps as (path_shifted & STEPS_INIT & _ & _ & _) with path_input.
+  use! STEPS_FROM_SHIFTED as STEPS_MIDDLE with path_shifted.
   eapply lr0_start_stack_steps_accept with (qf := qf) (qS := qS) (path_start := path_start).
   - exact FINAL.
   - eapply lr0_steps_trans; [exact STEPS_INIT | exact STEPS_MIDDLE].
@@ -5151,7 +4638,7 @@ Theorem lr0_accept_sentence_to_start_stack_steps_accept_exists w q qS
   (STEPS_FROM_SHIFTED : forall path_shifted, steps {| c_word := map inr (map lift_T w ++ [eof]); c_src := q0; c_dst := q; c_rest := []; c_path := path_shifted |} {| c_word := [inl (lift_N Grammar.start)]; c_src := q0; c_dst := qS; c_rest := [eof]; c_path := path_start |})
   : L_LRA w.
 Proof.
-  pose proof q_f_exists as (qf & FINAL).
+  use! q_f_exists as (qf & FINAL) with *.
   eapply lr0_accept_sentence_to_start_stack_steps_accept with (q := q) (qf := qf) (qS := qS) (path_start := path_start).
   - exact path_input.
   - exact FINAL.
@@ -5175,9 +4662,9 @@ Proof.
   eapply lr0_accept_sentence_to_start_stack_steps_accept_exists with (q := q_input) (qS := qS) (path_start := path_start).
   - exact path_input.
   - intros path_shifted.
-    pose proof (STEPS_TO_HANDLE path_shifted) as STEPS_HANDLE.
-    pose proof (lr0_reduce_then_shift_terminal_list_from_reduce alpha omega suffix q0 p dst rest A dst' q path_src path_alpha path_omega path_suffix IN_DST' REDUCE STEP) as (path_tgt & STEPS_BLOCK).
-    pose proof (STEPS_AFTER_BLOCK path_tgt) as STEPS_AFTER.
+    use! STEPS_TO_HANDLE as STEPS_HANDLE with path_shifted.
+    use (lr0_reduce_then_shift_terminal_list_from_reduce alpha omega suffix q0 p dst rest A dst' q path_src path_alpha path_omega path_suffix) as (path_tgt & STEPS_BLOCK) with IN_DST' REDUCE STEP.
+    use! STEPS_AFTER_BLOCK as STEPS_AFTER with path_tgt.
     eapply lr0_steps_trans; [exact STEPS_HANDLE | ].
     eapply lr0_steps_trans; [exact STEPS_BLOCK | exact STEPS_AFTER].
 Qed.
@@ -5218,7 +4705,7 @@ Lemma lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists w q_inpu
   (STEPS_AFTER_BLOCK : forall path_tgt, steps {| c_word := (alpha ++ [inl A]) ++ map inr suffix; c_src := q0; c_dst := q; c_rest := rest; c_path := path_tgt |} {| c_word := [inl (lift_N Grammar.start)]; c_src := q0; c_dst := qS; c_rest := [eof]; c_path := path_start |})
   : L_LRA w.
 Proof.
-  pose proof (lr0_handle_reduce_from_delta_prod omega p dst A dst' path_omega PROD STEP) as REDUCE.
+  use lr0_handle_reduce_from_delta_prod as REDUCE with path_omega PROD STEP.
   exact (lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists w q_input alpha omega suffix p dst rest A dst' q qS path_input path_src path_alpha path_omega path_suffix path_start IN_DST' REDUCE STEP STEPS_TO_HANDLE STEPS_AFTER_BLOCK).
 Qed.
 
@@ -5232,15 +4719,15 @@ Lemma lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exis
   (STEPS_AFTER_SOURCE : forall path_tgt, steps {| c_word := (alpha ++ [inl A]) ++ map inr suffix; c_src := q0; c_dst := q_source; c_rest := rest; c_path := path_tgt |} {| c_word := [inl (lift_N Grammar.start)]; c_src := q0; c_dst := qS; c_rest := [eof]; c_path := path_start |})
   : L_LRA w.
 Proof.
-  pose proof (proj1 (lr0_path_factorization (alpha ++ omega) (map inr suffix) q0 q_target) path_target) as (dst & path_handle & path_suffix_target & UNIQUE_TARGET).
-  pose proof (proj1 (lr0_path_factorization alpha omega q0 dst) path_handle) as (p & path_alpha & path_omega & UNIQUE_HANDLE).
-  pose proof (proj1 (lr0_path_factorization (alpha ++ [inl A]) (map inr suffix) q0 q_source) path_source) as (dst' & path_source_prefix & path_suffix_source & UNIQUE_SOURCE).
-  pose proof (proj1 (lr0_path_factorization alpha [inl A] q0 dst') path_source_prefix) as (p' & path_alpha' & path_A & UNIQUE_SOURCE_PREFIX).
-  pose proof (path_deterministic alpha q0 p' p path_alpha' path_alpha) as P_EQ. subst p'.
-  pose proof (path_target_in_Q [inl A] p dst' path_A) as IN_DST'.
+  use (proj1 (lr0_path_factorization (alpha ++ omega) (map inr suffix) q0 q_target)) as (dst & path_handle & path_suffix_target & UNIQUE_TARGET) with path_target.
+  use (proj1 (lr0_path_factorization alpha omega q0 dst)) as (p & path_alpha & path_omega & UNIQUE_HANDLE) with path_handle.
+  use (proj1 (lr0_path_factorization (alpha ++ [inl A]) (map inr suffix) q0 q_source)) as (dst' & path_source_prefix & path_suffix_source & UNIQUE_SOURCE) with path_source.
+  use (proj1 (lr0_path_factorization alpha [inl A] q0 dst')) as (p' & path_alpha' & path_A & UNIQUE_SOURCE_PREFIX) with path_source_prefix.
+  use path_deterministic as P_EQ with path_alpha' path_alpha. subst p'.
+  use path_target_in_Q as IN_DST' with path_A.
   inversion path_A as [ | X tail p0 dst0 r IN_P STEP_A REST_A]; subst; clear path_A.
   inversion REST_A; subst; clear REST_A.
-  pose proof (proj1 (lr0_graph_step_delta p (inl A) dst') STEP_A) as STEP_A_DELTA.
+  use (proj1 (lr0_graph_step_delta p (inl A) dst')) as STEP_A_DELTA with STEP_A.
   exact (lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists w q_input alpha omega suffix p dst rest A dst' q_source qS path_input path_handle path_alpha path_omega path_suffix_source path_start IN_DST' PROD STEP_A_DELTA (fun path_shifted => STEPS_TO_TARGET dst path_handle path_shifted) (fun path_tgt => STEPS_AFTER_SOURCE path_tgt)).
 Qed.
 
@@ -5251,17 +4738,17 @@ Lemma lr0_init_prod_block_from_paths_to_sentential_steps w alpha omega suffix re
   (STEPS_TO_TARGET : forall dst, forall path_handle : path (alpha ++ omega) q0 dst, steps (init_config w) {| c_word := alpha ++ omega; c_src := q0; c_dst := dst; c_rest := suffix ++ rest; c_path := path_handle |})
   : exists path_tgt, steps (init_config w) {| c_word := (alpha ++ [inl A]) ++ map inr suffix; c_src := q0; c_dst := q_source; c_rest := rest; c_path := path_tgt |}.
 Proof.
-  pose proof (proj1 (lr0_path_factorization (alpha ++ omega) (map inr suffix) q0 q_target) path_target) as (dst & path_handle & path_suffix_target & UNIQUE_TARGET).
-  pose proof (proj1 (lr0_path_factorization alpha omega q0 dst) path_handle) as (p & path_alpha & path_omega & UNIQUE_HANDLE).
-  pose proof (proj1 (lr0_path_factorization (alpha ++ [inl A]) (map inr suffix) q0 q_source) path_source) as (dst' & path_source_prefix & path_suffix_source & UNIQUE_SOURCE).
-  pose proof (proj1 (lr0_path_factorization alpha [inl A] q0 dst') path_source_prefix) as (p' & path_alpha' & path_A & UNIQUE_SOURCE_PREFIX).
-  pose proof (path_deterministic alpha q0 p' p path_alpha' path_alpha) as P_EQ. subst p'.
-  pose proof (path_target_in_Q [inl A] p dst' path_A) as IN_DST'.
+  use (proj1 (lr0_path_factorization (alpha ++ omega) (map inr suffix) q0 q_target)) as (dst & path_handle & path_suffix_target & UNIQUE_TARGET) with path_target.
+  use (proj1 (lr0_path_factorization alpha omega q0 dst)) as (p & path_alpha & path_omega & UNIQUE_HANDLE) with path_handle.
+  use (proj1 (lr0_path_factorization (alpha ++ [inl A]) (map inr suffix) q0 q_source)) as (dst' & path_source_prefix & path_suffix_source & UNIQUE_SOURCE) with path_source.
+  use (proj1 (lr0_path_factorization alpha [inl A] q0 dst')) as (p' & path_alpha' & path_A & UNIQUE_SOURCE_PREFIX) with path_source_prefix.
+  use path_deterministic as P_EQ with path_alpha' path_alpha. subst p'.
+  use path_target_in_Q as IN_DST' with path_A.
   inversion path_A as [ | X tail p0 dst0 r IN_P STEP_A REST_A]; subst; clear path_A.
   inversion REST_A; subst; clear REST_A.
-  pose proof (STEPS_TO_TARGET dst path_handle) as STEPS_HANDLE.
-  pose proof (proj1 (lr0_graph_step_delta p (inl A) dst') STEP_A) as STEP_A_DELTA.
-  pose proof (lr0_reduce_then_shift_terminal_list_from_prod alpha omega suffix q0 p dst rest A dst' q_source path_handle path_alpha path_omega path_suffix_source IN_DST' PROD STEP_A_DELTA) as (path_tgt & STEPS_BLOCK).
+  use! (STEPS_TO_TARGET dst) as STEPS_HANDLE with path_handle.
+  use (proj1 (lr0_graph_step_delta p (inl A) dst')) as STEP_A_DELTA with STEP_A.
+  use (lr0_reduce_then_shift_terminal_list_from_prod alpha omega suffix q0 p dst rest A dst' q_source path_handle path_alpha path_omega path_suffix_source) as (path_tgt & STEPS_BLOCK) with IN_DST' PROD STEP_A_DELTA.
   exists path_tgt. eapply lr0_steps_trans; [exact STEPS_HANDLE | exact STEPS_BLOCK].
 Qed.
 
@@ -5271,16 +4758,16 @@ Lemma lr0_init_prod_block_from_source_path_to_sentential_steps w alpha omega suf
   (STEPS_TO_TARGET : exists dst, exists path_handle : path (alpha ++ omega) q0 dst, steps (init_config w) {| c_word := alpha ++ omega; c_src := q0; c_dst := dst; c_rest := suffix ++ rest; c_path := path_handle |})
   : exists path_tgt, steps (init_config w) {| c_word := (alpha ++ [inl A]) ++ map inr suffix; c_src := q0; c_dst := q_source; c_rest := rest; c_path := path_tgt |}.
 Proof.
-  pose proof (proj1 (lr0_path_factorization (alpha ++ [inl A]) (map inr suffix) q0 q_source) path_source) as (dst' & path_source_prefix & path_suffix_source & UNIQUE_SOURCE).
-  pose proof (proj1 (lr0_path_factorization alpha [inl A] q0 dst') path_source_prefix) as (p_source & path_alpha_source & path_A & UNIQUE_SOURCE_PREFIX).
-  pose proof (path_target_in_Q [inl A] p_source dst' path_A) as IN_DST'.
+  use (proj1 (lr0_path_factorization (alpha ++ [inl A]) (map inr suffix) q0 q_source)) as (dst' & path_source_prefix & path_suffix_source & UNIQUE_SOURCE) with path_source.
+  use (proj1 (lr0_path_factorization alpha [inl A] q0 dst')) as (p_source & path_alpha_source & path_A & UNIQUE_SOURCE_PREFIX) with path_source_prefix.
+  use path_target_in_Q as IN_DST' with path_A.
   inversion path_A as [ | X tail p0 dst0 r IN_P STEP_A REST_A]; subst; clear path_A.
   inversion REST_A; subst; clear REST_A.
   destruct STEPS_TO_TARGET as (dst & path_handle & STEPS_HANDLE).
-  pose proof (proj1 (lr0_path_factorization alpha omega q0 dst) path_handle) as (p_target & path_alpha_target & path_omega & UNIQUE_TARGET_PREFIX).
-  pose proof (path_deterministic alpha q0 p_target p_source path_alpha_target path_alpha_source) as P_EQ. subst p_target.
-  pose proof (proj1 (lr0_graph_step_delta p_source (inl A) dst') STEP_A) as STEP_A_DELTA.
-  pose proof (lr0_reduce_then_shift_terminal_list_from_prod alpha omega suffix q0 p_source dst rest A dst' q_source path_handle path_alpha_source path_omega path_suffix_source IN_DST' PROD STEP_A_DELTA) as (path_tgt & STEPS_BLOCK).
+  use (proj1 (lr0_path_factorization alpha omega q0 dst)) as (p_target & path_alpha_target & path_omega & UNIQUE_TARGET_PREFIX) with path_handle.
+  use path_deterministic as P_EQ with path_alpha_target path_alpha_source. subst p_target.
+  use (proj1 (lr0_graph_step_delta p_source (inl A) dst')) as STEP_A_DELTA with STEP_A.
+  use (lr0_reduce_then_shift_terminal_list_from_prod alpha omega suffix q0 p_source dst rest A dst' q_source path_handle path_alpha_source path_omega path_suffix_source) as (path_tgt & STEPS_BLOCK) with IN_DST' PROD STEP_A_DELTA.
   exists path_tgt. eapply lr0_steps_trans; [exact STEPS_HANDLE | exact STEPS_BLOCK].
 Qed.
 
@@ -5291,11 +4778,11 @@ Lemma lr0_init_rm_step_from_paths_to_sentential_steps w word rest target_word q_
   : exists path_tgt, steps (init_config w) {| c_word := word; c_src := q0; c_dst := q_source; c_rest := rest; c_path := path_tgt |}.
 Proof.
   inversion STEP as [A omega alpha z PROD]; subst; clear STEP.
-  symmetry in H. pose proof (rm_step_source_decompose alpha A z word rest H) as (suffix & WORD & Z). subst word.
+  symmetry in H. use (rm_step_source_decompose alpha A z word rest) as (suffix & WORD & Z) with H. subst word.
   assert (TARGET_EQ : target_word = (alpha ++ omega) ++ map inr suffix).
   { eapply L.app_cancel_r with (suffix := map inr rest). rewrite <- H0. rewrite Z. rewrite map_app. repeat rewrite <- app_assoc. reflexivity. }
   subst target_word.
-  pose proof (TARGET_PROGRESS (alpha ++ omega) suffix eq_refl) as STEPS_TO_TARGET.
+  use! (TARGET_PROGRESS (alpha ++ omega) suffix) as STEPS_TO_TARGET with *.
   exact (lr0_init_prod_block_from_source_path_to_sentential_steps w alpha omega suffix rest A q_source path_source PROD STEPS_TO_TARGET).
 Qed.
 
@@ -5333,8 +4820,8 @@ Proof.
     intros prefix suffix TARGET_EQ.
     assert (PATH_TARGET_SPLIT : path (prefix ++ map inr suffix) q0 q_target).
     { rewrite <- TARGET_EQ. exact path_target. }
-    pose proof (proj1 (lr0_path_factorization prefix (map inr suffix) q0 q_target) PATH_TARGET_SPLIT) as (dst & path_prefix & path_suffix & UNIQUE).
-    pose proof (IH prefix suffix TARGET_EQ dst path_prefix) as (path_progress & STEPS_PROGRESS).
+    use (proj1 (lr0_path_factorization prefix (map inr suffix) q0 q_target)) as (dst & path_prefix & path_suffix & UNIQUE) with PATH_TARGET_SPLIT.
+    use! (IH prefix suffix TARGET_EQ dst) as (path_progress & STEPS_PROGRESS) with path_prefix.
     exists dst. exists path_progress. exact STEPS_PROGRESS.
 Qed.
 
@@ -5342,7 +4829,7 @@ Theorem lr0_refined_start_stack_steps_accept w qS path_start
   (REFINED : lr0_refined_rm_steps w [inl (lift_N Grammar.start)] [eof] qS path_start)
   : L_LRA w.
 Proof.
-  pose proof (lr0_refined_rm_steps_progress w [inl (lift_N Grammar.start)] [eof] qS path_start REFINED) as (path_tgt & STEPS).
+  use (lr0_refined_rm_steps_progress w [inl (lift_N Grammar.start)] [eof] qS path_start) as (path_tgt & STEPS) with REFINED.
   eapply lr0_start_stack_steps_accept_exists with (qS := qS) (path_start := path_tgt). exact STEPS.
 Qed.
 
@@ -5371,7 +4858,7 @@ Lemma rm_step_target_word_decompose word rest next
 Proof.
   inversion STEP as [A omega alpha z PROD]; subst; clear STEP.
   symmetry in H.
-  pose proof (rm_step_source_decompose alpha A z word rest H) as (suffix & WORD & Z).
+  use (rm_step_source_decompose alpha A z word rest) as (suffix & WORD & Z) with H.
   subst word. exists ((alpha ++ omega) ++ map inr suffix).
   rewrite Z. rewrite map_app. repeat rewrite <- app_assoc. reflexivity.
 Qed.
@@ -5391,15 +4878,15 @@ Theorem lr0_split_refined_rm_steps_progress w word rest q path_word
 Proof.
   induction REFINED as [word rest q path_word EQ | word rest q path_word target_word STEP REST TAIL IH].
   - eapply lr0_init_accept_sentence_prefix_steps; [exact EQ | exact path_word].
-  - pose proof (lr0_rm_step_source_handle_prod_path word rest (target_word ++ map inr rest) q path_word STEP) as SOURCE.
+  - use (lr0_rm_step_source_handle_prod_path word rest (target_word ++ map inr rest) q path_word) as SOURCE with STEP.
     destruct SOURCE as [alpha omega suffix A p dst' PROD WORD NEXT PATH_ALPHA PATH_A PATH_SUFFIX IN_DST' STEP_A SEED].
     subst word.
     assert (TARGET_EQ : target_word = (alpha ++ omega) ++ map inr suffix).
     { eapply L.app_cancel_r with (suffix := map inr rest). exact NEXT. }
     assert (DELTA_CLOSED : forall q, forall X, forall q', q ∈ Q -> delta q X = Some q' -> q' ∈ Q).
     { intros q_current X q_next IN_Q STEP_DELTA. eapply delta_target_in_Q_of_PT_step_closed; [eapply PT_step_closed | exact IN_Q | exact STEP_DELTA]. }
-    pose proof (lr0_seed_item_prefix_path_under_delta_closed alpha omega p A DELTA_CLOSED PATH_ALPHA SEED) as (q_handle & path_handle & _).
-    pose proof (IH (alpha ++ omega) suffix TARGET_EQ q_handle path_handle) as (path_progress & STEPS_PROGRESS).
+    use (lr0_seed_item_prefix_path_under_delta_closed alpha omega p A) as (q_handle & path_handle & _) with DELTA_CLOSED PATH_ALPHA SEED.
+    use! (IH (alpha ++ omega) suffix TARGET_EQ q_handle) as (path_progress & STEPS_PROGRESS) with path_handle.
     eapply lr0_init_prod_block_from_source_path_to_sentential_steps; eauto.
 Qed.
 
@@ -5407,7 +4894,7 @@ Theorem lr0_split_refined_start_stack_steps_accept w qS path_start
   (REFINED : lr0_split_refined_rm_steps w [inl (lift_N Grammar.start)] [eof] qS path_start)
   : L_LRA w.
 Proof.
-  pose proof (lr0_split_refined_rm_steps_progress w [inl (lift_N Grammar.start)] [eof] qS path_start REFINED) as (path_tgt & STEPS).
+  use (lr0_split_refined_rm_steps_progress w [inl (lift_N Grammar.start)] [eof] qS path_start) as (path_tgt & STEPS) with REFINED.
   eapply lr0_start_stack_steps_accept_exists with (qS := qS) (path_start := path_tgt). exact STEPS.
 Qed.
 
@@ -5424,7 +4911,7 @@ Theorem lr0_rm_steps_split_refined w word rest q path_word
   (STEPS : rm_steps (word ++ map inr rest) (accept_sentence w))
   : lr0_split_refined_rm_steps w word rest q path_word.
 Proof.
-  pose proof (Operators_Properties.clos_rt_rt1n (list V') rm_step (word ++ map inr rest) (accept_sentence w) STEPS) as STEPS1N.
+  use Operators_Properties.clos_rt_rt1n as STEPS1N with STEPS.
   clear STEPS.
   remember (word ++ map inr rest) as source eqn: SOURCE.
   set (final := accept_sentence w) in STEPS1N.
@@ -5436,7 +4923,7 @@ Proof.
   - subst source.
     assert (REST_RT : rm_steps next (accept_sentence w)).
     { rewrite <- FINAL. eapply Operators_Properties.clos_rt1n_rt. exact REST. }
-    pose proof (rm_step_target_word_decompose word rest next STEP) as (target_word & NEXT).
+    use (rm_step_target_word_decompose word rest next) as (target_word & NEXT) with STEP.
     subst next.
     eapply lr0_split_refined_rm_steps_step with (target_word := target_word).
     + exact STEP.
@@ -5451,7 +4938,7 @@ Theorem lr0_rm_steps_split_refined_bridge w word rest q path_word
   (STEPS : rm_steps (word ++ map inr rest) (accept_sentence w))
   : lr0_split_refined_rm_steps w word rest q path_word /\ rm_steps (word ++ map inr rest) (accept_sentence w) /\ (exists path_tgt, steps (init_config w) {| c_word := word; c_src := q0; c_dst := q; c_rest := rest; c_path := path_tgt |}).
 Proof.
-  pose proof (lr0_rm_steps_split_refined w word rest q path_word STEPS) as REFINED.
+  use (lr0_rm_steps_split_refined w word rest q path_word) as REFINED with STEPS.
   splits.
   - exact REFINED.
   - eapply lr0_split_refined_rm_steps_sound. exact REFINED.
@@ -5464,7 +4951,7 @@ Theorem lr0_start_rm_steps_accept_by_split_refined w qS
     (accept_sentence w))
   : L_LRA w /\ grammar_accepts w.
 Proof.
-  pose proof (lr0_rm_steps_split_refined w [inl (lift_N Grammar.start)] [eof] qS path_start STEPS) as REFINED.
+  use (lr0_rm_steps_split_refined w [inl (lift_N Grammar.start)] [eof] qS path_start) as REFINED with STEPS.
   split.
   - eapply lr0_split_refined_start_stack_steps_accept. exact REFINED.
   - eapply lr0_split_refined_start_stack_sound. exact REFINED.
@@ -5474,12 +4961,12 @@ Theorem lr0_rm_steps_complete w
   (STEPS : rm_steps augmented_start_sentence (accept_sentence w))
   : L_LRA w.
 Proof.
-  pose proof q_f_exists as (qf & FINAL).
-  pose proof (q_f_accept_path qf FINAL) as PATH_ACCEPT.
+  use! q_f_exists as (qf & FINAL) with *.
+  use (q_f_accept_path qf) as PATH_ACCEPT with FINAL.
   unfold accept_word in PATH_ACCEPT.
-  pose proof (proj1 (lr0_path_factorization [inl (lift_N Grammar.start)] [inr eof] q0 qf) PATH_ACCEPT) as (qS & path_start & _).
+  use (proj1 (lr0_path_factorization [inl (lift_N Grammar.start)] [inr eof] q0 qf)) as (qS & path_start & _) with PATH_ACCEPT.
   change augmented_start_sentence with ([inl (lift_N Grammar.start)] ++ map inr [eof]) in STEPS.
-  pose proof (lr0_start_rm_steps_accept_by_split_refined w qS path_start STEPS) as (ACCEPT & _).
+  use (lr0_start_rm_steps_accept_by_split_refined w qS path_start) as (ACCEPT & _) with STEPS.
   exact ACCEPT.
 Qed.
 
@@ -5509,7 +4996,7 @@ Theorem lr0_start_rm_step_refined_tail_correct w qS
   (TAIL : forall prefix, forall suffix, target_word = prefix ++ map inr suffix -> forall dst, forall path_prefix : path prefix q0 dst, lr0_refined_rm_steps w prefix (suffix ++ [eof]) dst path_prefix)
   : L_LRA w /\ grammar_accepts w.
 Proof.
-  pose proof (lr0_rm_step_refined_tail_bridge w [inl (lift_N Grammar.start)] [eof] qS path_start target_word q_target path_target STEP TAIL) as (REFINED & _ & _).
+  use (lr0_rm_step_refined_tail_bridge w [inl (lift_N Grammar.start)] [eof] qS path_start target_word q_target path_target) as (REFINED & _ & _) with STEP TAIL.
   split.
   - eapply lr0_refined_start_stack_steps_accept. exact REFINED.
   - eapply lr0_refined_start_stack_sound. exact REFINED.
@@ -5520,7 +5007,7 @@ Theorem lr0_rm_steps_refined_by_first_step w word rest q path_word
   (STEP_REFINE : forall current, forall current_rest, forall current_q, forall current_path : path current q0 current_q, forall next, rm_step (current ++ map inr current_rest) next -> rm_steps next (accept_sentence w) -> exists target_word, exists q_target, exists path_target : path target_word q0 q_target, next = target_word ++ map inr current_rest /\ (forall prefix, forall suffix, target_word = prefix ++ map inr suffix -> forall dst, forall path_prefix : path prefix q0 dst, lr0_refined_rm_steps w prefix (suffix ++ current_rest) dst path_prefix))
   : lr0_refined_rm_steps w word rest q path_word.
 Proof.
-  pose proof (Operators_Properties.clos_rt_rt1n (list V') rm_step (word ++ map inr rest) (accept_sentence w) STEPS) as STEPS1N.
+  use Operators_Properties.clos_rt_rt1n as STEPS1N with STEPS.
   clear STEPS.
   remember (word ++ map inr rest) as source eqn: SOURCE.
   set (final := accept_sentence w) in STEPS1N.
@@ -5532,7 +5019,7 @@ Proof.
   - subst source.
     assert (REST_RT : rm_steps next (accept_sentence w)).
     { rewrite <- FINAL. eapply Operators_Properties.clos_rt1n_rt. exact REST. }
-    pose proof (STEP_REFINE word rest q path_word next STEP REST_RT) as (target_word & q_target & path_target & NEXT & TAIL).
+    use (STEP_REFINE word rest q path_word next) as (target_word & q_target & path_target & NEXT & TAIL) with STEP REST_RT.
     subst next.
     eapply lr0_refined_rm_steps_step with (target_word := target_word) (q_target := q_target); eauto.
 Qed.
@@ -5542,7 +5029,7 @@ Theorem lr0_rm_steps_refined_by_target_path w word rest q path_word
   (STEP_TARGET : forall current, forall current_rest, forall current_q, forall current_path : path current q0 current_q, forall next, rm_step (current ++ map inr current_rest) next -> rm_steps next (accept_sentence w) -> exists target_word, exists q_target, exists path_target : path target_word q0 q_target, next = target_word ++ map inr current_rest)
   : lr0_refined_rm_steps w word rest q path_word.
 Proof.
-  pose proof (Operators_Properties.clos_rt_rt1n (list V') rm_step (word ++ map inr rest) (accept_sentence w) STEPS) as STEPS1N.
+  use Operators_Properties.clos_rt_rt1n as STEPS1N with STEPS.
   clear STEPS.
   remember (word ++ map inr rest) as source eqn: SOURCE.
   set (final := accept_sentence w) in STEPS1N.
@@ -5554,7 +5041,7 @@ Proof.
   - subst source.
     assert (REST_RT : rm_steps next (accept_sentence w)).
     { rewrite <- FINAL. eapply Operators_Properties.clos_rt1n_rt. exact REST. }
-    pose proof (STEP_TARGET word rest q path_word next STEP REST_RT) as (target_word & q_target & path_target & NEXT).
+    use (STEP_TARGET word rest q path_word next) as (target_word & q_target & path_target & NEXT) with STEP REST_RT.
     subst next.
     eapply lr0_refined_rm_steps_step with (target_word := target_word) (q_target := q_target).
     + exact path_target.
@@ -5571,7 +5058,7 @@ Theorem lr0_start_rm_steps_accept_by_target_path w qS
   (STEP_TARGET : forall current, forall current_rest, forall current_q, forall current_path : path current q0 current_q, forall next, rm_step (current ++ map inr current_rest) next -> rm_steps next (accept_sentence w) -> exists target_word, exists q_target, exists path_target : path target_word q0 q_target, next = target_word ++ map inr current_rest)
   : L_LRA w.
 Proof.
-  pose proof (lr0_rm_steps_refined_by_target_path w [inl (lift_N Grammar.start)] [eof] qS path_start STEPS STEP_TARGET) as REFINED.
+  use (lr0_rm_steps_refined_by_target_path w [inl (lift_N Grammar.start)] [eof] qS path_start) as REFINED with STEPS STEP_TARGET.
   eapply lr0_refined_start_stack_steps_accept. exact REFINED.
 Qed.
 
@@ -5582,11 +5069,11 @@ Theorem lr0_rm_steps_refined_by_handle_target_path w word rest q path_word
 Proof.
   eapply lr0_rm_steps_refined_by_target_path; [exact STEPS | ].
   intros current current_rest current_q current_path next STEP REST_RT.
-  pose proof (lr0_rm_step_source_handle_prod_path current current_rest next current_q current_path STEP) as SOURCE.
+  use (lr0_rm_step_source_handle_prod_path current current_rest next current_q current_path) as SOURCE with STEP.
   destruct SOURCE as [alpha omega suffix A p dst' PROD WORD NEXT PATH_ALPHA PATH_A PATH_SUFFIX IN_DST' STEP_A SEED].
   subst current.
   rewrite NEXT in REST_RT.
-  pose proof (HANDLE_TARGET current_rest alpha omega suffix A p dst' current_q PATH_ALPHA PATH_A PATH_SUFFIX PROD SEED REST_RT) as (q_target & path_target).
+  use (HANDLE_TARGET current_rest alpha omega suffix A p dst' current_q) as (q_target & path_target) with PATH_ALPHA PATH_A PATH_SUFFIX PROD SEED REST_RT.
   exists ((alpha ++ omega) ++ map inr suffix). exists q_target. exists path_target. exact NEXT.
 Qed.
 
@@ -5596,7 +5083,7 @@ Theorem lr0_start_rm_steps_accept_by_handle_target_path w qS
   (HANDLE_TARGET : forall current_rest, forall alpha, forall omega, forall suffix, forall A, forall p, forall dst', forall current_q, path alpha q0 p -> path [inl A] p dst' -> path (map inr suffix) dst' current_q -> {| p_lhs := A; p_rhs := omega |} ∈ P' -> {| i_lhs := A; i_left := []; i_right := omega |} ∈ p -> rm_steps (((alpha ++ omega) ++ map inr suffix) ++ map inr current_rest) (accept_sentence w) -> exists q_target, path ((alpha ++ omega) ++ map inr suffix) q0 q_target)
   : L_LRA w.
 Proof.
-  pose proof (lr0_rm_steps_refined_by_handle_target_path w [inl (lift_N Grammar.start)] [eof] qS path_start STEPS HANDLE_TARGET) as REFINED.
+  use (lr0_rm_steps_refined_by_handle_target_path w [inl (lift_N Grammar.start)] [eof] qS path_start) as REFINED with STEPS HANDLE_TARGET.
   eapply lr0_refined_start_stack_steps_accept. exact REFINED.
 Qed.
 
@@ -5608,8 +5095,8 @@ Theorem lr0_rm_steps_refined_by_handle_suffix_path w word rest q path_word
 Proof.
   eapply lr0_rm_steps_refined_by_handle_target_path; [exact STEPS | ].
   intros current_rest alpha omega suffix A p dst' current_q PATH_ALPHA PATH_A PATH_SUFFIX PROD SEED REST_RT.
-  pose proof (lr0_seed_item_prefix_path_under_delta_closed alpha omega p A DELTA_CLOSED PATH_ALPHA SEED) as (q_handle & path_handle & _).
-  pose proof (HANDLE_SUFFIX current_rest alpha omega suffix A p dst' current_q q_handle PATH_ALPHA PATH_A PATH_SUFFIX PROD SEED path_handle REST_RT) as (q_target & path_suffix_target).
+  use (lr0_seed_item_prefix_path_under_delta_closed alpha omega p A) as (q_handle & path_handle & _) with DELTA_CLOSED PATH_ALPHA SEED.
+  use (HANDLE_SUFFIX current_rest alpha omega suffix A p dst' current_q q_handle) as (q_target & path_suffix_target) with PATH_ALPHA PATH_A PATH_SUFFIX PROD SEED path_handle REST_RT.
   exists q_target. eapply path_app; [exact path_handle | exact path_suffix_target].
 Qed.
 
@@ -5620,7 +5107,7 @@ Theorem lr0_start_rm_steps_accept_by_handle_suffix_path w qS
   (HANDLE_SUFFIX : forall current_rest, forall alpha, forall omega, forall suffix, forall A, forall p, forall dst', forall current_q, forall q_handle, path alpha q0 p -> path [inl A] p dst' -> path (map inr suffix) dst' current_q -> {| p_lhs := A; p_rhs := omega |} ∈ P' -> {| i_lhs := A; i_left := []; i_right := omega |} ∈ p -> path (alpha ++ omega) q0 q_handle -> rm_steps (((alpha ++ omega) ++ map inr suffix) ++ map inr current_rest) (accept_sentence w) -> exists q_target, path (map inr suffix) q_handle q_target)
   : L_LRA w.
 Proof.
-  pose proof (lr0_rm_steps_refined_by_handle_suffix_path w [inl (lift_N Grammar.start)] [eof] qS path_start STEPS DELTA_CLOSED HANDLE_SUFFIX) as REFINED.
+  use (lr0_rm_steps_refined_by_handle_suffix_path w [inl (lift_N Grammar.start)] [eof] qS path_start) as REFINED with STEPS DELTA_CLOSED HANDLE_SUFFIX.
   eapply lr0_refined_start_stack_steps_accept. exact REFINED.
 Qed.
 
@@ -5642,7 +5129,7 @@ Theorem lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed w qS
   (HANDLE_SUFFIX : forall current_rest, forall alpha, forall omega, forall suffix, forall A, forall p, forall dst', forall current_q, forall q_handle, path alpha q0 p -> path [inl A] p dst' -> path (map inr suffix) dst' current_q -> {| p_lhs := A; p_rhs := omega |} ∈ P' -> {| i_lhs := A; i_left := []; i_right := omega |} ∈ p -> path (alpha ++ omega) q0 q_handle -> rm_steps (((alpha ++ omega) ++ map inr suffix) ++ map inr current_rest) (accept_sentence w) -> exists q_target, path (map inr suffix) q_handle q_target)
   : L_LRA w.
 Proof.
-  pose proof (lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed w [inl (lift_N Grammar.start)] [eof] qS path_start STEPS PT_STEP_CLOSED HANDLE_SUFFIX) as REFINED.
+  use (lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed w [inl (lift_N Grammar.start)] [eof] qS path_start) as REFINED with STEPS PT_STEP_CLOSED HANDLE_SUFFIX.
   eapply lr0_refined_start_stack_steps_accept. exact REFINED.
 Qed.
 
@@ -5684,7 +5171,7 @@ Theorem lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists (w : l
   (STEPS_AFTER_BLOCK : forall path_tgt, steps {| c_word := (alpha ++ [inl A]) ++ map inr suffix; c_src := q0; c_dst := q; c_rest := rest; c_path := path_tgt |} {| c_word := [inl (lift_N Grammar.start)]; c_src := q0; c_dst := qS; c_rest := [eof]; c_path := path_start |})
   : L_LRA w.
 Proof.
-  pose proof (path_completed_item omega p dst A path_omega SEED) as COMPLETED.
+  use path_completed_item as COMPLETED with path_omega SEED.
   assert (REDUCE : {| p_lhs := A; p_rhs := omega |} ∈ reduce dst).
   { rewrite lr0_reduce_completed_item_iff.
     - exact COMPLETED.
@@ -5693,9 +5180,9 @@ Proof.
   eapply lr0_accept_sentence_to_start_stack_steps_accept_exists with (q := q_input) (qS := qS) (path_start := path_start).
   - exact path_input.
   - intros path_shifted.
-    pose proof (STEPS_TO_HANDLE path_shifted) as STEPS_HANDLE.
-    pose proof (lr0_reduce_then_shift_terminal_list_from_reduce alpha omega suffix q0 p dst rest A dst' q path_src path_alpha path_omega path_suffix IN_DST' REDUCE STEP) as (path_tgt & STEPS_BLOCK).
-    pose proof (STEPS_AFTER_BLOCK path_tgt) as STEPS_AFTER.
+    use! STEPS_TO_HANDLE as STEPS_HANDLE with path_shifted.
+    use (lr0_reduce_then_shift_terminal_list_from_reduce alpha omega suffix q0 p dst rest A dst' q path_src path_alpha path_omega path_suffix) as (path_tgt & STEPS_BLOCK) with IN_DST' REDUCE STEP.
+    use! STEPS_AFTER_BLOCK as STEPS_AFTER with path_tgt.
     eapply lr0_steps_trans; [exact STEPS_HANDLE | ].
     eapply lr0_steps_trans; [exact STEPS_BLOCK | exact STEPS_AFTER].
 Qed.
@@ -5715,9 +5202,9 @@ Theorem lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists (w :
   (STEPS_AFTER_BLOCK : forall path_tgt, steps {| c_word := (alpha ++ [inl A]) ++ map inr suffix; c_src := q0; c_dst := q; c_rest := rest; c_path := path_tgt |} {| c_word := [inl (lift_N Grammar.start)]; c_src := q0; c_dst := qS; c_rest := [eof]; c_path := path_start |})
   : L_LRA w.
 Proof.
-  pose proof (path_source_in_Q omega p dst path_omega) as IN_P.
-  pose proof (Q_closure_seed_for p A omega B beta gamma IN_P PARENT PROD) as SEED.
-  pose proof (path_completed_item omega p dst A path_omega SEED) as COMPLETED.
+  use path_source_in_Q as IN_P with path_omega.
+  use Q_closure_seed_for as SEED with IN_P PARENT PROD.
+  use path_completed_item as COMPLETED with path_omega SEED.
   assert (REDUCE : {| p_lhs := A; p_rhs := omega |} ∈ reduce dst).
   { rewrite lr0_reduce_completed_item_iff.
     - exact COMPLETED.
@@ -5726,9 +5213,9 @@ Proof.
   eapply lr0_accept_sentence_to_start_stack_steps_accept_exists with (q := q_input) (qS := qS) (path_start := path_start).
   - exact path_input.
   - intros path_shifted.
-    pose proof (STEPS_TO_HANDLE path_shifted) as STEPS_HANDLE.
-    pose proof (lr0_reduce_then_shift_terminal_list_from_reduce alpha omega suffix q0 p dst rest A dst' q path_src path_alpha path_omega path_suffix IN_DST' REDUCE STEP) as (path_tgt & STEPS_BLOCK).
-    pose proof (STEPS_AFTER_BLOCK path_tgt) as STEPS_AFTER.
+    use! STEPS_TO_HANDLE as STEPS_HANDLE with path_shifted.
+    use (lr0_reduce_then_shift_terminal_list_from_reduce alpha omega suffix q0 p dst rest A dst' q path_src path_alpha path_omega path_suffix) as (path_tgt & STEPS_BLOCK) with IN_DST' REDUCE STEP.
+    use! STEPS_AFTER_BLOCK as STEPS_AFTER with path_tgt.
     eapply lr0_steps_trans; [exact STEPS_HANDLE | ].
     eapply lr0_steps_trans; [exact STEPS_BLOCK | exact STEPS_AFTER].
 Qed.
@@ -5750,7 +5237,7 @@ Theorem lr0_sound_augmented w
   : rm_steps augmented_start_sentence (accept_sentence w).
 Proof.
   destruct ACCEPT as (qf & pth & _ & STEPS).
-  pose proof (lr0_steps_yield_invariant (init_config w) (accept_config qf pth) STEPS) as RM.
+  use lr0_steps_yield_invariant as RM with STEPS.
   rewrite accept_config_yield in RM. rewrite init_config_yield in RM. exact RM.
 Qed.
 
@@ -5792,1201 +5279,9 @@ Proof.
   - eapply lr0_complete.
 Qed.
 
-Module Abs.
 
-Abbreviation PT := PT.
 
-Abbreviation Q := Q.
 
-Abbreviation delta := delta.
-
-Abbreviation nonempty_exists := nonempty_exists.
-
-Abbreviation delta_some_parent_item := delta_some_parent_item.
-
-Abbreviation q0_items_valid := q0_items_valid.
-
-Abbreviation lr0_item_plain_viable := lr0_item_plain_viable.
-
-Abbreviation lr0_closure_rel_item_plain_viable := lr0_closure_rel_item_plain_viable.
-
-Abbreviation lr0_goto_kernel_item_plain_viable := lr0_goto_kernel_item_plain_viable.
-
-Abbreviation lr0_goto_item_plain_viable := lr0_goto_item_plain_viable.
-
-Abbreviation q0_item_plain_viable := q0_item_plain_viable.
-
-Abbreviation lr0_item_valid_for_path := lr0_item_valid_for_path.
-
-Abbreviation lr0_item_valid_for_path_realization := lr0_item_valid_for_path_realization.
-
-Abbreviation lr0_closure_rel_item_valid_for_path_productive := lr0_closure_rel_item_valid_for_path_productive.
-
-Abbreviation lr0_goto_kernel_item_valid_for_path_productive := lr0_goto_kernel_item_valid_for_path_productive.
-
-Abbreviation lr0_goto_item_valid_for_path_productive := lr0_goto_item_valid_for_path_productive.
-
-Abbreviation q0_item_valid_for_path_productive := q0_item_valid_for_path_productive.
-
-Abbreviation lr0_path_items_valid_for_path_productive_from := lr0_path_items_valid_for_path_productive_from.
-
-Abbreviation lr0_path_items_valid_for_path_productive := lr0_path_items_valid_for_path_productive.
-
-Abbreviation lr0_path_productive_realization := lr0_path_productive_realization.
-
-Abbreviation lr0_path_productive_viable := lr0_path_productive_viable.
-
-Abbreviation state_successors_sound := state_successors_sound.
-
-Abbreviation state_successors_complete := state_successors_complete.
-
-Abbreviation state_successors_correct := state_successors_correct.
-
-Abbreviation state_successors_valid := state_successors_valid.
-
-Abbreviation states_step_valid := states_step_valid.
-
-Abbreviation states_step_successor := states_step_successor.
-
-Abbreviation states_step_monotone := states_step_monotone.
-
-Abbreviation states_iter_valid := states_iter_valid.
-
-Abbreviation states_iter_mono_fuel := states_iter_mono_fuel.
-
-Abbreviation states_iter_successor := states_iter_successor.
-
-Abbreviation lists_of_length := lists_of_length.
-
-Abbreviation lists_upto_length := lists_upto_length.
-
-Abbreviation all_state_lists := all_state_lists.
-
-Abbreviation state_fuel := state_fuel.
-
-Abbreviation lists_of_length_complete := lists_of_length_complete.
-
-Abbreviation lists_upto_length_complete := lists_upto_length_complete.
-
-Abbreviation all_items_nonempty := all_items_nonempty.
-
-Abbreviation state_fuel_two := state_fuel_two.
-
-Abbreviation q0_no_dup := q0_no_dup.
-
-Abbreviation state_successors_state_no_dup := state_successors_state_no_dup.
-
-Abbreviation states_step_state_no_dup := states_step_state_no_dup.
-
-Abbreviation states_iter_state_no_dup := states_iter_state_no_dup.
-
-Abbreviation states_iter_all_items := states_iter_all_items.
-
-Abbreviation state_in_all_state_lists := state_in_all_state_lists.
-
-Abbreviation states_iter_state_in_all_state_lists := states_iter_state_in_all_state_lists.
-
-Abbreviation state_list_subsetb := state_list_subsetb.
-
-Abbreviation state_list_subsetb_sound := state_list_subsetb_sound.
-
-Abbreviation state_list_subsetb_complete := state_list_subsetb_complete.
-
-Abbreviation state_list_subsetb_false_new := state_list_subsetb_false_new.
-
-Abbreviation state_NoDup_incl_remove_length_lt := state_NoDup_incl_remove_length_lt.
-
-Abbreviation states_step_no_dup := states_step_no_dup.
-
-Abbreviation states_iter_no_dup := states_iter_no_dup.
-
-Abbreviation states_step_length_if_not_subset := states_step_length_if_not_subset.
-
-Abbreviation states_step_fixed_if_subset := states_step_fixed_if_subset.
-
-Abbreviation states_iter_no_dup_from_start := states_iter_no_dup_from_start.
-
-Abbreviation states_iter_length_bound := states_iter_length_bound.
-
-Abbreviation states_not_fixed_length_lower := states_not_fixed_length_lower.
-
-Abbreviation states_first_fixed_before_bound := states_first_fixed_before_bound.
-
-Abbreviation states_iter_after_fixed_subset := states_iter_after_fixed_subset.
-
-Abbreviation PT_step_closed_of_length_bound := PT_step_closed_of_length_bound.
-
-Abbreviation PT_step_closed := PT_step_closed.
-
-Abbreviation PT_items_valid := PT_items_valid.
-
-Abbreviation Q_items_valid := Q_items_valid.
-
-Abbreviation delta_start_prime_none := delta_start_prime_none.
-
-Abbreviation q0_closed := q0_closed.
-
-Abbreviation goto_closed := goto_closed.
-
-Abbreviation state_successors_closed := state_successors_closed.
-
-Abbreviation states_step_closed := states_step_closed.
-
-Abbreviation states_iter_closed := states_iter_closed.
-
-Abbreviation PT_closed := PT_closed.
-
-Abbreviation Q_closed := Q_closed.
-
-Abbreviation Q_closure_rel_complete := Q_closure_rel_complete.
-
-Abbreviation Q_closure_seed_for := Q_closure_seed_for.
-
-Abbreviation delta_nonterminal_seed := delta_nonterminal_seed.
-
-Abbreviation delta_target_in_Q_of_PT_step_closed := delta_target_in_Q_of_PT_step_closed.
-
-Abbreviation path := path.
-
-Abbreviation path_source_in_Q := path_source_in_Q.
-
-Abbreviation path_target_in_Q := path_target_in_Q.
-
-Abbreviation path_source_items_valid := path_source_items_valid.
-
-Abbreviation path_target_items_valid := path_target_items_valid.
-
-Abbreviation lr0_path_items_plain_viable_from := lr0_path_items_plain_viable_from.
-
-Abbreviation lr0_path_plain_viable_prefix := lr0_path_plain_viable_prefix.
-
-Abbreviation path_states_iter := path_states_iter.
-
-Abbreviation path_from_q0_states_iter := path_from_q0_states_iter.
-
-Abbreviation path_from_q0_in_PT_if_short := path_from_q0_in_PT_if_short.
-
-Abbreviation states_iter_reachable_path := states_iter_reachable_path.
-
-Abbreviation PT_reachable_path := PT_reachable_path.
-
-Abbreviation Q_reachable_path := Q_reachable_path.
-
-Abbreviation path_app := path_app.
-
-Abbreviation path_app_inv := path_app_inv.
-
-Abbreviation path_deterministic := path_deterministic.
-
-Abbreviation lr0_path_factorization := lr0_path_factorization.
-
-Abbreviation lr0_source_handle_prod_path_spec := lr0_source_handle_prod_path_spec.
-
-Abbreviation lr0_source_handle_prod_path := lr0_source_handle_prod_path.
-
-Abbreviation lr0_rm_step_source_handle_prod_path_spec := lr0_rm_step_source_handle_prod_path_spec.
-
-Abbreviation lr0_rm_step_source_handle_prod_path := lr0_rm_step_source_handle_prod_path.
-
-Abbreviation path_symbol := path_symbol.
-
-Abbreviation path_snoc := path_snoc.
-
-Abbreviation goto_shift_item := goto_shift_item.
-
-Abbreviation lr0_item_suffix_path_under_delta_closed := lr0_item_suffix_path_under_delta_closed.
-
-Abbreviation lr0_seed_item_prefix_path_under_delta_closed := lr0_seed_item_prefix_path_under_delta_closed.
-
-Abbreviation lr0_path_item_invariant := lr0_path_item_invariant.
-
-Abbreviation path_completed_item := path_completed_item.
-
-Abbreviation config := config.
-
-Abbreviation reduce := reduce.
-
-Abbreviation lr0_reduce_completed_item_iff := lr0_reduce_completed_item_iff.
-
-Abbreviation lr0_handle_reduce_core := lr0_handle_reduce_core.
-
-Abbreviation lr0_handle_completed_item_and_reduce := lr0_handle_completed_item_and_reduce.
-
-Abbreviation lr0_handle_reduce_from_parent := lr0_handle_reduce_from_parent.
-
-Abbreviation lr0_handle_reduce_from_delta_prod := lr0_handle_reduce_from_delta_prod.
-
-Abbreviation lr0_handle_from_parent_completed_item_and_reduce := lr0_handle_from_parent_completed_item_and_reduce.
-
-Abbreviation lr0_path_handle_invariant_spec := lr0_path_handle_invariant_spec.
-
-Abbreviation lr0_path_handle_invariant := lr0_path_handle_invariant.
-
-Abbreviation step := step.
-
-Abbreviation lr0_shift_step := lr0_shift_step.
-
-Abbreviation lr0_reduce_step_from_seed := lr0_reduce_step_from_seed.
-
-Abbreviation lr0_reduce_step_from_parent := lr0_reduce_step_from_parent.
-
-Abbreviation lr0_reduce_step_from_prod := lr0_reduce_step_from_prod.
-
-Abbreviation steps := steps.
-
-Abbreviation lr0_steps_trans := lr0_steps_trans.
-
-Abbreviation lr0_shift_steps := lr0_shift_steps.
-
-Abbreviation lr0_shift_terminal_list_steps := lr0_shift_terminal_list_steps.
-
-Abbreviation lr0_reduce_steps_from_seed := lr0_reduce_steps_from_seed.
-
-Abbreviation lr0_reduce_steps_from_reduce := lr0_reduce_steps_from_reduce.
-
-Abbreviation lr0_reduce_steps_from_completed_item := lr0_reduce_steps_from_completed_item.
-
-Abbreviation lr0_reduce_steps_from_parent := lr0_reduce_steps_from_parent.
-
-Abbreviation lr0_reduce_steps_from_prod := lr0_reduce_steps_from_prod.
-
-Abbreviation lr0_reduce_then_shift_terminal_list_from_reduce := lr0_reduce_then_shift_terminal_list_from_reduce.
-
-Abbreviation lr0_reduce_then_shift_terminal_list_from_completed_item := lr0_reduce_then_shift_terminal_list_from_completed_item.
-
-Abbreviation lr0_reduce_then_shift_terminal_list_from_prod := lr0_reduce_then_shift_terminal_list_from_prod.
-
-Abbreviation lr0_reduce_then_shift_terminal_list_from_parent := lr0_reduce_then_shift_terminal_list_from_parent.
-
-Abbreviation lr0_parent_handle_completed_reduce_and_shift_terminal_list := lr0_parent_handle_completed_reduce_and_shift_terminal_list.
-
-Abbreviation q_f := q_f.
-
-Abbreviation q_f_exists := q_f_exists.
-
-Abbreviation q_f_accept_path := q_f_accept_path.
-
-Abbreviation accept_path_q_f := accept_path_q_f.
-
-Abbreviation q_f_accept_path_iff := q_f_accept_path_iff.
-
-Abbreviation q_f_exists_path := q_f_exists_path.
-
-Abbreviation lr0_final_eof_shift_steps := lr0_final_eof_shift_steps.
-
-Abbreviation lr0_shift_input_eof_steps := lr0_shift_input_eof_steps.
-
-Abbreviation lr0_shift_accept_sentence_steps := lr0_shift_accept_sentence_steps.
-
-Abbreviation lr0_init_accept_sentence_prefix_steps := lr0_init_accept_sentence_prefix_steps.
-
-Abbreviation L_LRA := L_LRA.
-
-Abbreviation lr0_start_stack_steps_accept := lr0_start_stack_steps_accept.
-
-Abbreviation lr0_start_stack_steps_accept_exists := lr0_start_stack_steps_accept_exists.
-
-Abbreviation lr0_shifted_input_to_start_stack_steps_accept := lr0_shifted_input_to_start_stack_steps_accept.
-
-Abbreviation lr0_shifted_input_to_start_stack_steps_accept_exists := lr0_shifted_input_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_to_start_stack_steps_accept := lr0_accept_sentence_to_start_stack_steps_accept.
-
-Abbreviation lr0_accept_sentence_to_start_stack_steps_accept_exists := lr0_accept_sentence_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists := lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_init_prod_block_from_paths_to_sentential_steps := lr0_init_prod_block_from_paths_to_sentential_steps.
-
-Abbreviation lr0_init_prod_block_from_source_path_to_sentential_steps := lr0_init_prod_block_from_source_path_to_sentential_steps.
-
-Abbreviation lr0_init_rm_step_from_paths_to_sentential_steps := lr0_init_rm_step_from_paths_to_sentential_steps.
-
-Abbreviation lr0_refined_rm_steps := lr0_refined_rm_steps.
-
-Abbreviation lr0_refined_rm_steps_sound := lr0_refined_rm_steps_sound.
-
-Abbreviation lr0_refined_rm_steps_progress := lr0_refined_rm_steps_progress.
-
-Abbreviation lr0_refined_start_stack_steps_accept := lr0_refined_start_stack_steps_accept.
-
-Abbreviation lr0_refined_start_stack_sound := lr0_refined_start_stack_sound.
-
-Abbreviation lr0_split_refined_rm_steps := lr0_split_refined_rm_steps.
-
-Abbreviation rm_step_target_word_decompose := rm_step_target_word_decompose.
-
-Abbreviation lr0_split_refined_rm_steps_sound := lr0_split_refined_rm_steps_sound.
-
-Abbreviation lr0_split_refined_rm_steps_progress := lr0_split_refined_rm_steps_progress.
-
-Abbreviation lr0_split_refined_start_stack_steps_accept := lr0_split_refined_start_stack_steps_accept.
-
-Abbreviation lr0_split_refined_start_stack_sound := lr0_split_refined_start_stack_sound.
-
-Abbreviation lr0_rm_steps_split_refined := lr0_rm_steps_split_refined.
-
-Abbreviation lr0_rm_steps_split_refined_bridge := lr0_rm_steps_split_refined_bridge.
-
-Abbreviation lr0_start_rm_steps_accept_by_split_refined := lr0_start_rm_steps_accept_by_split_refined.
-
-Abbreviation lr0_rm_steps_complete := lr0_rm_steps_complete.
-
-Abbreviation lr0_rm_step_refined_tail_bridge := lr0_rm_step_refined_tail_bridge.
-
-Abbreviation lr0_start_rm_step_refined_tail_correct := lr0_start_rm_step_refined_tail_correct.
-
-Abbreviation lr0_rm_steps_refined_by_first_step := lr0_rm_steps_refined_by_first_step.
-
-Abbreviation lr0_rm_steps_refined_by_target_path := lr0_rm_steps_refined_by_target_path.
-
-Abbreviation lr0_start_rm_steps_accept_by_target_path := lr0_start_rm_steps_accept_by_target_path.
-
-Abbreviation lr0_rm_steps_refined_by_handle_target_path := lr0_rm_steps_refined_by_handle_target_path.
-
-Abbreviation lr0_start_rm_steps_accept_by_handle_target_path := lr0_start_rm_steps_accept_by_handle_target_path.
-
-Abbreviation lr0_rm_steps_refined_by_handle_suffix_path := lr0_rm_steps_refined_by_handle_suffix_path.
-
-Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path := lr0_start_rm_steps_accept_by_handle_suffix_path.
-
-Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed := lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed.
-
-Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed := lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed.
-
-Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_closed := lr0_rm_steps_refined_by_handle_suffix_path_closed.
-
-Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_closed := lr0_start_rm_steps_accept_by_handle_suffix_path_closed.
-
-Abbreviation lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_sound_augmented := lr0_sound_augmented.
-
-Abbreviation lr0_rm_steps_correct := lr0_rm_steps_correct.
-
-Abbreviation lr0_sound_plain_augmented := lr0_sound_plain_augmented.
-
-Abbreviation lr0_sound := lr0_sound.
-
-Abbreviation lr0_complete := lr0_complete.
-
-Abbreviation lr0_correct := lr0_correct.
-
-End Abs.
-
-Module Impl.
-
-Abbreviation compute_states := compute_states.
-
-Abbreviation all_state_lists := all_state_lists.
-
-Abbreviation state_fuel := state_fuel.
-
-Abbreviation state_successors := state_successors.
-
-Abbreviation states_step := states_step.
-
-Abbreviation delta := delta.
-
-Abbreviation reduce := reduce.
-
-End Impl.
-
-Module Refine.
-
-Abbreviation q0_in_Q_refines := q0_in_Q.
-
-Abbreviation nonempty_exists_refines := nonempty_exists.
-
-Abbreviation goto_nonempty_shift_refines := goto_nonempty_shift.
-
-Abbreviation delta_some_nonempty_refines := delta_some_nonempty.
-
-Abbreviation delta_some_parent_item_refines := delta_some_parent_item.
-
-Abbreviation q0_items_valid_refines := q0_items_valid.
-
-Abbreviation lr0_item_plain_viable_refines := lr0_item_plain_viable.
-
-Abbreviation lr0_closure_rel_item_plain_viable_refines := lr0_closure_rel_item_plain_viable.
-
-Abbreviation lr0_goto_kernel_item_plain_viable_refines := lr0_goto_kernel_item_plain_viable.
-
-Abbreviation lr0_goto_item_plain_viable_refines := lr0_goto_item_plain_viable.
-
-Abbreviation q0_item_plain_viable_refines := q0_item_plain_viable.
-
-Abbreviation lr0_item_valid_for_path_refines := lr0_item_valid_for_path.
-
-Abbreviation lr0_item_valid_for_path_realization_refines := lr0_item_valid_for_path_realization.
-
-Abbreviation lr0_closure_rel_item_valid_for_path_productive_refines := lr0_closure_rel_item_valid_for_path_productive.
-
-Abbreviation lr0_goto_kernel_item_valid_for_path_productive_refines := lr0_goto_kernel_item_valid_for_path_productive.
-
-Abbreviation lr0_goto_item_valid_for_path_productive_refines := lr0_goto_item_valid_for_path_productive.
-
-Abbreviation q0_item_valid_for_path_productive_refines := q0_item_valid_for_path_productive.
-
-Abbreviation lr0_path_items_valid_for_path_productive_from_refines := lr0_path_items_valid_for_path_productive_from.
-
-Abbreviation lr0_path_items_valid_for_path_productive_refines := lr0_path_items_valid_for_path_productive.
-
-Abbreviation lr0_path_productive_realization_refines := lr0_path_productive_realization.
-
-Abbreviation lr0_path_productive_viable_refines := lr0_path_productive_viable.
-
-Abbreviation state_successors_sound_refines := state_successors_sound.
-
-Abbreviation state_successors_complete_refines := state_successors_complete.
-
-Abbreviation state_successors_correct_refines := state_successors_correct.
-
-Abbreviation state_successors_valid_refines := state_successors_valid.
-
-Abbreviation states_step_valid_refines := states_step_valid.
-
-Abbreviation states_step_successor_refines := states_step_successor.
-
-Abbreviation states_step_monotone_refines := states_step_monotone.
-
-Abbreviation states_iter_valid_refines := states_iter_valid.
-
-Abbreviation states_iter_mono_fuel_refines := states_iter_mono_fuel.
-
-Abbreviation states_iter_successor_refines := states_iter_successor.
-
-Abbreviation lists_of_length_refines := lists_of_length.
-
-Abbreviation lists_upto_length_refines := lists_upto_length.
-
-Abbreviation all_state_lists_refines := all_state_lists.
-
-Abbreviation state_fuel_refines := state_fuel.
-
-Abbreviation lists_of_length_complete_refines := lists_of_length_complete.
-
-Abbreviation lists_upto_length_complete_refines := lists_upto_length_complete.
-
-Abbreviation all_items_nonempty_refines := all_items_nonempty.
-
-Abbreviation state_fuel_two_refines := state_fuel_two.
-
-Abbreviation q0_no_dup_refines := q0_no_dup.
-
-Abbreviation state_successors_state_no_dup_refines := state_successors_state_no_dup.
-
-Abbreviation states_step_state_no_dup_refines := states_step_state_no_dup.
-
-Abbreviation states_iter_state_no_dup_refines := states_iter_state_no_dup.
-
-Abbreviation states_iter_all_items_refines := states_iter_all_items.
-
-Abbreviation state_in_all_state_lists_refines := state_in_all_state_lists.
-
-Abbreviation states_iter_state_in_all_state_lists_refines := states_iter_state_in_all_state_lists.
-
-Abbreviation state_list_subsetb_refines := state_list_subsetb.
-
-Abbreviation state_list_subsetb_sound_refines := state_list_subsetb_sound.
-
-Abbreviation state_list_subsetb_complete_refines := state_list_subsetb_complete.
-
-Abbreviation state_list_subsetb_false_new_refines := state_list_subsetb_false_new.
-
-Abbreviation state_NoDup_incl_remove_length_lt_refines := state_NoDup_incl_remove_length_lt.
-
-Abbreviation states_step_no_dup_refines := states_step_no_dup.
-
-Abbreviation states_iter_no_dup_refines := states_iter_no_dup.
-
-Abbreviation states_step_length_if_not_subset_refines := states_step_length_if_not_subset.
-
-Abbreviation states_step_fixed_if_subset_refines := states_step_fixed_if_subset.
-
-Abbreviation states_iter_no_dup_from_start_refines := states_iter_no_dup_from_start.
-
-Abbreviation states_iter_length_bound_refines := states_iter_length_bound.
-
-Abbreviation states_not_fixed_length_lower_refines := states_not_fixed_length_lower.
-
-Abbreviation states_first_fixed_before_bound_refines := states_first_fixed_before_bound.
-
-Abbreviation states_iter_after_fixed_subset_refines := states_iter_after_fixed_subset.
-
-Abbreviation PT_step_closed_of_length_bound_refines := PT_step_closed_of_length_bound.
-
-Abbreviation PT_step_closed_refines := PT_step_closed.
-
-Abbreviation PT_items_valid_refines := PT_items_valid.
-
-Abbreviation Q_items_valid_refines := Q_items_valid.
-
-Abbreviation delta_start_prime_none_refines := delta_start_prime_none.
-
-Abbreviation q0_closed_refines := q0_closed.
-
-Abbreviation goto_closed_refines := goto_closed.
-
-Abbreviation state_successors_closed_refines := state_successors_closed.
-
-Abbreviation states_step_closed_refines := states_step_closed.
-
-Abbreviation states_iter_closed_refines := states_iter_closed.
-
-Abbreviation PT_closed_refines := PT_closed.
-
-Abbreviation Q_closed_refines := Q_closed.
-
-Abbreviation Q_closure_rel_complete_refines := Q_closure_rel_complete.
-
-Abbreviation Q_closure_seed_for_refines := Q_closure_seed_for.
-
-Abbreviation delta_nonterminal_seed_refines := delta_nonterminal_seed.
-
-Abbreviation delta_target_in_Q_of_PT_step_closed_refines := delta_target_in_Q_of_PT_step_closed.
-
-Abbreviation path_source_in_Q_refines := path_source_in_Q.
-
-Abbreviation path_target_in_Q_refines := path_target_in_Q.
-
-Abbreviation path_source_items_valid_refines := path_source_items_valid.
-
-Abbreviation path_target_items_valid_refines := path_target_items_valid.
-
-Abbreviation lr0_path_items_plain_viable_from_refines := lr0_path_items_plain_viable_from.
-
-Abbreviation lr0_path_plain_viable_prefix_refines := lr0_path_plain_viable_prefix.
-
-Abbreviation path_states_iter_refines := path_states_iter.
-
-Abbreviation path_from_q0_states_iter_refines := path_from_q0_states_iter.
-
-Abbreviation path_from_q0_in_PT_if_short_refines := path_from_q0_in_PT_if_short.
-
-Abbreviation states_iter_reachable_path_refines := states_iter_reachable_path.
-
-Abbreviation PT_reachable_path_refines := PT_reachable_path.
-
-Abbreviation Q_reachable_path_refines := Q_reachable_path.
-
-Abbreviation path_app_refines := path_app.
-
-Abbreviation path_app_inv_refines := path_app_inv.
-
-Abbreviation path_deterministic_refines := path_deterministic.
-
-Abbreviation lr0_path_factorization_refines := lr0_path_factorization.
-
-Abbreviation lr0_source_handle_prod_path_spec_refines := lr0_source_handle_prod_path_spec.
-
-Abbreviation lr0_source_handle_prod_path_refines := lr0_source_handle_prod_path.
-
-Abbreviation lr0_rm_step_source_handle_prod_path_spec_refines := lr0_rm_step_source_handle_prod_path_spec.
-
-Abbreviation lr0_rm_step_source_handle_prod_path_refines := lr0_rm_step_source_handle_prod_path.
-
-Abbreviation path_symbol_refines := path_symbol.
-
-Abbreviation path_snoc_refines := path_snoc.
-
-Abbreviation goto_shift_item_refines := goto_shift_item.
-
-Abbreviation lr0_item_suffix_path_under_delta_closed_refines := lr0_item_suffix_path_under_delta_closed.
-
-Abbreviation lr0_seed_item_prefix_path_under_delta_closed_refines := lr0_seed_item_prefix_path_under_delta_closed.
-
-Abbreviation lr0_path_item_invariant_refines := lr0_path_item_invariant.
-
-Abbreviation path_completed_item_refines := path_completed_item.
-
-Abbreviation reduce_sound_refines := reduce_sound.
-
-Abbreviation reduce_complete_refines := reduce_complete.
-
-Abbreviation lr0_reduce_completed_item_iff_refines := lr0_reduce_completed_item_iff.
-
-Abbreviation lr0_handle_reduce_core_refines := lr0_handle_reduce_core.
-
-Abbreviation lr0_handle_completed_item_and_reduce_refines := lr0_handle_completed_item_and_reduce.
-
-Abbreviation lr0_handle_reduce_from_parent_refines := lr0_handle_reduce_from_parent.
-
-Abbreviation lr0_handle_reduce_from_delta_prod_refines := lr0_handle_reduce_from_delta_prod.
-
-Abbreviation lr0_handle_from_parent_completed_item_and_reduce_refines := lr0_handle_from_parent_completed_item_and_reduce.
-
-Abbreviation lr0_path_handle_invariant_spec_refines := lr0_path_handle_invariant_spec.
-
-Abbreviation lr0_path_handle_invariant_refines := lr0_path_handle_invariant.
-
-Abbreviation lr0_shift_step_refines := lr0_shift_step.
-
-Abbreviation lr0_reduce_step_from_seed_refines := lr0_reduce_step_from_seed.
-
-Abbreviation lr0_reduce_step_from_parent_refines := lr0_reduce_step_from_parent.
-
-Abbreviation lr0_reduce_step_from_prod_refines := lr0_reduce_step_from_prod.
-
-Abbreviation lr0_steps_trans_refines := lr0_steps_trans.
-
-Abbreviation lr0_shift_steps_refines := lr0_shift_steps.
-
-Abbreviation lr0_shift_terminal_list_steps_refines := lr0_shift_terminal_list_steps.
-
-Abbreviation lr0_reduce_steps_from_seed_refines := lr0_reduce_steps_from_seed.
-
-Abbreviation lr0_reduce_steps_from_reduce_refines := lr0_reduce_steps_from_reduce.
-
-Abbreviation lr0_reduce_steps_from_completed_item_refines := lr0_reduce_steps_from_completed_item.
-
-Abbreviation lr0_reduce_steps_from_parent_refines := lr0_reduce_steps_from_parent.
-
-Abbreviation lr0_reduce_steps_from_prod_refines := lr0_reduce_steps_from_prod.
-
-Abbreviation lr0_reduce_then_shift_terminal_list_from_reduce_refines := lr0_reduce_then_shift_terminal_list_from_reduce.
-
-Abbreviation lr0_reduce_then_shift_terminal_list_from_completed_item_refines := lr0_reduce_then_shift_terminal_list_from_completed_item.
-
-Abbreviation lr0_reduce_then_shift_terminal_list_from_prod_refines := lr0_reduce_then_shift_terminal_list_from_prod.
-
-Abbreviation lr0_reduce_then_shift_terminal_list_from_parent_refines := lr0_reduce_then_shift_terminal_list_from_parent.
-
-Abbreviation lr0_parent_handle_completed_reduce_and_shift_terminal_list_refines := lr0_parent_handle_completed_reduce_and_shift_terminal_list.
-
-Abbreviation lr0_step_yield_invariant_refines := lr0_step_yield_invariant.
-
-Abbreviation lr0_steps_yield_invariant_refines := lr0_steps_yield_invariant.
-
-Abbreviation init_config_yield_refines := init_config_yield.
-
-Abbreviation accept_config_yield_refines := accept_config_yield.
-
-Abbreviation q_f_exists_refines := q_f_exists.
-
-Abbreviation q_f_accept_path_refines := q_f_accept_path.
-
-Abbreviation accept_path_q_f_refines := accept_path_q_f.
-
-Abbreviation q_f_accept_path_iff_refines := q_f_accept_path_iff.
-
-Abbreviation q_f_exists_path_refines := q_f_exists_path.
-
-Abbreviation lr0_final_eof_shift_steps_refines := lr0_final_eof_shift_steps.
-
-Abbreviation lr0_shift_input_eof_steps_refines := lr0_shift_input_eof_steps.
-
-Abbreviation lr0_shift_accept_sentence_steps_refines := lr0_shift_accept_sentence_steps.
-
-Abbreviation lr0_init_accept_sentence_prefix_steps_refines := lr0_init_accept_sentence_prefix_steps.
-
-Abbreviation lr0_start_stack_steps_accept_refines := lr0_start_stack_steps_accept.
-
-Abbreviation lr0_start_stack_steps_accept_exists_refines := lr0_start_stack_steps_accept_exists.
-
-Abbreviation lr0_shifted_input_to_start_stack_steps_accept_refines := lr0_shifted_input_to_start_stack_steps_accept.
-
-Abbreviation lr0_shifted_input_to_start_stack_steps_accept_exists_refines := lr0_shifted_input_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_to_start_stack_steps_accept_refines := lr0_accept_sentence_to_start_stack_steps_accept.
-
-Abbreviation lr0_accept_sentence_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_init_prod_block_from_paths_to_sentential_steps_refines := lr0_init_prod_block_from_paths_to_sentential_steps.
-
-Abbreviation lr0_init_prod_block_from_source_path_to_sentential_steps_refines := lr0_init_prod_block_from_source_path_to_sentential_steps.
-
-Abbreviation lr0_init_rm_step_from_paths_to_sentential_steps_refines := lr0_init_rm_step_from_paths_to_sentential_steps.
-
-Abbreviation lr0_refined_rm_steps_refines := lr0_refined_rm_steps.
-
-Abbreviation lr0_refined_rm_steps_sound_refines := lr0_refined_rm_steps_sound.
-
-Abbreviation lr0_refined_rm_steps_progress_refines := lr0_refined_rm_steps_progress.
-
-Abbreviation lr0_refined_start_stack_steps_accept_refines := lr0_refined_start_stack_steps_accept.
-
-Abbreviation lr0_refined_start_stack_sound_refines := lr0_refined_start_stack_sound.
-
-Abbreviation lr0_split_refined_rm_steps_refines := lr0_split_refined_rm_steps.
-
-Abbreviation rm_step_target_word_decompose_refines := rm_step_target_word_decompose.
-
-Abbreviation lr0_split_refined_rm_steps_sound_refines := lr0_split_refined_rm_steps_sound.
-
-Abbreviation lr0_split_refined_rm_steps_progress_refines := lr0_split_refined_rm_steps_progress.
-
-Abbreviation lr0_split_refined_start_stack_steps_accept_refines := lr0_split_refined_start_stack_steps_accept.
-
-Abbreviation lr0_split_refined_start_stack_sound_refines := lr0_split_refined_start_stack_sound.
-
-Abbreviation lr0_rm_steps_split_refined_refines := lr0_rm_steps_split_refined.
-
-Abbreviation lr0_rm_steps_split_refined_bridge_refines := lr0_rm_steps_split_refined_bridge.
-
-Abbreviation lr0_start_rm_steps_accept_by_split_refined_refines := lr0_start_rm_steps_accept_by_split_refined.
-
-Abbreviation lr0_rm_steps_complete_refines := lr0_rm_steps_complete.
-
-Abbreviation lr0_rm_step_refined_tail_bridge_refines := lr0_rm_step_refined_tail_bridge.
-
-Abbreviation lr0_start_rm_step_refined_tail_correct_refines := lr0_start_rm_step_refined_tail_correct.
-
-Abbreviation lr0_rm_steps_refined_by_first_step_refines := lr0_rm_steps_refined_by_first_step.
-
-Abbreviation lr0_rm_steps_refined_by_target_path_refines := lr0_rm_steps_refined_by_target_path.
-
-Abbreviation lr0_start_rm_steps_accept_by_target_path_refines := lr0_start_rm_steps_accept_by_target_path.
-
-Abbreviation lr0_rm_steps_refined_by_handle_target_path_refines := lr0_rm_steps_refined_by_handle_target_path.
-
-Abbreviation lr0_start_rm_steps_accept_by_handle_target_path_refines := lr0_start_rm_steps_accept_by_handle_target_path.
-
-Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_refines := lr0_rm_steps_refined_by_handle_suffix_path.
-
-Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_refines := lr0_start_rm_steps_accept_by_handle_suffix_path.
-
-Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed_refines := lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed.
-
-Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed_refines := lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed.
-
-Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_closed_refines := lr0_rm_steps_refined_by_handle_suffix_path_closed.
-
-Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_closed_refines := lr0_start_rm_steps_accept_by_handle_suffix_path_closed.
-
-Abbreviation lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists_refines := lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_sound_augmented_refines := lr0_sound_augmented.
-
-Abbreviation lr0_rm_steps_correct_refines := lr0_rm_steps_correct.
-
-Abbreviation lr0_sound_plain_augmented_refines := lr0_sound_plain_augmented.
-
-Abbreviation lr0_sound_refines := lr0_sound.
-
-Abbreviation lr0_complete_refines := lr0_complete.
-
-Abbreviation lr0_correct_refines := lr0_correct.
-
-End Refine.
-
-Module API.
-
-Abbreviation q0 := q0.
-
-Abbreviation PT := PT.
-
-Abbreviation Q := Q.
-
-Abbreviation compute_states := compute_states.
-
-Abbreviation delta := delta.
-
-Abbreviation nonempty_exists := nonempty_exists.
-
-Abbreviation goto_nonempty_shift := goto_nonempty_shift.
-
-Abbreviation delta_some_parent_item := delta_some_parent_item.
-
-Abbreviation q0_items_valid := q0_items_valid.
-
-Abbreviation lr0_item_plain_viable := lr0_item_plain_viable.
-
-Abbreviation lr0_closure_rel_item_plain_viable := lr0_closure_rel_item_plain_viable.
-
-Abbreviation lr0_goto_kernel_item_plain_viable := lr0_goto_kernel_item_plain_viable.
-
-Abbreviation lr0_goto_item_plain_viable := lr0_goto_item_plain_viable.
-
-Abbreviation q0_item_plain_viable := q0_item_plain_viable.
-
-Abbreviation lr0_item_valid_for_path := lr0_item_valid_for_path.
-
-Abbreviation lr0_item_valid_for_path_realization := lr0_item_valid_for_path_realization.
-
-Abbreviation lr0_closure_rel_item_valid_for_path_productive := lr0_closure_rel_item_valid_for_path_productive.
-
-Abbreviation lr0_goto_kernel_item_valid_for_path_productive := lr0_goto_kernel_item_valid_for_path_productive.
-
-Abbreviation lr0_goto_item_valid_for_path_productive := lr0_goto_item_valid_for_path_productive.
-
-Abbreviation q0_item_valid_for_path_productive := q0_item_valid_for_path_productive.
-
-Abbreviation lr0_path_items_valid_for_path_productive_from := lr0_path_items_valid_for_path_productive_from.
-
-Abbreviation lr0_path_items_valid_for_path_productive := lr0_path_items_valid_for_path_productive.
-
-Abbreviation lr0_path_productive_realization := lr0_path_productive_realization.
-
-Abbreviation lr0_path_productive_viable := lr0_path_productive_viable.
-
-Abbreviation state_successors_sound := state_successors_sound.
-
-Abbreviation state_successors_complete := state_successors_complete.
-
-Abbreviation state_successors_correct := state_successors_correct.
-
-Abbreviation state_successors_valid := state_successors_valid.
-
-Abbreviation states_step_valid := states_step_valid.
-
-Abbreviation states_step_successor := states_step_successor.
-
-Abbreviation states_step_monotone := states_step_monotone.
-
-Abbreviation states_iter_valid := states_iter_valid.
-
-Abbreviation states_iter_mono_fuel := states_iter_mono_fuel.
-
-Abbreviation states_iter_successor := states_iter_successor.
-
-Abbreviation lists_of_length := lists_of_length.
-
-Abbreviation lists_upto_length := lists_upto_length.
-
-Abbreviation all_state_lists := all_state_lists.
-
-Abbreviation state_fuel := state_fuel.
-
-Abbreviation lists_of_length_complete := lists_of_length_complete.
-
-Abbreviation lists_upto_length_complete := lists_upto_length_complete.
-
-Abbreviation all_items_nonempty := all_items_nonempty.
-
-Abbreviation state_fuel_two := state_fuel_two.
-
-Abbreviation q0_no_dup := q0_no_dup.
-
-Abbreviation state_successors_state_no_dup := state_successors_state_no_dup.
-
-Abbreviation states_step_state_no_dup := states_step_state_no_dup.
-
-Abbreviation states_iter_state_no_dup := states_iter_state_no_dup.
-
-Abbreviation states_iter_all_items := states_iter_all_items.
-
-Abbreviation state_in_all_state_lists := state_in_all_state_lists.
-
-Abbreviation states_iter_state_in_all_state_lists := states_iter_state_in_all_state_lists.
-
-Abbreviation state_list_subsetb := state_list_subsetb.
-
-Abbreviation state_list_subsetb_sound := state_list_subsetb_sound.
-
-Abbreviation state_list_subsetb_complete := state_list_subsetb_complete.
-
-Abbreviation state_list_subsetb_false_new := state_list_subsetb_false_new.
-
-Abbreviation state_NoDup_incl_remove_length_lt := state_NoDup_incl_remove_length_lt.
-
-Abbreviation states_step_no_dup := states_step_no_dup.
-
-Abbreviation states_iter_no_dup := states_iter_no_dup.
-
-Abbreviation states_step_length_if_not_subset := states_step_length_if_not_subset.
-
-Abbreviation states_step_fixed_if_subset := states_step_fixed_if_subset.
-
-Abbreviation states_iter_no_dup_from_start := states_iter_no_dup_from_start.
-
-Abbreviation states_iter_length_bound := states_iter_length_bound.
-
-Abbreviation states_not_fixed_length_lower := states_not_fixed_length_lower.
-
-Abbreviation states_first_fixed_before_bound := states_first_fixed_before_bound.
-
-Abbreviation states_iter_after_fixed_subset := states_iter_after_fixed_subset.
-
-Abbreviation PT_step_closed_of_length_bound := PT_step_closed_of_length_bound.
-
-Abbreviation PT_step_closed := PT_step_closed.
-
-Abbreviation PT_items_valid := PT_items_valid.
-
-Abbreviation Q_items_valid := Q_items_valid.
-
-Abbreviation delta_start_prime_none := delta_start_prime_none.
-
-Abbreviation q0_closed := q0_closed.
-
-Abbreviation goto_closed := goto_closed.
-
-Abbreviation state_successors_closed := state_successors_closed.
-
-Abbreviation states_step_closed := states_step_closed.
-
-Abbreviation states_iter_closed := states_iter_closed.
-
-Abbreviation PT_closed := PT_closed.
-
-Abbreviation Q_closed := Q_closed.
-
-Abbreviation Q_closure_rel_complete := Q_closure_rel_complete.
-
-Abbreviation Q_closure_seed_for := Q_closure_seed_for.
-
-Abbreviation delta_nonterminal_seed := delta_nonterminal_seed.
-
-Abbreviation delta_target_in_Q_of_PT_step_closed := delta_target_in_Q_of_PT_step_closed.
-
-Abbreviation path := path.
-
-Abbreviation path_source_in_Q := path_source_in_Q.
-
-Abbreviation path_target_in_Q := path_target_in_Q.
-
-Abbreviation path_source_items_valid := path_source_items_valid.
-
-Abbreviation path_target_items_valid := path_target_items_valid.
-
-Abbreviation lr0_path_items_plain_viable_from := lr0_path_items_plain_viable_from.
-
-Abbreviation lr0_path_plain_viable_prefix := lr0_path_plain_viable_prefix.
-
-Abbreviation path_states_iter := path_states_iter.
-
-Abbreviation path_from_q0_states_iter := path_from_q0_states_iter.
-
-Abbreviation path_from_q0_in_PT_if_short := path_from_q0_in_PT_if_short.
-
-Abbreviation states_iter_reachable_path := states_iter_reachable_path.
-
-Abbreviation PT_reachable_path := PT_reachable_path.
-
-Abbreviation Q_reachable_path := Q_reachable_path.
-
-Abbreviation path_app := path_app.
-
-Abbreviation path_app_inv := path_app_inv.
-
-Abbreviation path_deterministic := path_deterministic.
-
-Abbreviation lr0_path_factorization := lr0_path_factorization.
-
-Abbreviation lr0_source_handle_prod_path_spec := lr0_source_handle_prod_path_spec.
-
-Abbreviation lr0_source_handle_prod_path := lr0_source_handle_prod_path.
-
-Abbreviation lr0_rm_step_source_handle_prod_path_spec := lr0_rm_step_source_handle_prod_path_spec.
-
-Abbreviation lr0_rm_step_source_handle_prod_path := lr0_rm_step_source_handle_prod_path.
-
-Abbreviation path_symbol := path_symbol.
-
-Abbreviation path_snoc := path_snoc.
-
-Abbreviation goto_shift_item := goto_shift_item.
-
-Abbreviation lr0_item_suffix_path_under_delta_closed := lr0_item_suffix_path_under_delta_closed.
-
-Abbreviation lr0_seed_item_prefix_path_under_delta_closed := lr0_seed_item_prefix_path_under_delta_closed.
-
-Abbreviation lr0_path_item_invariant := lr0_path_item_invariant.
-
-Abbreviation path_completed_item := path_completed_item.
-
-Abbreviation config := config.
-
-Abbreviation yield := yield.
-
-Abbreviation reduce := reduce.
-
-Abbreviation lr0_reduce_completed_item_iff := lr0_reduce_completed_item_iff.
-
-Abbreviation lr0_handle_reduce_core := lr0_handle_reduce_core.
-
-Abbreviation lr0_handle_completed_item_and_reduce := lr0_handle_completed_item_and_reduce.
-
-Abbreviation lr0_handle_reduce_from_parent := lr0_handle_reduce_from_parent.
-
-Abbreviation lr0_handle_reduce_from_delta_prod := lr0_handle_reduce_from_delta_prod.
-
-Abbreviation lr0_handle_from_parent_completed_item_and_reduce := lr0_handle_from_parent_completed_item_and_reduce.
-
-Abbreviation lr0_path_handle_invariant_spec := lr0_path_handle_invariant_spec.
-
-Abbreviation lr0_path_handle_invariant := lr0_path_handle_invariant.
-
-Abbreviation step := step.
-
-Abbreviation lr0_shift_step := lr0_shift_step.
-
-Abbreviation lr0_reduce_step_from_seed := lr0_reduce_step_from_seed.
-
-Abbreviation lr0_reduce_step_from_parent := lr0_reduce_step_from_parent.
-
-Abbreviation lr0_reduce_step_from_prod := lr0_reduce_step_from_prod.
-
-Abbreviation steps := steps.
-
-Abbreviation lr0_steps_trans := lr0_steps_trans.
-
-Abbreviation lr0_shift_steps := lr0_shift_steps.
-
-Abbreviation lr0_shift_terminal_list_steps := lr0_shift_terminal_list_steps.
-
-Abbreviation lr0_reduce_steps_from_seed := lr0_reduce_steps_from_seed.
-
-Abbreviation lr0_reduce_steps_from_reduce := lr0_reduce_steps_from_reduce.
-
-Abbreviation lr0_reduce_steps_from_completed_item := lr0_reduce_steps_from_completed_item.
-
-Abbreviation lr0_reduce_steps_from_parent := lr0_reduce_steps_from_parent.
-
-Abbreviation lr0_reduce_steps_from_prod := lr0_reduce_steps_from_prod.
-
-Abbreviation lr0_reduce_then_shift_terminal_list_from_reduce := lr0_reduce_then_shift_terminal_list_from_reduce.
-
-Abbreviation lr0_reduce_then_shift_terminal_list_from_completed_item := lr0_reduce_then_shift_terminal_list_from_completed_item.
-
-Abbreviation lr0_reduce_then_shift_terminal_list_from_prod := lr0_reduce_then_shift_terminal_list_from_prod.
-
-Abbreviation lr0_reduce_then_shift_terminal_list_from_parent := lr0_reduce_then_shift_terminal_list_from_parent.
-
-Abbreviation lr0_parent_handle_completed_reduce_and_shift_terminal_list := lr0_parent_handle_completed_reduce_and_shift_terminal_list.
-
-Abbreviation yield_step_case := yield_step_case.
-
-Abbreviation q_f := q_f.
-
-Abbreviation q_f_exists := q_f_exists.
-
-Abbreviation q_f_accept_path := q_f_accept_path.
-
-Abbreviation accept_path_q_f := accept_path_q_f.
-
-Abbreviation q_f_accept_path_iff := q_f_accept_path_iff.
-
-Abbreviation q_f_exists_path := q_f_exists_path.
-
-Abbreviation lr0_final_eof_shift_steps := lr0_final_eof_shift_steps.
-
-Abbreviation lr0_shift_input_eof_steps := lr0_shift_input_eof_steps.
-
-Abbreviation lr0_shift_accept_sentence_steps := lr0_shift_accept_sentence_steps.
-
-Abbreviation lr0_init_accept_sentence_prefix_steps := lr0_init_accept_sentence_prefix_steps.
-
-Abbreviation L_LRA := L_LRA.
-
-Abbreviation lr0_start_stack_steps_accept := lr0_start_stack_steps_accept.
-
-Abbreviation lr0_start_stack_steps_accept_exists := lr0_start_stack_steps_accept_exists.
-
-Abbreviation lr0_shifted_input_to_start_stack_steps_accept := lr0_shifted_input_to_start_stack_steps_accept.
-
-Abbreviation lr0_shifted_input_to_start_stack_steps_accept_exists := lr0_shifted_input_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_to_start_stack_steps_accept := lr0_accept_sentence_to_start_stack_steps_accept.
-
-Abbreviation lr0_accept_sentence_to_start_stack_steps_accept_exists := lr0_accept_sentence_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_reduce_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_completed_item_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_prod_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists := lr0_accept_sentence_prod_block_from_paths_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_init_prod_block_from_paths_to_sentential_steps := lr0_init_prod_block_from_paths_to_sentential_steps.
-
-Abbreviation lr0_init_prod_block_from_source_path_to_sentential_steps := lr0_init_prod_block_from_source_path_to_sentential_steps.
-
-Abbreviation lr0_init_rm_step_from_paths_to_sentential_steps := lr0_init_rm_step_from_paths_to_sentential_steps.
-
-Abbreviation lr0_refined_rm_steps := lr0_refined_rm_steps.
-
-Abbreviation lr0_refined_rm_steps_sound := lr0_refined_rm_steps_sound.
-
-Abbreviation lr0_refined_rm_steps_progress := lr0_refined_rm_steps_progress.
-
-Abbreviation lr0_refined_start_stack_steps_accept := lr0_refined_start_stack_steps_accept.
-
-Abbreviation lr0_refined_start_stack_sound := lr0_refined_start_stack_sound.
-
-Abbreviation lr0_split_refined_rm_steps := lr0_split_refined_rm_steps.
-
-Abbreviation rm_step_target_word_decompose := rm_step_target_word_decompose.
-
-Abbreviation lr0_split_refined_rm_steps_sound := lr0_split_refined_rm_steps_sound.
-
-Abbreviation lr0_split_refined_rm_steps_progress := lr0_split_refined_rm_steps_progress.
-
-Abbreviation lr0_split_refined_start_stack_steps_accept := lr0_split_refined_start_stack_steps_accept.
-
-Abbreviation lr0_split_refined_start_stack_sound := lr0_split_refined_start_stack_sound.
-
-Abbreviation lr0_rm_steps_split_refined := lr0_rm_steps_split_refined.
-
-Abbreviation lr0_rm_steps_split_refined_bridge := lr0_rm_steps_split_refined_bridge.
-
-Abbreviation lr0_start_rm_steps_accept_by_split_refined := lr0_start_rm_steps_accept_by_split_refined.
-
-Abbreviation lr0_rm_steps_complete := lr0_rm_steps_complete.
-
-Abbreviation lr0_rm_step_refined_tail_bridge := lr0_rm_step_refined_tail_bridge.
-
-Abbreviation lr0_start_rm_step_refined_tail_correct := lr0_start_rm_step_refined_tail_correct.
-
-Abbreviation lr0_rm_steps_refined_by_first_step := lr0_rm_steps_refined_by_first_step.
-
-Abbreviation lr0_rm_steps_refined_by_target_path := lr0_rm_steps_refined_by_target_path.
-
-Abbreviation lr0_start_rm_steps_accept_by_target_path := lr0_start_rm_steps_accept_by_target_path.
-
-Abbreviation lr0_rm_steps_refined_by_handle_target_path := lr0_rm_steps_refined_by_handle_target_path.
-
-Abbreviation lr0_start_rm_steps_accept_by_handle_target_path := lr0_start_rm_steps_accept_by_handle_target_path.
-
-Abbreviation lr0_rm_steps_refined_by_handle_suffix_path := lr0_rm_steps_refined_by_handle_suffix_path.
-
-Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path := lr0_start_rm_steps_accept_by_handle_suffix_path.
-
-Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed := lr0_rm_steps_refined_by_handle_suffix_path_of_PT_step_closed.
-
-Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed := lr0_start_rm_steps_accept_by_handle_suffix_path_of_PT_step_closed.
-
-Abbreviation lr0_rm_steps_refined_by_handle_suffix_path_closed := lr0_rm_steps_refined_by_handle_suffix_path_closed.
-
-Abbreviation lr0_start_rm_steps_accept_by_handle_suffix_path_closed := lr0_start_rm_steps_accept_by_handle_suffix_path_closed.
-
-Abbreviation lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_seed_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists := lr0_accept_sentence_parent_block_to_start_stack_steps_accept_exists.
-
-Abbreviation lr0_sound_augmented := lr0_sound_augmented.
-
-Abbreviation lr0_rm_steps_correct := lr0_rm_steps_correct.
-
-Abbreviation lr0_sound_plain_augmented := lr0_sound_plain_augmented.
-
-Abbreviation lr0_sound := lr0_sound.
-
-Abbreviation lr0_complete := lr0_complete.
-
-Abbreviation lr0_correct := lr0_correct.
-
-End API.
 
 End LR0.
 
@@ -7055,7 +5350,7 @@ Proof.
   - destruct (B.decide (x = x)) as [_ | NE]; [reflexivity | contradiction NE; reflexivity].
   - assert (LT_TAIL : n < length xs) by lia.
     destruct (B.decide ((lookup default n xs) = x)) as [EQ | NE].
-    + symmetry in EQ. subst x. pose proof (lookup_in default n xs LT_TAIL) as IN_LOOK. contradiction.
+    + symmetry in EQ. subst x. use (lookup_in default) as IN_LOOK with LT_TAIL. contradiction.
     + f_equal. eapply IH; [exact NO_DUP_TAIL | exact LT_TAIL].
 Qed.
 
@@ -7072,10 +5367,11 @@ Theorem state_of_state_index_nat q
   : state_of (state_index_nat q) = Some q.
 Proof.
   unfold state_of, state_index_nat, num_states.
-  pose proof (@index_of_lt state Item.state_hasEqDec q Q IN) as LT.
+  use index_of_lt as LT with IN.
   destruct (Nat.ltb (FS.index_of (EQ_DEC := Item.state_hasEqDec) q Q) (length Q)) eqn: LTB.
-  - pose proof (@lookup_index_of state Item.state_hasEqDec q Q q0 IN) as LOOKUP. rewrite LOOKUP. reflexivity.
-  - rewrite Nat.ltb_ge in LTB. lia.
+  - use (lookup_index_of q Q q0) as LOOKUP with IN. exact (f_equal Some LOOKUP).
+  - rewrite Nat.ltb_ge in LTB.
+    exfalso. exact (Nat.lt_irrefl _ (Nat.lt_le_trans _ _ _ LT LTB)).
 Qed.
 
 Theorem index_of_complete q
@@ -7116,7 +5412,7 @@ Lemma state_of_no_dup n q
   (STATE : state_of n = Some q)
   : NoDup q.
 Proof.
-  pose proof (state_of_sound n q STATE) as (IN_Q & _).
+  use state_of_sound as (IN_Q & _) with STATE.
   eapply Q_state_no_dup. exact IN_Q.
 Qed.
 
@@ -7124,14 +5420,14 @@ Theorem state_of_index_of q n
   (INDEX : index_of q = Some n)
   : state_of n = Some q.
 Proof.
-  pose proof (index_of_sound q n INDEX) as (_ & _ & STATE). exact STATE.
+  use index_of_sound as (_ & _ & STATE) with INDEX. exact STATE.
 Qed.
 
 Theorem index_of_state_of n q
   (STATE : state_of n = Some q)
   : index_of q = Some n.
 Proof.
-  pose proof (state_of_sound n q STATE) as (_ & INDEX). exact INDEX.
+  use state_of_sound as (_ & INDEX) with STATE. exact INDEX.
 Qed.
 
 Theorem dN_index_of q n X
@@ -7154,8 +5450,10 @@ Lemma dN_start_prime_none n
   : dN n (inl start_prime) = None.
 Proof.
   unfold dN. destruct (state_of n) as [q | ] eqn: STATE; [ | reflexivity].
-  pose proof (state_of_sound n q STATE) as (IN_Q & _).
-  pose proof (delta_start_prime_none q (Q_items_valid q IN_Q)) as DELTA.
+  use state_of_sound as (IN_Q & _) with STATE.
+  assert (VALID_Q : forall it, it ∈ q -> valid_item it).
+  { intros it IN. eapply Q_items_valid; [exact IN_Q | exact IN]. }
+  use (delta_start_prime_none q) as DELTA with VALID_Q.
   simpl. rewrite DELTA. reflexivity.
 Qed.
 
@@ -7188,7 +5486,7 @@ Lemma dN_source_lt n X m
   (STEP : dN n X = Some m)
   : n < num_states.
 Proof.
-  pose proof (dN_some_source_state n X m STEP) as (q & STATE).
+  use dN_some_source_state as (q & STATE) with STEP.
   eapply state_of_some_lt. exact STATE.
 Qed.
 
@@ -7220,7 +5518,7 @@ Lemma npath_singleton n X m
   (STEP : dN n X = Some m)
   : npath [X] n m.
 Proof.
-  pose proof (dN_some_target_state n X m STEP) as (q & STATE).
+  use dN_some_target_state as (q & STATE) with STEP.
   econstructor.
   - exact STEP.
   - econstructor. exact STATE.
@@ -7260,9 +5558,9 @@ Lemma npath_app_inv alpha beta n r
   : exists m, npath alpha n m /\ npath beta m r.
 Proof.
   revert n r PATH. induction alpha as [ | X alpha IH]; intros n r PATH; simpl in PATH.
-  - pose proof (npath_source_state beta n r PATH) as (q & STATE). exists n. split; [econstructor 1; exact STATE | exact PATH].
+  - use npath_source_state as (q & STATE) with PATH. exists n. split; [econstructor 1; exact STATE | exact PATH].
   - inversion PATH as [n0 q STATE | X' alpha' n0 m0 r0 STEP REST]; subst; clear PATH.
-    pose proof (IH m0 r REST) as (mid & PATH_ALPHA & PATH_BETA). exists mid. split; [econstructor; [exact STEP | exact PATH_ALPHA] | exact PATH_BETA].
+    use IH as (mid & PATH_ALPHA & PATH_BETA) with REST. exists mid. split; [econstructor; [exact STEP | exact PATH_ALPHA] | exact PATH_BETA].
 Qed.
 
 Lemma npath_target_state alpha n m
@@ -7282,11 +5580,11 @@ Theorem npath_of_path alpha p q n m
 Proof.
   revert n m INDEX_P INDEX_Q. induction PATH as [p IN | X alpha p q r IN STEP REST IH]; intros n m INDEX_P INDEX_Q.
   - rewrite INDEX_P in INDEX_Q. inv INDEX_Q. econstructor. eapply state_of_index_of. exact INDEX_P.
-  - pose proof (path_source_in_Q alpha q r REST) as IN_Q.
+  - use path_source_in_Q as IN_Q with REST.
     set (nq := state_index_nat q).
     assert (INDEX_MID : index_of q = Some nq).
     { unfold nq. eapply index_of_complete. exact IN_Q. }
-    pose proof (proj1 (lr0_graph_step_delta p X q) STEP) as DELTA.
+    use (proj1 (lr0_graph_step_delta p X q)) as DELTA with STEP.
     econstructor.
     + eapply dN_delta_some; [exact INDEX_P | exact DELTA | exact INDEX_MID].
     + eapply IH; [exact INDEX_MID | exact INDEX_Q].
@@ -7299,16 +5597,16 @@ Theorem path_of_npath alpha n m p q
   : path alpha p q.
 Proof.
   revert p q STATE_N STATE_M. induction PATH as [n p0 STATE | X alpha n mid r STEP REST IH]; intros p q STATE_N STATE_M.
-  - pose proof (state_of_sound n p0 STATE) as (IN & _).
+  - use state_of_sound as (IN & _) with STATE.
     rewrite STATE in STATE_N. inv STATE_N. rewrite STATE in STATE_M. inv STATE_M. constructor. exact IN.
   - unfold dN in STEP. rewrite STATE_N in STEP. simpl in STEP.
     destruct (delta p X) as [p_mid | ] eqn: DELTA; [ | discriminate].
     simpl in STEP.
     destruct (index_of p_mid) as [mid' | ] eqn: INDEX_MID; [ | discriminate].
     inv STEP.
-    pose proof (state_of_index_of p_mid mid INDEX_MID) as STATE_MID.
-    pose proof (IH p_mid q STATE_MID STATE_M) as REST_PATH.
-    pose proof (state_of_sound n p STATE_N) as (IN_P & _).
+    use state_of_index_of as STATE_MID with INDEX_MID.
+    use IH as REST_PATH with STATE_MID STATE_M.
+    use state_of_sound as (IN_P & _) with STATE_N.
     assert (GSTEP : lr0_graph_step p X p_mid).
     { rewrite lr0_graph_step_delta. exact DELTA. }
     econstructor; [exact IN_P | exact GSTEP | exact REST_PATH].
@@ -7320,8 +5618,8 @@ Lemma npath_item_invariant_from_source alpha n m p A beta gamma
   (IN : {| i_lhs := A; i_left := beta; i_right := alpha ++ gamma |} ∈ p)
   : exists q, state_of m = Some q /\ {| i_lhs := A; i_left := beta ++ alpha; i_right := gamma |} ∈ q.
 Proof.
-  pose proof (npath_target_state alpha n m PATH) as (q & STATE_M).
-  pose proof (path_of_npath alpha n m p q STATE_N STATE_M PATH) as PATH_LR0.
+  use npath_target_state as (q & STATE_M) with PATH.
+  use path_of_npath as PATH_LR0 with STATE_N STATE_M PATH.
   exists q. split; [exact STATE_M | ].
   eapply lr0_path_item_invariant; [exact PATH_LR0 | exact IN].
 Qed.
@@ -7377,8 +5675,8 @@ Lemma npath_deterministic alpha n m1 m2
   (PATH2 : npath alpha n m2)
   : m1 = m2.
 Proof.
-  pose proof (dN_star_of_npath alpha n m1 PATH1) as STAR1.
-  pose proof (dN_star_of_npath alpha n m2 PATH2) as STAR2.
+  use dN_star_of_npath as STAR1 with PATH1.
+  use dN_star_of_npath as STAR2 with PATH2.
   rewrite STAR1 in STAR2. inv STAR2. reflexivity.
 Qed.
 
@@ -7386,7 +5684,7 @@ Lemma npath_factorization alpha beta n r
   : npath (alpha ++ beta) n r <-> exists m, npath alpha n m /\ npath beta m r /\ (forall m', npath alpha n m' -> npath beta m' r -> m' = m).
 Proof.
   split.
-  - intros PATH. pose proof (npath_app_inv alpha beta n r PATH) as (m & PATH_ALPHA & PATH_BETA). exists m. splits; auto. intros m' PATH_ALPHA' PATH_BETA'. eapply npath_deterministic; [exact PATH_ALPHA' | exact PATH_ALPHA].
+  - intros PATH. use npath_app_inv as (m & PATH_ALPHA & PATH_BETA) with PATH. exists m. splits; auto. intros m' PATH_ALPHA' PATH_BETA'. eapply npath_deterministic; [exact PATH_ALPHA' | exact PATH_ALPHA].
   - intros (m & PATH_ALPHA & PATH_BETA & _). eapply npath_app; [exact PATH_ALPHA | exact PATH_BETA].
 Qed.
 
@@ -7395,8 +5693,8 @@ Lemma npath_common_prefix_suffix alpha beta n p m
   (PATH_FULL : npath (alpha ++ beta) n m)
   : npath beta p m.
 Proof.
-  pose proof (proj1 (npath_factorization alpha beta n m) PATH_FULL) as (p_mid & PATH_ALPHA & PATH_BETA & _).
-  pose proof (npath_deterministic alpha n p_mid p PATH_ALPHA PATH_PREFIX) as EQ. subst p_mid.
+  use (proj1 (npath_factorization alpha beta n m)) as (p_mid & PATH_ALPHA & PATH_BETA & _) with PATH_FULL.
+  use npath_deterministic as EQ with PATH_ALPHA PATH_PREFIX. subst p_mid.
   exact PATH_BETA.
 Qed.
 
@@ -7406,7 +5704,7 @@ Proof.
   split.
   - intros PATHB. unfold npathb in PATHB. destruct (dN_star n alpha) as [m' | ] eqn: STAR; [ | discriminate].
     rewrite eqb_eq in PATHB. subst m'. eapply npath_of_dN_star. exact STAR.
-  - intros PATH. unfold npathb. pose proof (dN_star_of_npath alpha n m PATH) as STAR. rewrite STAR. rewrite eqb_eq. reflexivity.
+  - intros PATH. unfold npathb. use dN_star_of_npath as STAR with PATH. rewrite STAR. rewrite eqb_eq. reflexivity.
 Qed.
 
 Definition nq0 : nat :=
@@ -7425,8 +5723,8 @@ Lemma state_of_reachable_npath n q
   (STATE : state_of n = Some q)
   : exists alpha, npath alpha nq0 n.
 Proof.
-  pose proof (state_of_sound n q STATE) as (IN_Q & INDEX).
-  pose proof (Q_reachable_path q IN_Q) as (alpha & PATH).
+  use state_of_sound as (IN_Q & INDEX) with STATE.
+  use Q_reachable_path as (alpha & PATH) with IN_Q.
   exists alpha. eapply npath_of_path.
   - unfold nq0. eapply index_of_complete. exact q0_in_Q.
   - exact INDEX.
@@ -7437,9 +5735,10 @@ Lemma state_of_reachable_npath_bounded n q
   (STATE : state_of n = Some q)
   : exists alpha, npath alpha nq0 n /\ length alpha <= state_fuel.
 Proof.
-  pose proof (state_of_sound n q STATE) as (IN_Q & INDEX).
+  use state_of_sound as (IN_Q & INDEX) with STATE.
   unfold Q in IN_Q. rewrite filter_In in IN_Q. destruct IN_Q as (IN_PT & NONEMPTY).
-  pose proof (states_iter_reachable_path_bounded state_fuel q (Nat.le_refl state_fuel) IN_PT) as (alpha & PATH & LEN).
+  assert (LE_FUEL : state_fuel <= state_fuel) by lia.
+  use (states_iter_reachable_path_bounded state_fuel q) as (alpha & PATH & LEN) with LE_FUEL IN_PT.
   exists alpha. split; [ | exact LEN].
   eapply npath_of_path.
   - unfold nq0. eapply index_of_complete. exact q0_in_Q.
@@ -7451,11 +5750,11 @@ Lemma state_of_valid_item n q
   (STATE : state_of n = Some q)
   : exists it, it ∈ q /\ valid_item it.
 Proof.
-  pose proof (state_of_sound n q STATE) as (IN_Q & _).
-  pose proof IN_Q as IN_Q_COPY.
+  use state_of_sound as (IN_Q & _) with STATE.
+  assert (IN_Q_COPY : q ∈ Q) by exact IN_Q.
   unfold Q in IN_Q_COPY. rewrite filter_In in IN_Q_COPY.
   destruct IN_Q_COPY as (_ & NONEMPTY).
-  pose proof (nonempty_exists q NONEMPTY) as (it & IN_ITEM).
+  use nonempty_exists as (it & IN_ITEM) with NONEMPTY.
   exists it. split.
   - exact IN_ITEM.
   - eapply Q_items_valid; [exact IN_Q | exact IN_ITEM].
@@ -7486,15 +5785,16 @@ Theorem nq_f_accept_path_iff nf
 Proof.
   split.
   - intros FINAL_N.
-    pose proof (nq_f_sound nf FINAL_N) as (qf & FINAL & INDEX & _).
+    use nq_f_sound as (qf & FINAL & INDEX & _) with FINAL_N.
     eapply npath_of_path.
     + unfold nq0. eapply index_of_complete. exact q0_in_Q.
     + exact INDEX.
     + eapply q_f_accept_path. exact FINAL.
   - intros PATH_N.
-    pose proof (npath_target_state accept_word nq0 nf PATH_N) as (qf & STATE_F).
-    pose proof (path_of_npath accept_word nq0 nf q0 qf nq0_state STATE_F PATH_N) as PATH.
-    pose proof (accept_path_q_f qf PATH) as FINAL.
+    use npath_target_state as (qf & STATE_F) with PATH_N.
+    assert (NQ0_STATE : state_of nq0 = Some q0) by exact nq0_state.
+    use path_of_npath as PATH with NQ0_STATE STATE_F PATH_N.
+    use accept_path_q_f as FINAL with PATH.
     eapply nq_f_complete.
     + exact FINAL.
     + eapply index_of_state_of. exact STATE_F.
@@ -7511,7 +5811,7 @@ Lemma reduceN_sound_prod n pr
   : pr ∈ P'.
 Proof.
   unfold reduceN in IN. destruct (state_of n) as [q | ] eqn: STATE; [ | contradiction].
-  pose proof (reduce_sound q pr IN) as (_ & _ & _ & _ & PROD). exact PROD.
+  use reduce_sound as (_ & _ & _ & _ & PROD) with IN. exact PROD.
 Qed.
 
 #[projections(primitive)]
@@ -7560,7 +5860,7 @@ Proof.
   - constructor 2. unfold nyield. simpl.
     replace ((alpha ++ [inl A]) ++ map inr rest) with (alpha ++ inl A :: map inr rest) by (rewrite <- app_assoc; reflexivity).
     replace ((alpha ++ omega) ++ map inr rest) with (alpha ++ omega ++ map inr rest) by (rewrite <- app_assoc; reflexivity).
-    pose proof (reduceN_sound_prod dst {| p_lhs := A; p_rhs := omega |} REDUCE) as PROD.
+    use reduceN_sound_prod as PROD with REDUCE.
     econstructor. exact PROD.
 Qed.
 
@@ -7569,7 +5869,8 @@ Lemma nsteps_nyield_invariant c c'
   : rm_steps (nyield c') (nyield c).
 Proof.
   induction STEPS as [c c' STEP | c | c c_mid c' STEPS1 IH1 STEPS2 IH2].
-  - pose proof (nstep_nyield_invariant c c' STEP) as [EQ | RM].
+  - use nstep_nyield_invariant as CASE with STEP.
+    destruct CASE as [EQ | RM].
     + rewrite EQ. constructor 2.
     + constructor 1. exact RM.
   - constructor 2.
@@ -7615,7 +5916,7 @@ Lemma state_of_index_unique q n m
   (INDEX : index_of q = Some m)
   : n = m.
 Proof.
-  pose proof (index_of_state_of n q STATE) as INDEX_N. rewrite INDEX in INDEX_N. inv INDEX_N. reflexivity.
+  use index_of_state_of as INDEX_N with STATE. rewrite INDEX in INDEX_N. inv INDEX_N. reflexivity.
 Qed.
 
 Lemma nstep_of_step_denotes nc c c'
@@ -7627,19 +5928,20 @@ Proof.
   destruct DENOTES as (WORD & REST & STATE_SRC & STATE_DST).
   destruct STEP as [alpha src dst rest t dst' path_src path_tgt STEP_DELTA | alpha omega src p dst rest A dst' path_src path_alpha path_omega path_tgt REDUCE STEP_DELTA]; simpl in *.
   - subst nw. subst nr.
-    pose proof (path_target_in_Q (alpha ++ [inr t]) src dst' path_tgt) as IN_DST'.
+    use path_target_in_Q as IN_DST' with path_tgt.
     set (ndst' := state_index_nat dst').
     assert (INDEX_DST' : index_of dst' = Some ndst').
     { unfold ndst'. eapply index_of_complete. exact IN_DST'. }
     assert (STEP_N : dN nd (inr t) = Some ndst').
     { eapply dN_delta_some; [eapply index_of_state_of; exact STATE_DST | exact STEP_DELTA | exact INDEX_DST']. }
-    pose proof (npath_of_path (alpha ++ [inr t]) src dst' ns ndst' (index_of_state_of ns src STATE_SRC) INDEX_DST' path_tgt) as path_tgt_N.
+    use index_of_state_of as INDEX_SRC with STATE_SRC.
+    use npath_of_path as path_tgt_N with INDEX_SRC INDEX_DST' path_tgt.
     exists {| nc_word := alpha ++ [inr t]; nc_src := ns; nc_dst := ndst'; nc_rest := rest; nc_path := path_tgt_N |}. split.
     + unfold nconfig_denotes. simpl. splits; auto. eapply state_of_state_index_nat. exact IN_DST'.
     + econstructor. exact STEP_N.
   - subst nw. subst nr.
-    pose proof (path_target_in_Q alpha src p path_alpha) as IN_P.
-    pose proof (path_target_in_Q (alpha ++ [inl A]) src dst' path_tgt) as IN_DST'.
+    use path_target_in_Q as IN_P with path_alpha.
+    use path_target_in_Q as IN_DST' with path_tgt.
     set (np0 := state_index_nat p).
     set (ndst' := state_index_nat dst').
     assert (INDEX_P : index_of p = Some np0).
@@ -7650,9 +5952,11 @@ Proof.
     { unfold reduceN. rewrite STATE_DST. exact REDUCE. }
     assert (STEP_N : dN np0 (inl A) = Some ndst').
     { eapply dN_delta_some; [exact INDEX_P | exact STEP_DELTA | exact INDEX_DST']. }
-    pose proof (npath_of_path alpha src p ns np0 (index_of_state_of ns src STATE_SRC) INDEX_P path_alpha) as path_alpha_N.
-    pose proof (npath_of_path omega p dst np0 nd INDEX_P (index_of_state_of nd dst STATE_DST) path_omega) as path_omega_N.
-    pose proof (npath_of_path (alpha ++ [inl A]) src dst' ns ndst' (index_of_state_of ns src STATE_SRC) INDEX_DST' path_tgt) as path_tgt_N.
+    use index_of_state_of as INDEX_SRC with STATE_SRC.
+    use index_of_state_of as INDEX_DST with STATE_DST.
+    use npath_of_path as path_alpha_N with INDEX_SRC INDEX_P path_alpha.
+    use npath_of_path as path_omega_N with INDEX_P INDEX_DST path_omega.
+    use npath_of_path as path_tgt_N with INDEX_SRC INDEX_DST' path_tgt.
     exists {| nc_word := alpha ++ [inl A]; nc_src := ns; nc_dst := ndst'; nc_rest := rest; nc_path := path_tgt_N |}. split.
     + unfold nconfig_denotes. simpl. splits; auto. eapply state_of_state_index_nat. exact IN_DST'.
     + econstructor; [exact path_alpha_N | exact path_omega_N | exact REDUCE_N | exact STEP_N].
@@ -7664,11 +5968,11 @@ Theorem nsteps_of_steps_denotes nc c c'
   : exists nc', nconfig_denotes nc' c' /\ nsteps nc nc'.
 Proof.
   revert nc DENOTES. induction STEPS as [c c' STEP | c | c c_mid c' STEPS1 IH1 STEPS2 IH2]; intros nc DENOTES.
-  - pose proof (nstep_of_step_denotes nc c c' DENOTES STEP) as (nc' & DENOTES' & NSTEP).
+  - use nstep_of_step_denotes as (nc' & DENOTES' & NSTEP) with DENOTES STEP.
     exists nc'. split; [exact DENOTES' | ]. constructor 1. exact NSTEP.
   - exists nc. split; [exact DENOTES | constructor 2].
-  - pose proof (IH1 nc DENOTES) as (nc_mid & DENOTES_MID & NSTEPS1).
-    pose proof (IH2 nc_mid DENOTES_MID) as (nc' & DENOTES' & NSTEPS2).
+  - use IH1 as (nc_mid & DENOTES_MID & NSTEPS1) with DENOTES.
+    use IH2 as (nc' & DENOTES' & NSTEPS2) with DENOTES_MID.
     exists nc'. split; [exact DENOTES' | ]. eapply rt_trans; [exact NSTEPS1 | exact NSTEPS2].
 Qed.
 
@@ -7686,24 +5990,24 @@ Proof.
     simpl in STEP_N.
     destruct (index_of dst_state) as [dst_index | ] eqn: INDEX_DST; [ | discriminate].
     inv STEP_N.
-    pose proof (state_of_index_of dst_state dst' INDEX_DST) as STATE_DST_NEXT.
-    pose proof (path_of_npath (alpha ++ [inr t]) src dst' csrc dst_state STATE_SRC STATE_DST_NEXT path_tgt) as path_tgt_state.
+    use state_of_index_of as STATE_DST_NEXT with INDEX_DST.
+    use path_of_npath as path_tgt_state with STATE_SRC STATE_DST_NEXT path_tgt.
     exists {| c_word := alpha ++ [inr t]; c_src := csrc; c_dst := dst_state; c_rest := rest; c_path := path_tgt_state |}. split.
     + unfold nconfig_denotes. simpl. splits; eauto.
     + econstructor. exact STEP_DELTA.
   - subst cw. subst crest.
-    pose proof (npath_target_state alpha src p path_alpha) as (p_state & STATE_P).
+    use npath_target_state as (p_state & STATE_P) with path_alpha.
     unfold dN in STEP_N. rewrite STATE_P in STEP_N. simpl in STEP_N.
     destruct (delta p_state (inl A)) as [dst_state | ] eqn: STEP_DELTA; [ | discriminate].
     simpl in STEP_N.
     destruct (index_of dst_state) as [dst_index | ] eqn: INDEX_DST; [ | discriminate].
     inv STEP_N.
-    pose proof (state_of_index_of dst_state dst' INDEX_DST) as STATE_DST_NEXT.
+    use state_of_index_of as STATE_DST_NEXT with INDEX_DST.
     assert (REDUCE : {| p_lhs := A; p_rhs := omega |} ∈ reduce cdst).
     { unfold reduceN in REDUCE_N. rewrite STATE_DST in REDUCE_N. exact REDUCE_N. }
-    pose proof (path_of_npath alpha src p csrc p_state STATE_SRC STATE_P path_alpha) as path_alpha_state.
-    pose proof (path_of_npath omega p dst p_state cdst STATE_P STATE_DST path_omega) as path_omega_state.
-    pose proof (path_of_npath (alpha ++ [inl A]) src dst' csrc dst_state STATE_SRC STATE_DST_NEXT path_tgt) as path_tgt_state.
+    use path_of_npath as path_alpha_state with STATE_SRC STATE_P path_alpha.
+    use path_of_npath as path_omega_state with STATE_P STATE_DST path_omega.
+    use path_of_npath as path_tgt_state with STATE_SRC STATE_DST_NEXT path_tgt.
     exists {| c_word := alpha ++ [inl A]; c_src := csrc; c_dst := dst_state; c_rest := rest; c_path := path_tgt_state |}. split.
     + unfold nconfig_denotes. simpl. splits; eauto.
     + exact (step_reduce alpha omega csrc p_state cdst rest A dst_state cpath path_alpha_state path_omega_state path_tgt_state REDUCE STEP_DELTA).
@@ -7715,11 +6019,11 @@ Theorem steps_of_nsteps_denotes nc nc' c
   : exists c', nconfig_denotes nc' c' /\ steps c c'.
 Proof.
   revert c DENOTES. induction NSTEPS as [nc nc' NSTEP | nc | nc nc_mid nc' NSTEPS1 IH1 NSTEPS2 IH2]; intros c DENOTES.
-  - pose proof (step_of_nstep_denotes nc nc' c DENOTES NSTEP) as (c' & DENOTES' & STEP).
+  - use step_of_nstep_denotes as (c' & DENOTES' & STEP) with DENOTES NSTEP.
     exists c'. split; [exact DENOTES' | ]. constructor 1. exact STEP.
   - exists c. split; [exact DENOTES | constructor 2].
-  - pose proof (IH1 c DENOTES) as (c_mid & DENOTES_MID & STEPS1).
-    pose proof (IH2 c_mid DENOTES_MID) as (c' & DENOTES' & STEPS2).
+  - use IH1 as (c_mid & DENOTES_MID & STEPS1) with DENOTES.
+    use IH2 as (c' & DENOTES' & STEPS2) with DENOTES_MID.
     exists c'. split; [exact DENOTES' | ]. eapply rt_trans; [exact STEPS1 | exact STEPS2].
 Qed.
 
@@ -7728,9 +6032,9 @@ Theorem L_LRA_N_sound w
   : L_LRA w.
 Proof.
   unfold L_LRA_N in ACCEPT. destruct ACCEPT as [nf c0 cf FINAL_N C0_WORD C0_SRC C0_DST C0_REST CF_WORD CF_SRC CF_DST CF_REST NSTEPS].
-  pose proof (nconfig_denotes_init w c0 C0_WORD C0_SRC C0_DST C0_REST) as DENOTES_INIT.
-  pose proof (steps_of_nsteps_denotes c0 cf (init_config w) DENOTES_INIT NSTEPS) as (c_final & DENOTES_FINAL & STEPS).
-  pose proof (nq_f_sound nf FINAL_N) as (qf & FINAL & INDEX_F & STATE_F).
+  use nconfig_denotes_init as DENOTES_INIT with C0_WORD C0_SRC C0_DST C0_REST.
+  use steps_of_nsteps_denotes as (c_final & DENOTES_FINAL & STEPS) with DENOTES_INIT NSTEPS.
+  use nq_f_sound as (qf & FINAL & INDEX_F & STATE_F) with FINAL_N.
   destruct c_final as [word src dst rest pth]. unfold nconfig_denotes in DENOTES_FINAL. simpl in DENOTES_FINAL.
   destruct DENOTES_FINAL as (DEN_WORD & DEN_REST & DEN_SRC & DEN_DST).
   rewrite CF_WORD in DEN_WORD. symmetry in DEN_WORD. subst word.
@@ -7746,21 +6050,26 @@ Theorem L_LRA_N_complete w
   : L_LRA_N w.
 Proof.
   destruct ACCEPT as (qf & pth & FINAL & STEPS).
-  pose proof (path_target_in_Q accept_word q0 qf pth) as IN_QF.
+  use path_target_in_Q as IN_QF with pth.
   set (nf := state_index_nat qf).
   assert (INDEX_F : index_of qf = Some nf).
   { unfold nf. eapply index_of_complete. exact IN_QF. }
   assert (FINAL_N : nq_f = Some nf).
   { eapply nq_f_complete; [exact FINAL | exact INDEX_F]. }
-  pose proof (npath_nil nq0 q0 nq0_state) as path_init_N.
+  assert (NQ0_STATE : state_of nq0 = Some q0) by exact nq0_state.
+  use (npath_nil nq0 q0) as path_init_N with NQ0_STATE.
   set (c0 := {| nc_word := []; nc_src := nq0; nc_dst := nq0; nc_rest := map lift_T w ++ [eof]; nc_path := path_init_N |}).
-  pose proof (nconfig_denotes_init w c0 eq_refl eq_refl eq_refl eq_refl) as DENOTES_INIT.
-  pose proof (nsteps_of_steps_denotes c0 (init_config w) (accept_config qf pth) DENOTES_INIT STEPS) as (cf & DENOTES_FINAL & NSTEPS).
+  use! (nconfig_denotes_init w c0 eq_refl eq_refl eq_refl eq_refl) as DENOTES_INIT with *.
+  use nsteps_of_steps_denotes as (cf & DENOTES_FINAL & NSTEPS) with DENOTES_INIT STEPS.
   destruct DENOTES_FINAL as (CF_WORD & CF_REST & CF_SRC_STATE & CF_DST_STATE).
   assert (CF_SRC : cf.(nc_src) = nq0).
-  { pose proof (index_of_state_of cf.(nc_src) q0 CF_SRC_STATE) as INDEX_SRC. unfold nq0. pose proof (index_of_complete q0 q0_in_Q) as INDEX_Q0. rewrite INDEX_Q0 in INDEX_SRC. inv INDEX_SRC. reflexivity. }
+  { simpl in CF_SRC_STATE.
+    use index_of_state_of as INDEX_SRC with CF_SRC_STATE.
+    assert (Q0_IN_Q : q0 ∈ Q) by exact q0_in_Q.
+    unfold nq0. use (index_of_complete q0) as INDEX_Q0 with Q0_IN_Q.
+    rewrite INDEX_Q0 in INDEX_SRC. inv INDEX_SRC. reflexivity. }
   assert (CF_DST : cf.(nc_dst) = nf).
-  { pose proof (state_of_index_unique qf cf.(nc_dst) nf CF_DST_STATE INDEX_F) as EQ. exact EQ. }
+  { use state_of_index_unique as EQ with CF_DST_STATE INDEX_F. exact EQ. }
   unfold L_LRA_N. eapply L_LRA_N_spec_intro with (nf := nf) (c0 := c0) (cf := cf); eauto.
 Qed.
 
@@ -7772,313 +6081,9 @@ Proof.
   - eapply L_LRA_N_complete.
 Qed.
 
-Module Abs.
 
-Abbreviation num_states := num_states.
 
-Abbreviation index_of := index_of.
 
-Abbreviation state_of := state_of.
-
-Abbreviation dN := dN.
-
-Abbreviation npath := npath.
-
-Abbreviation dN_star := dN_star.
-
-Abbreviation npathb := npathb.
-
-Abbreviation nq0 := nq0.
-
-Abbreviation nq_f := nq_f.
-
-Abbreviation reduceN := reduceN.
-
-Abbreviation reduceN_sound_prod := reduceN_sound_prod.
-
-Abbreviation nconfig := nconfig.
-
-Abbreviation nyield := nyield.
-
-Abbreviation nstep := nstep.
-
-Abbreviation nsteps := nsteps.
-
-Abbreviation nyield_step_case := nyield_step_case.
-
-Abbreviation L_LRA_N_spec := L_LRA_N_spec.
-
-Abbreviation L_LRA_N := L_LRA_N.
-
-End Abs.
-
-Module Impl.
-
-Abbreviation num_states := num_states.
-
-Abbreviation index_of := index_of.
-
-Abbreviation state_of := state_of.
-
-Abbreviation dN := dN.
-
-Abbreviation npath := npath.
-
-Abbreviation dN_star := dN_star.
-
-Abbreviation npathb := npathb.
-
-Abbreviation nq0 := nq0.
-
-Abbreviation nq_f := nq_f.
-
-Abbreviation reduceN := reduceN.
-
-Abbreviation reduceN_sound_prod := reduceN_sound_prod.
-
-Abbreviation nconfig := nconfig.
-
-Abbreviation nyield := nyield.
-
-Abbreviation nstep := nstep.
-
-Abbreviation nsteps := nsteps.
-
-Abbreviation nyield_step_case := nyield_step_case.
-
-Abbreviation L_LRA_N := L_LRA_N.
-
-End Impl.
-
-Module Refine.
-
-Abbreviation states_step_no_dup_refines := states_step_no_dup.
-
-Abbreviation PT_no_dup_refines := PT_no_dup.
-
-Abbreviation Q_no_dup_refines := Q_no_dup.
-
-Abbreviation state_of_state_index_nat_refines := state_of_state_index_nat.
-
-Abbreviation index_of_complete_refines := index_of_complete.
-
-Abbreviation index_of_sound_refines := index_of_sound.
-
-Abbreviation state_of_sound_refines := state_of_sound.
-
-Abbreviation state_of_no_dup_refines := state_of_no_dup.
-
-Abbreviation state_of_index_of_refines := state_of_index_of.
-
-Abbreviation index_of_state_of_refines := index_of_state_of.
-
-Abbreviation dN_index_of_refines := dN_index_of.
-
-Abbreviation dN_delta_some_refines := dN_delta_some.
-
-Abbreviation dN_start_prime_none_refines := dN_start_prime_none.
-
-Abbreviation dN_some_source_state_refines := dN_some_source_state.
-
-Abbreviation state_of_some_lt_refines := state_of_some_lt.
-
-Abbreviation dN_source_lt_refines := dN_source_lt.
-
-Abbreviation dN_some_target_state_refines := dN_some_target_state.
-
-Abbreviation dN_some_delta_refines := dN_some_delta.
-
-Abbreviation npath_singleton_refines := npath_singleton.
-
-Abbreviation dN_of_npath_singleton_refines := dN_of_npath_singleton.
-
-Abbreviation npath_app_refines := npath_app.
-
-Abbreviation npath_app_inv_refines := npath_app_inv.
-
-Abbreviation npath_source_state_refines := npath_source_state.
-
-Abbreviation npath_target_state_refines := npath_target_state.
-
-Abbreviation npath_of_path_refines := npath_of_path.
-
-Abbreviation path_of_npath_refines := path_of_npath.
-
-Abbreviation npath_item_invariant_from_source_refines := npath_item_invariant_from_source.
-
-Abbreviation npath_path_iff_refines := npath_path_iff.
-
-Abbreviation npath_of_dN_star_refines := npath_of_dN_star.
-
-Abbreviation dN_star_of_npath_refines := dN_star_of_npath.
-
-Abbreviation npath_deterministic_refines := npath_deterministic.
-
-Abbreviation npath_factorization_refines := npath_factorization.
-
-Abbreviation npath_common_prefix_suffix_refines := npath_common_prefix_suffix.
-
-Abbreviation reduceN_sound_prod_refines := reduceN_sound_prod.
-
-Abbreviation nstep_nyield_invariant_refines := nstep_nyield_invariant.
-
-Abbreviation nsteps_nyield_invariant_refines := nsteps_nyield_invariant.
-
-Abbreviation npathb_correct_refines := npathb_correct.
-
-Abbreviation nq0_state_refines := nq0_state.
-
-Abbreviation state_of_reachable_npath_refines := state_of_reachable_npath.
-
-Abbreviation state_of_valid_item_refines := state_of_valid_item.
-
-Abbreviation nq_f_complete_refines := nq_f_complete.
-
-Abbreviation nq_f_sound_refines := nq_f_sound.
-
-Abbreviation nq_f_accept_path_iff_refines := nq_f_accept_path_iff.
-
-Abbreviation nconfig_denotes_init_refines := nconfig_denotes_init.
-
-Abbreviation state_of_index_unique_refines := state_of_index_unique.
-
-Abbreviation nstep_of_step_denotes_refines := nstep_of_step_denotes.
-
-Abbreviation nsteps_of_steps_denotes_refines := nsteps_of_steps_denotes.
-
-Abbreviation step_of_nstep_denotes_refines := step_of_nstep_denotes.
-
-Abbreviation steps_of_nsteps_denotes_refines := steps_of_nsteps_denotes.
-
-Abbreviation L_LRA_N_spec_refines := L_LRA_N_spec.
-
-Abbreviation L_LRA_N_sound_refines := L_LRA_N_sound.
-
-Abbreviation L_LRA_N_complete_refines := L_LRA_N_complete.
-
-Abbreviation L_LRA_N_correct_refines := L_LRA_N_correct.
-
-End Refine.
-
-Module API.
-
-Abbreviation num_states := num_states.
-
-Abbreviation index_of := index_of.
-
-Abbreviation state_of := state_of.
-
-Abbreviation dN := dN.
-
-Abbreviation npath := npath.
-
-Abbreviation dN_star := dN_star.
-
-Abbreviation npathb := npathb.
-
-Abbreviation nq0 := nq0.
-
-Abbreviation nq_f := nq_f.
-
-Abbreviation reduceN := reduceN.
-
-Abbreviation nconfig := nconfig.
-
-Abbreviation nyield := nyield.
-
-Abbreviation nstep := nstep.
-
-Abbreviation nsteps := nsteps.
-
-Abbreviation L_LRA_N := L_LRA_N.
-
-Abbreviation state_of_index_of := state_of_index_of.
-
-Abbreviation state_of_no_dup := state_of_no_dup.
-
-Abbreviation index_of_state_of := index_of_state_of.
-
-Abbreviation dN_index_of := dN_index_of.
-
-Abbreviation dN_delta_some := dN_delta_some.
-
-Abbreviation dN_start_prime_none := dN_start_prime_none.
-
-Abbreviation state_of_some_lt := state_of_some_lt.
-
-Abbreviation dN_source_lt := dN_source_lt.
-
-Abbreviation dN_some_target_state := dN_some_target_state.
-
-Abbreviation dN_some_delta := dN_some_delta.
-
-Abbreviation npath_singleton := npath_singleton.
-
-Abbreviation dN_of_npath_singleton := dN_of_npath_singleton.
-
-Abbreviation npath_app := npath_app.
-
-Abbreviation npath_app_inv := npath_app_inv.
-
-Abbreviation npath_source_state := npath_source_state.
-
-Abbreviation npath_target_state := npath_target_state.
-
-Abbreviation npath_of_path := npath_of_path.
-
-Abbreviation path_of_npath := path_of_npath.
-
-Abbreviation npath_item_invariant_from_source := npath_item_invariant_from_source.
-
-Abbreviation npath_path_iff := npath_path_iff.
-
-Abbreviation npath_deterministic := npath_deterministic.
-
-Abbreviation npath_factorization := npath_factorization.
-
-Abbreviation npath_common_prefix_suffix := npath_common_prefix_suffix.
-
-Abbreviation reduceN_sound_prod := reduceN_sound_prod.
-
-Abbreviation nstep_nyield_invariant := nstep_nyield_invariant.
-
-Abbreviation nsteps_nyield_invariant := nsteps_nyield_invariant.
-
-Abbreviation npathb_correct := npathb_correct.
-
-Abbreviation nq0_state := nq0_state.
-
-Abbreviation state_of_reachable_npath := state_of_reachable_npath.
-
-Abbreviation state_of_valid_item := state_of_valid_item.
-
-Abbreviation nq_f_complete := nq_f_complete.
-
-Abbreviation nq_f_sound := nq_f_sound.
-
-Abbreviation nq_f_accept_path_iff := nq_f_accept_path_iff.
-
-Abbreviation nconfig_denotes_init := nconfig_denotes_init.
-
-Abbreviation state_of_index_unique := state_of_index_unique.
-
-Abbreviation nstep_of_step_denotes := nstep_of_step_denotes.
-
-Abbreviation nsteps_of_steps_denotes := nsteps_of_steps_denotes.
-
-Abbreviation step_of_nstep_denotes := step_of_nstep_denotes.
-
-Abbreviation steps_of_nsteps_denotes := steps_of_nsteps_denotes.
-
-Abbreviation L_LRA_N_spec := L_LRA_N_spec.
-
-Abbreviation L_LRA_N_sound := L_LRA_N_sound.
-
-Abbreviation L_LRA_N_complete := L_LRA_N_complete.
-
-Abbreviation L_LRA_N_correct := L_LRA_N_correct.
-
-End API.
 
 End Numbering.
 
@@ -8176,7 +6181,7 @@ Proof.
   unfold nullable_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply KNOWN_SOUND. exact IN.
-  - pose proof (list_bind_sound _ _ _ IN) as (p & PROD & IN_PROD).
+  - use list_bind_sound as (p & PROD & IN_PROD) with IN.
     unfold nullable_prod_in in IN_PROD.
     destruct (nullable_rhs_in known p.(p_rhs)) eqn: RHS; [ | contradiction].
     destruct IN_PROD as [EQ | []]. subst A.
@@ -8242,7 +6247,7 @@ Proof.
   unfold nullable_step in *. rewrite L.nodup_In in *. rewrite in_app_iff in *.
   destruct IN as [IN | IN].
   - left. eapply INCL. exact IN.
-  - right. pose proof (list_bind_sound _ _ _ IN) as (p & PROD & IN_PROD).
+  - right. use list_bind_sound as (p & PROD & IN_PROD) with IN.
     eapply list_bind_complete with (x := p); [exact PROD | ].
     unfold nullable_prod_in in *.
     destruct (nullable_rhs_in known1 p.(p_rhs)) eqn: RHS1; [ | contradiction].
@@ -8301,7 +6306,7 @@ Lemma list_subsetb_sound xs ys
   : forall x, x ∈ xs -> x ∈ ys.
 Proof.
   unfold list_subsetb in SUBSET. rewrite forallb_forall in SUBSET.
-  intros x IN. pose proof (SUBSET x IN) as MEM. rewrite mem_true_iff in MEM. exact MEM.
+  intros x IN. use SUBSET as MEM with IN. rewrite mem_true_iff in MEM. exact MEM.
 Qed.
 
 Lemma list_subsetb_complete xs ys
@@ -8316,7 +6321,7 @@ Lemma list_subsetb_false_new xs ys
   (SUBSET : list_subsetb xs ys = false)
   : exists x, x ∈ xs /\ ~ x ∈ ys.
 Proof.
-  unfold list_subsetb in SUBSET. pose proof (forallb_false_exists _ _ SUBSET) as (x & IN & MEM).
+  unfold list_subsetb in SUBSET. use forallb_false_exists as (x & IN & MEM) with SUBSET.
   exists x. split; [exact IN | ]. rewrite mem_false_iff in MEM. exact MEM.
 Qed.
 
@@ -8329,7 +6334,7 @@ Lemma NoDup_incl_remove_length_lt (xs : list N') (ys : list N') (x : N')
   : length ys < length xs.
 Proof.
   enough (LE : length ys <= length (remove (N'_hasEqDec) x xs)).
-  { pose proof (@remove_length_lt N' N'_hasEqDec x xs IN_XS) as LT.
+  { use (@remove_length_lt N' N'_hasEqDec) as LT with IN_XS.
     eapply Nat.le_lt_trans; [exact LE | exact LT].
   }
   eapply L.NoDup_incl_length.
@@ -8344,7 +6349,7 @@ Lemma nullable_step_length_if_not_subset known
   (NOT_SUBSET : list_subsetb (nullable_step known) known = false)
   : length known < length (nullable_step known).
 Proof.
-  pose proof (list_subsetb_false_new _ _ NOT_SUBSET) as (A & IN_STEP & NOT_IN).
+  use list_subsetb_false_new as (A & IN_STEP & NOT_IN) with NOT_SUBSET.
   eapply NoDup_incl_remove_length_lt with (x := A).
   - eapply nullable_step_no_dup.
   - exact NO_DUP.
@@ -8391,10 +6396,12 @@ Proof.
   rewrite iter_succ.
   assert (NO_DUP : NoDup (iter n nullable_step [])).
   { eapply nullable_iter_no_dup_from_empty. }
-  pose proof (nullable_step_length_if_not_subset (iter n nullable_step []) NO_DUP (NOT_FIXED_PREFIX n (Nat.lt_succ_diag_r n))) as LT.
+  assert (NOT_FIXED_N : list_subsetb (nullable_step (iter n nullable_step [])) (iter n nullable_step []) = false).
+  { eapply NOT_FIXED_PREFIX. exact (Nat.lt_succ_diag_r n). }
+  use nullable_step_length_if_not_subset as LT with NO_DUP NOT_FIXED_N.
   assert (PREFIX : forall i, i < n -> list_subsetb (nullable_step (iter i nullable_step [])) (iter i nullable_step []) = false).
   { intros i LT_I. eapply NOT_FIXED_PREFIX. lia. }
-  pose proof (IH PREFIX) as LE. lia.
+  use IH as LE with PREFIX. lia.
 Qed.
 
 Lemma nullable_first_fixed_before_bound
@@ -8410,11 +6417,10 @@ Proof.
       { rewrite existsb_exists. exists i. split; [exact IN_SEQ | exact FIXED]. }
       congruence.
     }
-    pose proof (nullable_not_fixed_length_lower (S nullable_fuel)) as LOWER.
     assert (PREFIX : forall i, i < S nullable_fuel -> list_subsetb (nullable_step (iter i nullable_step [])) (iter i nullable_step []) = false).
     { intros i LT_I. eapply NOT_FIXED. lia. }
-    pose proof (LOWER PREFIX) as LE_LOWER.
-    pose proof (nullable_iter_length_bound (S nullable_fuel)) as LE_BOUND.
+    use (nullable_not_fixed_length_lower (S nullable_fuel)) as LE_LOWER with PREFIX.
+    use! (nullable_iter_length_bound (S nullable_fuel)) as LE_BOUND with *.
     unfold nullable_fuel in *. lia.
 Qed.
 
@@ -8437,7 +6443,7 @@ Qed.
 Lemma nullable_fixed_at_fuel
   : forall A, A ∈ nullable_step nullable_set -> A ∈ nullable_set.
 Proof.
-  pose proof nullable_first_fixed_before_bound as (i & LE_I & FIXED_I).
+  use! nullable_first_fixed_before_bound as (i & LE_I & FIXED_I) with *.
   assert (FIXED_SUBSET : forall A, A ∈ nullable_step (iter i nullable_step []) -> A ∈ iter i nullable_step []).
   { eapply nullable_step_fixed_if_subset. exact FIXED_I. }
   intros A IN_A.
@@ -8449,7 +6455,7 @@ Proof.
     - exact FUEL_SUBSET_I.
     - exact IN_A.
   }
-  pose proof (FIXED_SUBSET A IN_STEP_I) as IN_I.
+  use FIXED_SUBSET as IN_I with IN_STEP_I.
   eapply nullable_iter_mono_fuel with (n := i); [exact LE_I | exact IN_I].
 Qed.
 
@@ -8502,14 +6508,14 @@ Theorem nullableb_complete A
   : nullableb A = true.
 Proof.
   unfold nullableb. rewrite mem_true_iff.
-  pose proof nullable_complete_mutual as (COMPLETE & _). eapply COMPLETE. exact NULL.
+  destruct nullable_complete_mutual as (COMPLETE & _). eapply COMPLETE. exact NULL.
 Qed.
 
 Theorem nullable_strb_complete rhs
   (NULL : NullStr rhs)
   : nullable_strb rhs = true.
 Proof.
-  pose proof nullable_complete_mutual as (_ & COMPLETE). eapply COMPLETE. exact NULL.
+  destruct nullable_complete_mutual as (_ & COMPLETE). eapply COMPLETE. exact NULL.
 Qed.
 
 Theorem nullableb_correct A
@@ -8628,7 +6634,7 @@ Theorem Null_rm_steps_empty A
   (NULL : Null A)
   : rm_steps ([@inl N' T' A]) [].
 Proof.
-  pose proof Null_NullStr_rm_steps_empty as (NULL_STEPS & _).
+  destruct Null_NullStr_rm_steps_empty as (NULL_STEPS & _).
   eapply NULL_STEPS. exact NULL.
 Qed.
 
@@ -8636,7 +6642,7 @@ Theorem NullStr_rm_steps_empty rhs
   (NULL : NullStr rhs)
   : rm_steps rhs [].
 Proof.
-  pose proof Null_NullStr_rm_steps_empty as (_ & NULLSTR_STEPS).
+  destruct Null_NullStr_rm_steps_empty as (_ & NULLSTR_STEPS).
   eapply NULLSTR_STEPS. exact NULL.
 Qed.
 
@@ -8650,117 +6656,9 @@ Proof.
   eapply NullStr_rm_steps_empty. exact NULL.
 Qed.
 
-Module Abs.
 
-Abbreviation Null := Null.
 
-Abbreviation NullStr := NullStr.
 
-End Abs.
-
-Module Impl.
-
-Abbreviation nullable_symbol_in := nullable_symbol_in.
-
-Abbreviation nullable_rhs_in := nullable_rhs_in.
-
-Abbreviation nullable_prod_in := nullable_prod_in.
-
-Abbreviation nullable_step := nullable_step.
-
-Abbreviation nullable_fuel := nullable_fuel.
-
-Abbreviation nullable_set := nullable_set.
-
-Abbreviation nullableb := nullableb.
-
-Abbreviation nullable_symbolb := nullable_symbolb.
-
-Abbreviation nullable_strb := nullable_strb.
-
-End Impl.
-
-Module Refine.
-
-Abbreviation nullable_step_contains_refines := nullable_step_contains.
-
-Abbreviation nullable_iter_contains_refines := nullable_iter_contains.
-
-Abbreviation nullable_step_sound_refines := nullable_step_sound.
-
-Abbreviation nullable_iter_sound_refines := nullable_iter_sound.
-
-Abbreviation nullableb_sound_refines := nullableb_sound.
-
-Abbreviation nullable_strb_sound_refines := nullable_strb_sound.
-
-Abbreviation nullable_step_monotone_refines := nullable_step_monotone.
-
-Abbreviation nullable_fixed_at_fuel_refines := nullable_fixed_at_fuel.
-
-Abbreviation nullableb_complete_refines := nullableb_complete.
-
-Abbreviation nullable_strb_complete_refines := nullable_strb_complete.
-
-Abbreviation nullableb_correct_refines := nullableb_correct.
-
-Abbreviation nullable_strb_correct_refines := nullable_strb_correct.
-
-Abbreviation plain_step_nullable_strb_backward_refines := plain_step_nullable_strb_backward.
-
-Abbreviation plain_steps_nullable_strb_backward_refines := plain_steps_nullable_strb_backward.
-
-Abbreviation plain_steps_empty_NullStr_refines := plain_steps_empty_NullStr.
-
-Abbreviation rm_steps_empty_NullStr_refines := rm_steps_empty_NullStr.
-
-Abbreviation NullStr_app_refines := NullStr_app.
-
-Abbreviation NullStr_single_nonterminal_inv_refines := NullStr_single_nonterminal_inv.
-
-Abbreviation Null_NullStr_rm_steps_empty_refines := Null_NullStr_rm_steps_empty.
-
-Abbreviation Null_rm_steps_empty_refines := Null_rm_steps_empty.
-
-Abbreviation NullStr_rm_steps_empty_refines := NullStr_rm_steps_empty.
-
-Abbreviation NullStr_rm_steps_empty_context_refines := NullStr_rm_steps_empty_context.
-
-End Refine.
-
-Module API.
-
-Abbreviation Null := Null.
-
-Abbreviation NullStr := NullStr.
-
-Abbreviation nullable_fuel := nullable_fuel.
-
-Abbreviation nullable_set := nullable_set.
-
-Abbreviation nullableb := nullableb.
-
-Abbreviation nullable_strb := nullable_strb.
-
-Abbreviation nullableb_correct := nullableb_correct.
-
-Abbreviation nullable_strb_correct := nullable_strb_correct.
-
-Abbreviation plain_steps_empty_NullStr := plain_steps_empty_NullStr.
-
-Abbreviation rm_steps_empty_NullStr := rm_steps_empty_NullStr.
-
-Abbreviation NullStr_app := NullStr_app.
-
-Abbreviation NullStr_single_nonterminal_inv := NullStr_single_nonterminal_inv.
-
-Abbreviation Null_rm_steps_empty := Null_rm_steps_empty.
-
-Abbreviation NullStr_rm_steps_empty := NullStr_rm_steps_empty.
-
-Abbreviation NullStr_rm_steps_empty_context := NullStr_rm_steps_empty_context.
-
-End API.
 
 End Nullable.
 
@@ -8801,8 +6699,8 @@ Lemma read_domain_sound n A
   : exists r, dN n (inl A) = Some r.
 Proof.
   unfold D, read_domain_raw in IN. rewrite L.nodup_In in IN.
-  pose proof (list_bind_sound _ _ _ IN) as (n0 & IN_N & IN_A_BIND).
-  pose proof (list_bind_sound _ _ _ IN_A_BIND) as (A0 & IN_A & IN_ENTRY).
+  use list_bind_sound as (n0 & IN_N & IN_A_BIND) with IN.
+  use list_bind_sound as (A0 & IN_A & IN_ENTRY) with IN_A_BIND.
   unfold read_domain_entry in IN_ENTRY. destruct (dN n0 (inl A0)) as [r | ] eqn: STEP; [ | contradiction].
   destruct IN_ENTRY as [EQ | []]. inv EQ. exists r. exact STEP.
 Qed.
@@ -8824,7 +6722,7 @@ Lemma read_domain_from_npath_singleton p B r
   (PATH : npath [inl B] p r)
   : (p, B) ∈ D.
 Proof.
-  pose proof (dN_of_npath_singleton p (inl B) r PATH) as STEP.
+  use dN_of_npath_singleton as STEP with PATH.
   eapply read_domain_complete; [eapply dN_source_lt; exact STEP | exact STEP].
 Qed.
 
@@ -8833,14 +6731,14 @@ Lemma read_domain_from_npath_prefix_symbol alpha p B r
   (PATH_SYMBOL : npath (alpha ++ [inl B]) nq0 r)
   : (p, B) ∈ D.
 Proof.
-  pose proof (npath_common_prefix_suffix alpha [inl B] nq0 p r PATH_PREFIX PATH_SYMBOL) as PATH_B.
+  use npath_common_prefix_suffix as PATH_B with PATH_PREFIX PATH_SYMBOL.
   eapply read_domain_from_npath_singleton. exact PATH_B.
 Qed.
 
 Lemma read_domain_no_start_prime n
   : ~ (n, start_prime) ∈ D.
 Proof.
-  intros IN. pose proof (read_domain_sound n start_prime IN) as (r & STEP).
+  intros IN. use read_domain_sound as (r & STEP) with IN.
   rewrite dN_start_prime_none in STEP. discriminate.
 Qed.
 
@@ -8862,7 +6760,7 @@ Lemma DR_sound p A t
   : exists r, exists s, dN p (inl A) = Some r /\ dN r (inr t) = Some s.
 Proof.
   unfold DR in IN. destruct (dN p (inl A)) as [r | ] eqn: STEP_N; [ | contradiction].
-  pose proof (list_bind_sound _ _ _ IN) as (t0 & IN_T & IN_ENTRY).
+  use! (list_bind_sound _ _ _ IN) as (t0 & IN_T & IN_ENTRY) with *.
   destruct (dN r (inr t0)) as [s | ] eqn: STEP_T; [ | contradiction].
   destruct IN_ENTRY as [EQ | []]. subst t0. exists r. exists s. split; [reflexivity | exact STEP_T].
 Qed.
@@ -8890,7 +6788,7 @@ Lemma reads_deps_sound p A node
   : exists r, exists C, node = (r, C) /\ dN p (inl A) = Some r /\ nullableb C = true /\ (r, C) ∈ D.
 Proof.
   unfold reads_deps in IN. destruct (dN p (inl A)) as [r | ] eqn: STEP_N; [ | contradiction].
-  pose proof (list_bind_sound _ _ _ IN) as (C & IN_C & IN_ENTRY).
+  use! (list_bind_sound _ _ _ IN) as (C & IN_C & IN_ENTRY) with *.
   destruct (nullableb C) eqn: NULLABLE; [ | contradiction].
   destruct (mem (r, C) D) eqn: MEM; [ | contradiction].
   destruct IN_ENTRY as [EQ | []]. subst node.
@@ -8914,7 +6812,7 @@ Lemma reads_deps_closed x y
   (IN : y ∈ reads_deps x)
   : y ∈ D.
 Proof.
-  destruct x as [p A]. pose proof (reads_deps_sound p A y IN) as (r & C & EQ & _ & _ & IN_D). subst y. exact IN_D.
+  destruct x as [p A]. use reads_deps_sound as (r & C & EQ & _ & _ & IN_D) with IN. subst y. exact IN_D.
 Qed.
 
 Definition Read_bang (node : read_node) : list T' :=
@@ -8956,8 +6854,8 @@ Theorem Read_bang_complete node t
   : t ∈ Read_bang node.
 Proof.
   unfold Read_closure in IN.
-  pose proof (digraph_closure_trace DR reads_deps node t IN) as (trace & TRACE).
-  pose proof (digraph_trace_simple_bounded D DR reads_deps node t trace reads_deps_closed TRACE) as (simple & SIMPLE_TRACE & LE).
+  use digraph_closure_trace as (trace & TRACE) with IN.
+  use (digraph_trace_simple_bounded D DR reads_deps node t trace reads_deps_closed) as (simple & SIMPLE_TRACE & LE) with TRACE.
   unfold Read_bang. eapply digraph_trace_value; [exact SIMPLE_TRACE | exact LE].
 Qed.
 
@@ -8976,13 +6874,13 @@ Proof.
   unfold Read_closure in IN.
   induction IN as [node IN | node dep EDGE _ IH].
   - destruct node as [p A].
-    pose proof (DR_sound p A t IN) as (r & s & STEP_N & STEP_T).
+    use DR_sound as (r & s & STEP_N & STEP_T) with IN.
     unfold Read. exists r. exists []. exists s. splits.
     + exact STEP_N.
     + constructor.
     + eapply npath_singleton. exact STEP_T.
   - destruct node as [p A]. destruct dep as [r C].
-    pose proof (reads_deps_sound p A (r, C) EDGE) as (r0 & C0 & EQ & STEP_N & NULLABLE & _).
+    use reads_deps_sound as (r0 & C0 & EQ & STEP_N & NULLABLE & _) with EDGE.
     inv EQ.
     unfold Read in IH.
     destruct IH as (r_next & gamma & s & STEP_C & NULLSTR & PATH).
@@ -9047,137 +6945,9 @@ Proof.
   rewrite Read_bang_correct. eapply Read_semantic_fixed_point.
 Qed.
 
-Module Abs.
 
-Abbreviation read_node := read_node.
 
-Abbreviation D := D.
 
-Abbreviation DR := DR.
-
-Abbreviation reads_deps := reads_deps.
-
-Abbreviation Read_closure := Read_closure.
-
-Abbreviation Read := Read.
-
-Abbreviation Read_bang := Read_bang.
-
-End Abs.
-
-Module Impl.
-
-Abbreviation read_domain_entry := read_domain_entry.
-
-Abbreviation read_domain_raw := read_domain_raw.
-
-Abbreviation D := D.
-
-Abbreviation DR := DR.
-
-Abbreviation reads_deps := reads_deps.
-
-Abbreviation Read_bang := Read_bang.
-
-End Impl.
-
-Module Refine.
-
-Abbreviation read_domain_sound_refines := read_domain_sound.
-
-Abbreviation read_domain_complete_refines := read_domain_complete.
-
-Abbreviation read_domain_from_npath_singleton_refines := read_domain_from_npath_singleton.
-
-Abbreviation read_domain_from_npath_prefix_symbol_refines := read_domain_from_npath_prefix_symbol.
-
-Abbreviation read_domain_no_start_prime_refines := read_domain_no_start_prime.
-
-Abbreviation read_domain_no_dup_refines := read_domain_no_dup.
-
-Abbreviation DR_sound_refines := DR_sound.
-
-Abbreviation DR_complete_refines := DR_complete.
-
-Abbreviation reads_deps_sound_refines := reads_deps_sound.
-
-Abbreviation reads_deps_complete_refines := reads_deps_complete.
-
-Abbreviation reads_deps_closed_refines := reads_deps_closed.
-
-Abbreviation Read_from_nullable_path_refines := Read_from_nullable_path.
-
-Abbreviation Read_direct_refines := Read_direct.
-
-Abbreviation Read_bang_sound_refines := Read_bang_sound.
-
-Abbreviation Read_bang_complete_refines := Read_bang_complete.
-
-Abbreviation Read_bang_correct_refines := Read_bang_correct.
-
-Abbreviation Read_closure_to_semantic_refines := Read_closure_to_semantic.
-
-Abbreviation Read_semantic_to_closure_refines := Read_semantic_to_closure.
-
-Abbreviation Read_semantic_fixed_point_refines := Read_semantic_fixed_point.
-
-Abbreviation Read_impl_to_abs_refines := Read_impl_to_abs.
-
-Abbreviation Read_abs_to_impl_refines := Read_abs_to_impl.
-
-Abbreviation Read_refines := Read_refines.
-
-End Refine.
-
-Module API.
-
-Abbreviation read_node := read_node.
-
-Abbreviation D := D.
-
-Abbreviation DR := DR.
-
-Abbreviation reads_deps := reads_deps.
-
-Abbreviation Read_closure := Read_closure.
-
-Abbreviation Read := Read.
-
-Abbreviation Read_bang := Read_bang.
-
-Abbreviation Read_from_nullable_path := Read_from_nullable_path.
-
-Abbreviation Read_direct := Read_direct.
-
-Abbreviation read_domain_sound := read_domain_sound.
-
-Abbreviation read_domain_no_start_prime := read_domain_no_start_prime.
-
-Abbreviation read_domain_complete := read_domain_complete.
-
-Abbreviation read_domain_from_npath_singleton := read_domain_from_npath_singleton.
-
-Abbreviation read_domain_from_npath_prefix_symbol := read_domain_from_npath_prefix_symbol.
-
-Abbreviation DR_sound := DR_sound.
-
-Abbreviation DR_complete := DR_complete.
-
-Abbreviation reads_deps_sound := reads_deps_sound.
-
-Abbreviation reads_deps_complete := reads_deps_complete.
-
-Abbreviation Read_bang_correct := Read_bang_correct.
-
-Abbreviation Read_semantic_fixed_point := Read_semantic_fixed_point.
-
-Abbreviation Read_impl_to_abs := Read_impl_to_abs.
-
-Abbreviation Read_abs_to_impl := Read_abs_to_impl.
-
-Abbreviation Read_refines := Read_refines.
-
-End API.
 
 End Read.
 
@@ -9277,8 +7047,8 @@ Lemma incl_item_deps_sound p A it candidate
   (IN : candidate ∈ incl_item_deps p A it)
   : incl_item_deps_sound_spec p A it candidate.
 Proof.
-  unfold incl_item_deps in IN. pose proof (list_bind_sound _ _ _ IN) as (candidate0 & IN_D & IN_CAND).
-  pose proof (incl_candidate_from_item_sound p A it candidate0 candidate IN_CAND) as CAND.
+  unfold incl_item_deps in IN. use list_bind_sound as (candidate0 & IN_D & IN_CAND) with IN.
+  use incl_candidate_from_item_sound as CAND with IN_CAND.
   destruct CAND as [p' B gamma CANDIDATE_EQ SOURCE_EQ LHS RIGHT NULLABLE PATH].
   subst candidate. subst candidate0. econstructor; [exact IN_D | reflexivity | exact LHS | exact RIGHT | exact NULLABLE | exact PATH].
 Qed.
@@ -9313,8 +7083,8 @@ Lemma incl_deps_sound p A candidate
   : incl_deps_sound_spec p A candidate.
 Proof.
   unfold incl_deps in IN. destruct (state_of p) as [q | ] eqn: STATE; [ | contradiction].
-  pose proof (list_bind_sound _ _ _ IN) as (it & IN_IT & IN_ITEM).
-  pose proof (incl_item_deps_sound p A it candidate IN_ITEM) as ITEM.
+  use list_bind_sound as (it & IN_IT & IN_ITEM) with IN.
+  use incl_item_deps_sound as ITEM with IN_ITEM.
   destruct ITEM as [p' B gamma IN_D CANDIDATE_EQ LHS RIGHT NULLABLE PATH].
   econstructor; [exact IN_D | exact STATE | exact IN_IT | exact CANDIDATE_EQ | exact LHS | exact RIGHT | exact NULLABLE | exact PATH].
 Qed.
@@ -9339,7 +7109,7 @@ Lemma incl_deps_closed x y
   (IN : y ∈ incl_deps x)
   : y ∈ D.
 Proof.
-  destruct x as [p A]. pose proof (incl_deps_sound p A y IN) as SOUND. destruct SOUND as [q it p' B gamma IN_D STATE IN_IT CANDIDATE_EQ LHS RIGHT NULLABLE PATH]. exact IN_D.
+  destruct x as [p A]. use incl_deps_sound as SOUND with IN. destruct SOUND as [q it p' B gamma IN_D STATE IN_IT CANDIDATE_EQ LHS RIGHT NULLABLE PATH]. exact IN_D.
 Qed.
 
 Definition Follow_bang (node : read_node) : list T' :=
@@ -9383,11 +7153,11 @@ Lemma Follow_read_seed_path p A t
 Proof.
   unfold Read in READ.
   destruct READ as (r & gamma & s & STEP_A & NULLABLE & PATH_READ).
-  pose proof (dN_some_source_state p (inl A) r STEP_A) as (q & STATE_P).
-  pose proof (state_of_reachable_npath p q STATE_P) as (alpha & PATH_ALPHA).
-  pose proof (npath_singleton p (inl A) r STEP_A) as PATH_A.
-  pose proof (npath_app [inl A] (gamma ++ [inr t]) p r s PATH_A PATH_READ) as PATH_A_READ.
-  pose proof (npath_app alpha ([inl A] ++ gamma ++ [inr t]) nq0 p s PATH_ALPHA PATH_A_READ) as PATH_FULL.
+  use dN_some_source_state as (q & STATE_P) with STEP_A.
+  use state_of_reachable_npath as (alpha & PATH_ALPHA) with STATE_P.
+  use npath_singleton as PATH_A with STEP_A.
+  use npath_app as PATH_A_READ with PATH_A PATH_READ.
+  use npath_app as PATH_FULL with PATH_ALPHA PATH_A_READ.
   replace (alpha ++ ([inl A] ++ gamma ++ [inr t])) with (alpha ++ [inl A] ++ gamma ++ [inr t]) in PATH_FULL by (repeat rewrite <- app_assoc; reflexivity).
   econstructor; [exact STEP_A | exact NULLABLE | exact PATH_ALPHA | exact PATH_READ | exact PATH_FULL].
 Qed.
@@ -9408,10 +7178,10 @@ Lemma Follow_read_seed_context p A t
   (READ : Read (p, A) t)
   : Follow_read_seed_context_spec p A t.
 Proof.
-  pose proof (Follow_read_seed_path p A t READ) as SEED.
+  use Follow_read_seed_path as SEED with READ.
   destruct SEED as [alpha r gamma s STEP_A NULLABLE PATH_ALPHA PATH_READ PATH_FULL].
-  pose proof (dN_some_source_state p (inl A) r STEP_A) as (q & STATE_P).
-  pose proof (state_of_valid_item p q STATE_P) as (it & IN_ITEM & VALID_ITEM).
+  use dN_some_source_state as (q & STATE_P) with STEP_A.
+  use state_of_valid_item as (it & IN_ITEM & VALID_ITEM) with STATE_P.
   econstructor; eauto.
 Qed.
 
@@ -9438,15 +7208,16 @@ Lemma Follow_read_seed_lr0_context p A t
   (READ : Read (p, A) t)
   : Follow_read_seed_lr0_context_spec p A t.
 Proof.
-  pose proof (Follow_read_seed_context p A t READ) as CONTEXT.
+  use Follow_read_seed_context as CONTEXT with READ.
   destruct CONTEXT as [alpha r gamma s q it STATE_P IN_ITEM VALID_ITEM STEP_A NULLABLE PATH_ALPHA_N PATH_READ_N PATH_FULL_N].
-  pose proof (dN_some_target_state p (inl A) r STEP_A) as (qr & STATE_R).
-  pose proof (npath_target_state (alpha ++ [inl A] ++ gamma ++ [inr t]) nq0 s PATH_FULL_N) as (qs & STATE_S).
-  pose proof (npath_singleton p (inl A) r STEP_A) as PATH_A_N.
-  pose proof (path_of_npath alpha nq0 p q0 q nq0_state STATE_P PATH_ALPHA_N) as PATH_ALPHA.
-  pose proof (path_of_npath [inl A] p r q qr STATE_P STATE_R PATH_A_N) as PATH_A.
-  pose proof (path_of_npath (gamma ++ [inr t]) r s qr qs STATE_R STATE_S PATH_READ_N) as PATH_READ.
-  pose proof (path_of_npath (alpha ++ [inl A] ++ gamma ++ [inr t]) nq0 s q0 qs nq0_state STATE_S PATH_FULL_N) as PATH_FULL.
+  use dN_some_target_state as (qr & STATE_R) with STEP_A.
+  use npath_target_state as (qs & STATE_S) with PATH_FULL_N.
+  use npath_singleton as PATH_A_N with STEP_A.
+  assert (NQ0_STATE : state_of nq0 = Some q0) by exact nq0_state.
+  use (path_of_npath alpha nq0 p q0 q) as PATH_ALPHA with NQ0_STATE STATE_P PATH_ALPHA_N.
+  use path_of_npath as PATH_A with STATE_P STATE_R PATH_A_N.
+  use path_of_npath as PATH_READ with STATE_R STATE_S PATH_READ_N.
+  use (path_of_npath (alpha ++ [inl A] ++ gamma ++ [inr t]) nq0 s q0 qs) as PATH_FULL with NQ0_STATE STATE_S PATH_FULL_N.
   econstructor.
   - exact STATE_P.
   - exact STATE_R.
@@ -9471,7 +7242,7 @@ Lemma Follow_read_seed_path_to_sem p A t
   : Follow_sem (p, A) t.
 Proof.
   destruct SEED as [alpha r gamma s STEP_A NULLABLE PATH_ALPHA PATH_READ PATH_FULL].
-  pose proof (VIABLE alpha gamma s NULLABLE PATH_ALPHA PATH_FULL) as (z & STEPS).
+  use VIABLE as (z & STEPS) with NULLABLE PATH_ALPHA PATH_FULL.
   eapply Follow_sem_nullable_suffix; [exact STEPS | exact NULLABLE | exact PATH_ALPHA].
 Qed.
 
@@ -9481,7 +7252,7 @@ Lemma Follow_read_seed_lr0_context_to_sem p A t
   : Follow_sem (p, A) t.
 Proof.
   destruct CONTEXT as [alpha r gamma s q qr qs it STATE_P STATE_R STATE_S IN_ITEM VALID_ITEM STEP_A NULLABLE PATH_ALPHA_N PATH_A_N PATH_READ_N PATH_FULL_N PATH_ALPHA PATH_A PATH_READ PATH_FULL].
-  pose proof (VIABLE alpha gamma q qs NULLABLE PATH_ALPHA PATH_FULL) as (z & STEPS).
+  use VIABLE as (z & STEPS) with NULLABLE PATH_ALPHA PATH_FULL.
   eapply Follow_sem_nullable_suffix; [exact STEPS | exact NULLABLE | exact PATH_ALPHA_N].
 Qed.
 
@@ -9497,8 +7268,8 @@ Theorem Follow_bang_complete node t
   : t ∈ Follow_bang node.
 Proof.
   unfold Follow_closure in IN.
-  pose proof (digraph_closure_trace Read_bang incl_deps node t IN) as (trace & TRACE).
-  pose proof (digraph_trace_simple_bounded D Read_bang incl_deps node t trace incl_deps_closed TRACE) as (simple & SIMPLE_TRACE & LE).
+  use digraph_closure_trace as (trace & TRACE) with IN.
+  use (digraph_trace_simple_bounded D Read_bang incl_deps node t trace incl_deps_closed) as (simple & SIMPLE_TRACE & LE) with TRACE.
   unfold Follow_bang. eapply digraph_trace_value; [exact SIMPLE_TRACE | exact LE].
 Qed.
 
@@ -9529,10 +7300,10 @@ Lemma read_domain_seed_item p B rhs
   (PROD : {| p_lhs := B; p_rhs := rhs |} ∈ P')
   : exists q, state_of p = Some q /\ {| i_lhs := B; i_left := []; i_right := rhs |} ∈ q.
 Proof.
-  pose proof (read_domain_sound p B IN_D) as (r & STEP_B).
-  pose proof (dN_some_source_state p (inl B) r STEP_B) as (q & STATE).
-  pose proof (dN_some_delta p (inl B) r q STATE STEP_B) as (qB & DELTA & _ & _).
-  pose proof (state_of_sound p q STATE) as (IN_Q & _).
+  use read_domain_sound as (r & STEP_B) with IN_D.
+  use dN_some_source_state as (q & STATE) with STEP_B.
+  use dN_some_delta as (qB & DELTA & _ & _) with STATE STEP_B.
+  use state_of_sound as (IN_Q & _) with STATE.
   exists q. split; [exact STATE | ].
   eapply delta_nonterminal_seed; [exact IN_Q | exact PROD | exact DELTA].
 Qed.
@@ -9543,8 +7314,8 @@ Lemma read_domain_birth_item p_parent p B beta suffix
   (PATH_BETA : npath beta p_parent p)
   : exists q, state_of p = Some q /\ {| i_lhs := B; i_left := beta; i_right := suffix |} ∈ q.
 Proof.
-  pose proof (read_domain_seed_item p_parent B (beta ++ suffix) IN_D PROD) as (q_parent & STATE_PARENT & SEED).
-  pose proof (npath_item_invariant_from_source beta p_parent p q_parent B [] suffix STATE_PARENT PATH_BETA SEED) as (q & STATE & IN_ITEM).
+  use read_domain_seed_item as (q_parent & STATE_PARENT & SEED) with IN_D PROD.
+  use npath_item_invariant_from_source as (q & STATE & IN_ITEM) with STATE_PARENT PATH_BETA SEED.
   simpl in IN_ITEM. exists q. split; [exact STATE | exact IN_ITEM].
 Qed.
 
@@ -9562,7 +7333,7 @@ Lemma lr0_item_next_symbol_transition p q A beta X gamma
   (IN_ITEM : {| i_lhs := A; i_left := beta; i_right := X :: gamma |} ∈ q)
   : lr0_item_next_symbol_transition_spec p A beta X gamma.
 Proof.
-  pose proof (state_of_sound p q STATE) as (IN_Q & INDEX_Q).
+  use state_of_sound as (IN_Q & INDEX_Q) with STATE.
   set (qX := goto q X).
   assert (NONEMPTY_QX : nonempty qX = true).
   { unfold qX. eapply goto_nonempty_shift with (it := {| i_lhs := A; i_left := beta; i_right := X :: gamma |}) (gamma := gamma); [exact IN_ITEM | reflexivity]. }
@@ -9608,9 +7379,9 @@ Proof.
     + exact PATH_NIL.
     + exact IN_SHIFTED_NIL.
   - simpl in IN_ITEM.
-    pose proof (lr0_item_next_symbol_transition p q A beta X (prefix ++ suffix) STATE IN_ITEM) as STEP_X.
+    use lr0_item_next_symbol_transition as STEP_X with STATE IN_ITEM.
     destruct STEP_X as [q_source qX r STATE_SOURCE STATE_R STEP PATH_X IN_X].
-    pose proof (IH r qX (beta ++ [X]) STATE_R IN_X) as PREFIX_STEP.
+    use IH as PREFIX_STEP with STATE_R IN_X.
     destruct PREFIX_STEP as [q_mid q_prefix s STATE_MID STATE_S PATH_PREFIX IN_PREFIX].
     econstructor 1 with (q := q) (q_prefix := q_prefix) (r := s).
     + exact STATE.
@@ -9625,11 +7396,11 @@ Lemma Read_from_lr0_item_nullable_prefix_terminal p q A B beta gamma_nullable t 
   (NULLABLE : NullStr gamma_nullable)
   : Read (p, A) t.
 Proof.
-  pose proof (lr0_item_next_symbol_transition p q B beta (inl A) (gamma_nullable ++ inr t :: gamma_tail) STATE IN_ITEM) as STEP_A.
+  use lr0_item_next_symbol_transition as STEP_A with STATE IN_ITEM.
   destruct STEP_A as [q_source qA r STATE_SOURCE STATE_R STEP_A PATH_A IN_AFTER_A].
   assert (IN_FOR_PREFIX : {| i_lhs := B; i_left := beta ++ [inl A]; i_right := (gamma_nullable ++ [inr t]) ++ gamma_tail |} ∈ qA).
   { replace ((gamma_nullable ++ [inr t]) ++ gamma_tail) with (gamma_nullable ++ inr t :: gamma_tail) by (repeat rewrite <- app_assoc; reflexivity). exact IN_AFTER_A. }
-  pose proof (lr0_item_prefix_transition r qA B (beta ++ [inl A]) (gamma_nullable ++ [inr t]) gamma_tail STATE_R IN_FOR_PREFIX) as PREFIX.
+  use lr0_item_prefix_transition as PREFIX with STATE_R IN_FOR_PREFIX.
   destruct PREFIX as [qA_source q_read s STATE_A STATE_S PATH_READ IN_READ_DONE].
   eapply Read_from_nullable_path with (r := r) (gamma := gamma_nullable) (s := s); [exact STEP_A | exact NULLABLE | exact PATH_READ].
 Qed.
@@ -9652,27 +7423,27 @@ Proof.
   - intros p q A beta focus rest t z LEN STATE IN_ITEM STEPS.
     destruct STEPS as (k & LE_K & STEPS_N).
     assert (EQ_K : k = 0) by lia. subst k.
-    pose proof (plain_steps_n_zero_inv focus (map inr (t :: z)) STEPS_N) as FOCUS_EQ. subst focus.
+    use plain_steps_n_zero_inv as FOCUS_EQ with STEPS_N. subst focus.
     simpl in IN_ITEM.
-    pose proof (lr0_item_next_symbol_transition p q A beta (inr t) (map inr z ++ rest) STATE IN_ITEM) as STEP_T.
+    use lr0_item_next_symbol_transition as STEP_T with STATE IN_ITEM.
     destruct STEP_T as [q_source qT r STATE_SOURCE STATE_R STEP PATH_T IN_AFTER_T].
     econstructor 1 with (gamma_nullable := []) (s := r); [constructor | exact PATH_T].
   - induction m as [ | m IHm]; intros p q A beta focus rest t z LEN STATE IN_ITEM STEPS.
     + destruct focus as [ | X focus]; [ | simpl in LEN; lia].
-      pose proof (plain_steps_bounded_terminal_inv (S n) [] (map inr (t :: z)) STEPS) as TARGET_EQ. discriminate TARGET_EQ.
-    + pose proof (word_terminal_or_rightmost_nonterminal focus) as [(ts0 & FOCUS_TERMINAL) | (prefix & C & suffix & FOCUS_SPLIT)].
+      use (plain_steps_bounded_terminal_inv (S n) [] (map inr (t :: z))) as TARGET_EQ with STEPS. discriminate TARGET_EQ.
+    + destruct (word_terminal_or_rightmost_nonterminal focus) as [(ts0 & FOCUS_TERMINAL) | (prefix & C & suffix & FOCUS_SPLIT)].
       * subst focus.
-        pose proof (plain_steps_bounded_terminal_inv (S n) ts0 (map inr (t :: z)) STEPS) as TARGET_EQ.
-        pose proof (map_inr_injective_list (t :: z) ts0 TARGET_EQ) as TS_EQ. subst ts0.
+        use (plain_steps_bounded_terminal_inv (S n) ts0 (map inr (t :: z))) as TARGET_EQ with STEPS.
+        use map_inr_injective_list as TS_EQ with TARGET_EQ. subst ts0.
         simpl in IN_ITEM.
-        pose proof (lr0_item_next_symbol_transition p q A beta (inr t) (map inr z ++ rest) STATE IN_ITEM) as STEP_T.
+        use lr0_item_next_symbol_transition as STEP_T with STATE IN_ITEM.
         destruct STEP_T as [q_source qT r STATE_SOURCE STATE_R STEP PATH_T IN_AFTER_T].
         econstructor 1 with (gamma_nullable := []) (s := r); [constructor | exact PATH_T].
       * subst focus.
-        pose proof (plain_steps_bounded_app_inv_terminal (S n) prefix (inl C :: map inr suffix) (t :: z) STEPS) as (ts_prefix & ts_right & TS & STEPS_PREFIX & STEPS_RIGHT).
-        pose proof (plain_steps_bounded_app_inv_terminal (S n) [inl C] (map inr suffix) ts_right STEPS_RIGHT) as (ts_C & ts_suffix & TS_RIGHT & STEPS_C & STEPS_SUFFIX).
-        pose proof (plain_steps_bounded_terminal_inv (S n) suffix (map inr ts_suffix) STEPS_SUFFIX) as SUFFIX_EQ.
-        pose proof (map_inr_injective_list ts_suffix suffix SUFFIX_EQ) as TS_SUFFIX. subst ts_suffix.
+        use (plain_steps_bounded_app_inv_terminal (S n) prefix (inl C :: map inr suffix) (t :: z)) as (ts_prefix & ts_right & TS & STEPS_PREFIX & STEPS_RIGHT) with STEPS.
+        use (plain_steps_bounded_app_inv_terminal (S n) [inl C] (map inr suffix) ts_right) as (ts_C & ts_suffix & TS_RIGHT & STEPS_C & STEPS_SUFFIX) with STEPS_RIGHT.
+        use (plain_steps_bounded_terminal_inv (S n) suffix (map inr ts_suffix)) as SUFFIX_EQ with STEPS_SUFFIX.
+        use map_inr_injective_list as TS_SUFFIX with SUFFIX_EQ. subst ts_suffix.
         subst ts_right.
         destruct ts_prefix as [ | t_prefix z_prefix].
         { simpl in TS.
@@ -9682,37 +7453,38 @@ Proof.
             { eapply plain_steps_empty_NullStr. eapply plain_steps_bounded_plain_steps. exact STEPS_PREFIX. }
             assert (NULL_C_STR : NullStr [inl C]).
             { eapply plain_steps_empty_NullStr. eapply plain_steps_bounded_plain_steps. exact STEPS_C. }
-            pose proof (NullStr_single_nonterminal_inv C NULL_C_STR) as NULL_C.
+            use NullStr_single_nonterminal_inv as NULL_C with NULL_C_STR.
             assert (NULL_PREFIX_C : NullStr (prefix ++ [inl C])).
             { eapply NullStr_app; [exact NULL_PREFIX | constructor; [exact NULL_C | constructor]]. }
             assert (IN_ITEM_PREFIX_C : {| i_lhs := A; i_left := beta; i_right := (prefix ++ [inl C]) ++ (map inr (t :: z) ++ rest) |} ∈ q).
             { replace ((prefix ++ [inl C]) ++ (map inr (t :: z) ++ rest)) with ((prefix ++ inl C :: map inr (t :: z)) ++ rest) by (repeat rewrite <- app_assoc; reflexivity). exact IN_ITEM. }
-            pose proof (lr0_item_prefix_transition p q A beta (prefix ++ [inl C]) (map inr (t :: z) ++ rest) STATE IN_ITEM_PREFIX_C) as PREFIX_C.
+            use lr0_item_prefix_transition as PREFIX_C with STATE IN_ITEM_PREFIX_C.
             destruct PREFIX_C as [q_source q_after r STATE_SOURCE STATE_AFTER PATH_PREFIX_C IN_AFTER_PREFIX_C].
             simpl in IN_AFTER_PREFIX_C.
-            pose proof (lr0_item_next_symbol_transition r q_after A (beta ++ (prefix ++ [inl C])) (inr t) (map inr z ++ rest) STATE_AFTER IN_AFTER_PREFIX_C) as STEP_T.
+            use lr0_item_next_symbol_transition as STEP_T with STATE_AFTER IN_AFTER_PREFIX_C.
             destruct STEP_T as [q_after_source qT s STATE_AFTER_SOURCE STATE_S STEP_T PATH_T IN_AFTER_T].
             econstructor 1 with (gamma_nullable := prefix ++ [inl C]) (s := s); [exact NULL_PREFIX_C | ].
             eapply npath_app; [exact PATH_PREFIX_C | exact PATH_T].
           - simpl in TS. injection TS as T_C_EQ Z_EQ. subst t_C.
             destruct STEPS_C as (k_C & LE_K_C & STEPS_C_N).
             destruct k_C as [ | k_C].
-            + pose proof (plain_steps_n_zero_inv [inl C] (map inr (t :: z_C)) STEPS_C_N) as ABSURD_EQ. discriminate ABSURD_EQ.
-            + pose proof (plain_steps_n_single_nonterminal_inv k_C C (t :: z_C) STEPS_C_N) as (omega & PROD_C & OMEGA_STEPS_N).
+            + use plain_steps_n_zero_inv as ABSURD_EQ with STEPS_C_N. discriminate ABSURD_EQ.
+            + use plain_steps_n_single_nonterminal_inv as (omega & PROD_C & OMEGA_STEPS_N) with STEPS_C_N.
               assert (OMEGA_STEPS : plain_steps_bounded n omega (map inr (t :: z_C))).
               { exists k_C. split; [lia | exact OMEGA_STEPS_N]. }
               assert (NULL_PREFIX : NullStr prefix).
               { eapply plain_steps_empty_NullStr. eapply plain_steps_bounded_plain_steps. exact STEPS_PREFIX. }
               assert (IN_ITEM_PREFIX : {| i_lhs := A; i_left := beta; i_right := prefix ++ (inl C :: map inr suffix ++ rest) |} ∈ q).
               { replace (prefix ++ (inl C :: map inr suffix ++ rest)) with ((prefix ++ inl C :: map inr suffix) ++ rest) by (repeat rewrite <- app_assoc; reflexivity). exact IN_ITEM. }
-              pose proof (lr0_item_prefix_transition p q A beta prefix (inl C :: map inr suffix ++ rest) STATE IN_ITEM_PREFIX) as PREFIX.
+              use lr0_item_prefix_transition as PREFIX with STATE IN_ITEM_PREFIX.
               destruct PREFIX as [q_source q_prefix r STATE_SOURCE STATE_PREFIX PATH_PREFIX IN_PREFIX].
-              pose proof (state_of_sound r q_prefix STATE_PREFIX) as (IN_Q_PREFIX & INDEX_PREFIX).
+              use state_of_sound as (IN_Q_PREFIX & INDEX_PREFIX) with STATE_PREFIX.
               assert (SEED_C : {| i_lhs := C; i_left := []; i_right := omega |} ∈ q_prefix).
               { eapply Q_closure_seed_for with (B := A) (beta := beta ++ prefix) (gamma := map inr suffix ++ rest); [exact IN_Q_PREFIX | exact IN_PREFIX | exact PROD_C]. }
               assert (SEED_C_APP : {| i_lhs := C; i_left := []; i_right := omega ++ [] |} ∈ q_prefix).
               { rewrite app_nil_r. exact SEED_C. }
-              pose proof (IHn (length omega) r q_prefix C [] omega [] t z_C (le_n _) STATE_PREFIX SEED_C_APP OMEGA_STEPS) as INNER.
+              assert (LE_OMEGA : length omega <= length omega) by lia.
+              use (IHn (length omega) r q_prefix C [] omega [] t z_C) as INNER with LE_OMEGA STATE_PREFIX SEED_C_APP OMEGA_STEPS.
               destruct INNER as [gamma_inner s NULL_INNER PATH_INNER].
               econstructor 1 with (gamma_nullable := prefix ++ gamma_inner) (s := s).
               * eapply NullStr_app; [exact NULL_PREFIX | exact NULL_INNER].
@@ -9734,7 +7506,7 @@ Lemma lr0_item_plain_terminal_image_path p q A beta focus rest t z
   (STEPS : plain_steps focus (map inr (t :: z)))
   : lr0_item_terminal_read_path_spec p t.
 Proof.
-  pose proof (plain_steps_plain_steps_n focus (map inr (t :: z)) STEPS) as (n & STEPS_N).
+  use plain_steps_plain_steps_n as (n & STEPS_N) with STEPS.
   eapply lr0_item_plain_terminal_image_path_bounded with (n := n) (m := length focus) (A := A) (beta := beta) (focus := focus) (rest := rest) (z := z); [reflexivity | exact STATE | exact IN_ITEM | exists n; split; [lia | exact STEPS_N]].
 Qed.
 
@@ -9744,11 +7516,11 @@ Lemma Read_from_lr0_item_plain_terminal_image p q A B beta gamma t z
   (STEPS : plain_steps gamma (map inr (t :: z)))
   : Read (p, A) t.
 Proof.
-  pose proof (lr0_item_next_symbol_transition p q B beta (inl A) gamma STATE IN_ITEM) as STEP_A.
+  use lr0_item_next_symbol_transition as STEP_A with STATE IN_ITEM.
   destruct STEP_A as [q_source qA r STATE_SOURCE STATE_A STEP_A PATH_A IN_AFTER_A].
   assert (IN_AFTER_A_APP : {| i_lhs := B; i_left := beta ++ [inl A]; i_right := gamma ++ [] |} ∈ qA).
   { rewrite app_nil_r. exact IN_AFTER_A. }
-  pose proof (lr0_item_plain_terminal_image_path r qA B (beta ++ [inl A]) gamma [] t z STATE_A IN_AFTER_A_APP STEPS) as PATH_SPEC.
+  use lr0_item_plain_terminal_image_path as PATH_SPEC with STATE_A IN_AFTER_A_APP STEPS.
   destruct PATH_SPEC as [gamma_nullable s NULLABLE PATH_READ].
   eapply Read_from_nullable_path with (r := r) (gamma := gamma_nullable) (s := s); [exact STEP_A | exact NULLABLE | exact PATH_READ].
 Qed.
@@ -9768,7 +7540,7 @@ Lemma Read_from_lr0_item_next_terminal p q A B beta t gamma_tail
   (IN_ITEM : {| i_lhs := B; i_left := beta; i_right := inl A :: inr t :: gamma_tail |} ∈ q)
   : Read (p, A) t.
 Proof.
-  pose proof (state_of_sound p q STATE) as (IN_Q & INDEX_Q).
+  use state_of_sound as (IN_Q & INDEX_Q) with STATE.
   set (qA := goto q (inl A)).
   assert (NONEMPTY_QA : nonempty qA = true).
   { unfold qA. eapply goto_nonempty_shift with (it := {| i_lhs := B; i_left := beta; i_right := inl A :: inr t :: gamma_tail |}) (gamma := inr t :: gamma_tail); [exact IN_ITEM | reflexivity]. }
@@ -9847,7 +7619,7 @@ Lemma Follow_read_birth_from_read_domain_to_closure p_parent p A B beta t gamma_
   (PATH_BETA : npath beta p_parent p)
   : Follow_closure (p, A) t.
 Proof.
-  pose proof (read_domain_birth_item p_parent p B beta (inl A :: inr t :: gamma_tail) IN_D PROD PATH_BETA) as (q & STATE & IN_ITEM).
+  use read_domain_birth_item as (q & STATE & IN_ITEM) with IN_D PROD PATH_BETA.
   eapply Follow_read_from_lr0_item_next_terminal_to_closure; [exact STATE | exact IN_ITEM].
 Qed.
 
@@ -9858,7 +7630,7 @@ Lemma Follow_read_nullable_birth_from_read_domain_to_closure p_parent p A B beta
   (NULLABLE : NullStr gamma_nullable)
   : Follow_closure (p, A) t.
 Proof.
-  pose proof (read_domain_birth_item p_parent p B beta (inl A :: gamma_nullable ++ inr t :: gamma_tail) IN_D PROD PATH_BETA) as (q & STATE & IN_ITEM).
+  use read_domain_birth_item as (q & STATE & IN_ITEM) with IN_D PROD PATH_BETA.
   eapply Follow_read_to_closure.
   eapply Read_from_lr0_item_nullable_prefix_terminal; [exact STATE | exact IN_ITEM | exact NULLABLE].
 Qed.
@@ -9870,7 +7642,7 @@ Lemma Follow_read_rm_birth_from_read_domain_to_closure p_parent p A B beta gamma
   (STEPS : rm_steps gamma (map inr (t :: z)))
   : Follow_closure (p, A) t.
 Proof.
-  pose proof (read_domain_birth_item p_parent p B beta (inl A :: gamma) IN_D PROD PATH_BETA) as (q & STATE & IN_ITEM).
+  use read_domain_birth_item as (q & STATE & IN_ITEM) with IN_D PROD PATH_BETA.
   eapply Follow_read_to_closure.
   eapply Read_from_lr0_item_rm_terminal_image; [exact STATE | exact IN_ITEM | exact STEPS].
 Qed.
@@ -9882,7 +7654,7 @@ Lemma Follow_empty_birth_from_read_domain_to_closure p_parent p A B beta t
   (FOLLOW_PARENT : Follow_closure (p_parent, B) t)
   : Follow_closure (p, A) t.
 Proof.
-  pose proof (read_domain_birth_item p_parent p B beta [inl A] IN_D PROD PATH_BETA) as (q & STATE & IN_ITEM).
+  use read_domain_birth_item as (q & STATE & IN_ITEM) with IN_D PROD PATH_BETA.
   eapply Follow_includes_from_lr0_item_empty_to_closure; [exact STATE | exact IN_ITEM | exact IN_D | exact PATH_BETA | exact FOLLOW_PARENT].
 Qed.
 
@@ -9894,7 +7666,7 @@ Lemma Follow_nullable_birth_from_read_domain_to_closure p_parent p A B beta gamm
   (FOLLOW_PARENT : Follow_closure (p_parent, B) t)
   : Follow_closure (p, A) t.
 Proof.
-  pose proof (read_domain_birth_item p_parent p B beta (inl A :: gamma) IN_D PROD PATH_BETA) as (q & STATE & IN_ITEM).
+  use read_domain_birth_item as (q & STATE & IN_ITEM) with IN_D PROD PATH_BETA.
   eapply Follow_includes_from_lr0_item_nullable_to_closure; [exact STATE | exact IN_ITEM | exact IN_D | exact PATH_BETA | exact NULLABLE | exact FOLLOW_PARENT].
 Qed.
 
@@ -9907,7 +7679,7 @@ Lemma marked_follow_derivation_after_start_birth_image_read_to_closure_by_domain
   : Follow_closure node t.
 Proof.
   destruct node as [p A]. simpl in *. subst alpha.
-  pose proof (npath_common_prefix_suffix alpha_parent beta nq0 p_parent p PATH_PARENT PATH_ALPHA) as PATH_BETA.
+  use npath_common_prefix_suffix as PATH_BETA with PATH_PARENT PATH_ALPHA.
   eapply Follow_read_birth_from_read_domain_to_closure; [exact IN_D | exact PROD | exact PATH_BETA].
 Qed.
 
@@ -9921,7 +7693,7 @@ Lemma marked_follow_derivation_after_start_birth_nullable_read_to_closure_by_dom
   : Follow_closure node t.
 Proof.
   destruct node as [p A]. simpl in *. subst alpha.
-  pose proof (npath_common_prefix_suffix alpha_parent beta nq0 p_parent p PATH_PARENT PATH_ALPHA) as PATH_BETA.
+  use npath_common_prefix_suffix as PATH_BETA with PATH_PARENT PATH_ALPHA.
   eapply Follow_read_nullable_birth_from_read_domain_to_closure; [exact IN_D | exact PROD | exact PATH_BETA | exact NULLABLE].
 Qed.
 
@@ -9935,7 +7707,7 @@ Lemma marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain no
   : Follow_closure node t.
 Proof.
   destruct node as [p A]. simpl in *. subst alpha.
-  pose proof (npath_common_prefix_suffix alpha_parent beta nq0 p_parent p PATH_PARENT PATH_ALPHA) as PATH_BETA.
+  use npath_common_prefix_suffix as PATH_BETA with PATH_PARENT PATH_ALPHA.
   eapply Follow_read_rm_birth_from_read_domain_to_closure; [exact IN_D | exact PROD | exact PATH_BETA | exact STEPS].
 Qed.
 
@@ -9949,7 +7721,7 @@ Lemma marked_follow_derivation_after_start_birth_image_empty_to_closure_by_domai
   : Follow_closure node t.
 Proof.
   destruct node as [p A]. simpl in *. subst alpha.
-  pose proof (npath_common_prefix_suffix alpha_parent beta nq0 p_parent p PATH_PARENT PATH_ALPHA) as PATH_BETA.
+  use npath_common_prefix_suffix as PATH_BETA with PATH_PARENT PATH_ALPHA.
   eapply Follow_empty_birth_from_read_domain_to_closure; [exact IN_D | exact PROD | exact PATH_BETA | exact FOLLOW_PARENT].
 Qed.
 
@@ -9964,7 +7736,7 @@ Lemma marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain n
   : Follow_closure node t.
 Proof.
   destruct node as [p A]. simpl in *. subst alpha.
-  pose proof (npath_common_prefix_suffix alpha_parent beta nq0 p_parent p PATH_PARENT PATH_ALPHA) as PATH_BETA.
+  use npath_common_prefix_suffix as PATH_BETA with PATH_PARENT PATH_ALPHA.
   eapply Follow_nullable_birth_from_read_domain_to_closure; [exact IN_D | exact PROD | exact PATH_BETA | exact NULLABLE | exact FOLLOW_PARENT].
 Qed.
 
@@ -9984,9 +7756,9 @@ Lemma rm_steps_n_suffix_terminal_image gamma z_parent t z k
 Proof.
   assert (PLAIN : plain_steps (gamma ++ map inr z_parent) (map inr (t :: z))).
   { eapply rm_steps_plain_steps. eapply rm_steps_n_rm_steps. exact STEPS. }
-  pose proof (plain_steps_app_inv_terminal gamma (map inr z_parent) (t :: z) PLAIN) as (z_gamma_image & z_parent_image & IMAGE & GAMMA_PLAIN & PARENT_PLAIN).
-  pose proof (plain_steps_terminal_inv z_parent (map inr z_parent_image) PARENT_PLAIN) as PARENT_IMAGE_MAP.
-  pose proof (map_inr_injective_list z_parent_image z_parent PARENT_IMAGE_MAP) as PARENT_IMAGE. subst z_parent_image.
+  use (plain_steps_app_inv_terminal gamma (map inr z_parent) (t :: z)) as (z_gamma_image & z_parent_image & IMAGE & GAMMA_PLAIN & PARENT_PLAIN) with PLAIN.
+  use plain_steps_terminal_inv as PARENT_IMAGE_MAP with PARENT_PLAIN.
+  use map_inr_injective_list as PARENT_IMAGE with PARENT_IMAGE_MAP. subst z_parent_image.
   destruct z_gamma_image as [ | t_image z_gamma].
   - simpl in IMAGE. symmetry in IMAGE. econstructor 1; [ | exact IMAGE].
     eapply plain_steps_empty_NullStr. exact GAMMA_PLAIN.
@@ -10004,7 +7776,7 @@ Lemma marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_doma
   (FOLLOW_PARENT : Follow_closure (p_parent, B) t)
   : Follow_closure node t.
 Proof.
-  pose proof (rm_steps_n_suffix_terminal_image gamma z_parent t z k SUFFIX_STEPS) as IMAGE.
+  use rm_steps_n_suffix_terminal_image as IMAGE with SUFFIX_STEPS.
   destruct IMAGE as [NULLABLE Z_PARENT | z_gamma GAMMA_STEPS Z].
   - eapply marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain; [exact PROD | exact ALPHA | exact PATH_ALPHA | exact PATH_PARENT | exact IN_D | exact NULLABLE | exact FOLLOW_PARENT].
   - eapply marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain; [exact PROD | exact ALPHA | exact PATH_ALPHA | exact PATH_PARENT | exact IN_D | exact GAMMA_STEPS].
@@ -10019,9 +7791,9 @@ Lemma marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_pare
   (FOLLOW_PARENT_FROM_PATH : forall p_parent, npath alpha_parent nq0 p_parent -> z_parent = t :: z -> Follow_closure (p_parent, B) t)
   : Follow_closure node t.
 Proof.
-  pose proof (proj1 (npath_factorization alpha_parent [inl B] nq0 p_after) PATH_PARENT_SHIFT) as (p_parent & PATH_PARENT & PATH_B & _).
-  pose proof (read_domain_from_npath_singleton p_parent B p_after PATH_B) as IN_D.
-  pose proof (rm_steps_n_suffix_terminal_image gamma z_parent t z k SUFFIX_STEPS) as IMAGE.
+  use (proj1 (npath_factorization alpha_parent [inl B] nq0 p_after)) as (p_parent & PATH_PARENT & PATH_B & _) with PATH_PARENT_SHIFT.
+  use read_domain_from_npath_singleton as IN_D with PATH_B.
+  use rm_steps_n_suffix_terminal_image as IMAGE with SUFFIX_STEPS.
   destruct IMAGE as [NULLABLE Z_PARENT | z_gamma GAMMA_STEPS Z].
   - eapply marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain; [exact PROD | exact ALPHA | exact PATH_ALPHA | exact PATH_PARENT | exact IN_D | exact NULLABLE | eapply FOLLOW_PARENT_FROM_PATH; [exact PATH_PARENT | exact Z_PARENT]].
   - eapply marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain; [exact PROD | exact ALPHA | exact PATH_ALPHA | exact PATH_PARENT | exact IN_D | exact GAMMA_STEPS].
@@ -10061,17 +7833,17 @@ Qed.
 Lemma Follow_augmented_start_to_closure
   : Follow_closure (nq0, lift_N Grammar.start) eof.
 Proof.
-  pose proof q_f_exists as (qf & FINAL).
-  pose proof (q_f_accept_path qf FINAL) as PATH.
-  pose proof (path_target_in_Q accept_word q0 qf PATH) as IN_QF.
+  destruct q_f_exists as (qf & FINAL).
+  use q_f_accept_path as PATH with FINAL.
+  use path_target_in_Q as IN_QF with PATH.
   unfold accept_word in PATH.
   inversion PATH as [ | X alpha p qS r IN_Q0 STEP_START REST]; subst; clear PATH.
   inversion REST as [ | X' alpha' p' qf' r' IN_QS STEP_EOF REST_EOF]; subst; clear REST.
   inversion REST_EOF; subst; clear REST_EOF.
   set (r := state_index_nat qS).
   set (s := state_index_nat qf).
-  pose proof (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS) STEP_START) as STEP_START_DELTA.
-  pose proof (proj1 (lr0_graph_step_delta qS (inr eof) qf) STEP_EOF) as STEP_EOF_DELTA.
+  use (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS)) as STEP_START_DELTA with STEP_START.
+  use (proj1 (lr0_graph_step_delta qS (inr eof) qf)) as STEP_EOF_DELTA with STEP_EOF.
   assert (STEP_START_N : dN nq0 (inl (lift_N Grammar.start)) = Some r).
   { unfold nq0. unfold r. eapply dN_delta_some; [eapply index_of_complete; exact q0_in_Q | exact STEP_START_DELTA | eapply index_of_complete; exact IN_QS]. }
   assert (STEP_EOF_N : dN r (inr eof) = Some s).
@@ -10087,8 +7859,8 @@ Proof.
   destruct node as [p A]. simpl in *.
   destruct alpha as [ | X alpha_tail].
   - simpl in TARGET. injection TARGET as A_EQ T_EQ Z_EQ. subst A. subst t.
-    destruct z as [ | z0 z]; [ | discriminate]. pose proof (npath_nil nq0 q0 nq0_state) as PATH_NIL.
-    pose proof (npath_deterministic [] nq0 p nq0 PATH_ALPHA PATH_NIL) as P_EQ.
+    destruct z as [ | z0 z]; [ | discriminate]. assert (NQ0_STATE : state_of nq0 = Some q0) by exact nq0_state. use (npath_nil nq0 q0) as PATH_NIL with NQ0_STATE.
+    use npath_deterministic as P_EQ with PATH_ALPHA PATH_NIL.
     subst p. exact Follow_augmented_start_to_closure.
   - exfalso.
     assert (LEN : length augmented_start_sentence = length ((X :: alpha_tail) ++ inl A :: inr t :: map inr z)) by (rewrite <- TARGET; reflexivity).
@@ -10182,17 +7954,17 @@ Lemma Follow_sem_includes_step p A p' B t
   (FOLLOW : Follow_sem (p', B) t)
   : Follow_sem (p, A) t.
 Proof.
-  pose proof (incl_deps_sound p A (p', B) EDGE) as EDGE_SPEC.
+  use incl_deps_sound as EDGE_SPEC with EDGE.
   destruct EDGE_SPEC as [q it p_src B_src gamma IN_D STATE IN_IT CANDIDATE_EQ LHS RIGHT NULLABLE PATHB].
   inv CANDIDATE_EQ.
   unfold Follow_sem in FOLLOW.
   destruct FOLLOW as (alpha & z & STEPS_FOLLOW & PATH_ALPHA).
-  pose proof (state_of_sound p q STATE) as (IN_Q & _).
-  pose proof (Q_items_valid q IN_Q it IN_IT) as VALID.
+  use state_of_sound as (IN_Q & _) with STATE.
+  use (Q_items_valid q) as VALID with IN_Q IN_IT.
   unfold valid_item, item_prod in VALID.
   rewrite RIGHT in VALID.
   rewrite npathb_correct in PATHB.
-  pose proof (npath_app alpha it.(i_left) nq0 p_src p PATH_ALPHA PATHB) as PATH_TARGET.
+  use npath_app as PATH_TARGET with PATH_ALPHA PATHB.
   unfold Follow_sem. exists (alpha ++ it.(i_left)). exists z. split.
   - eapply rt_trans; [exact STEPS_FOLLOW | ].
     eapply rt_trans.
@@ -10304,7 +8076,7 @@ Lemma marked_rm_nullable_suffix A alpha gamma t z
   (NULLABLE : NullStr gamma)
   : marked_rm A alpha (inr t :: map inr z).
 Proof.
-  pose proof (marked_rm_to_rm_steps A alpha (gamma ++ inr t :: map inr z) MARKED) as STEPS.
+  use marked_rm_to_rm_steps as STEPS with MARKED.
   assert (NULL_STEPS : rm_steps ((alpha ++ [inl A]) ++ gamma ++ map inr (t :: z)) ((alpha ++ [inl A]) ++ map inr (t :: z))).
   { eapply NullStr_rm_steps_empty_context. exact NULLABLE. }
   replace ((alpha ++ [inl A]) ++ gamma ++ map inr (t :: z)) with (alpha ++ inl A :: gamma ++ inr t :: map inr z) in NULL_STEPS by (simpl; repeat rewrite <- app_assoc; reflexivity).
@@ -10356,8 +8128,8 @@ Lemma marked_rm_derivation A alpha suffix
   (MARKED : marked_rm A alpha suffix)
   : marked_rm_derivation_spec A alpha suffix.
 Proof.
-  pose proof (marked_rm_to_rm_steps A alpha suffix MARKED) as STEPS.
-  pose proof (rm_steps_rm_steps_n _ _ STEPS) as (n & STEPS_N).
+  use marked_rm_to_rm_steps as STEPS with MARKED.
+  use rm_steps_rm_steps_n as (n & STEPS_N) with STEPS.
   econstructor. exact STEPS_N.
 Qed.
 
@@ -10390,7 +8162,7 @@ Lemma marked_follow_derivation node t
 Proof.
   destruct node as [p A]. unfold marked_follow in MARKED.
   destruct MARKED as (alpha & z & MARKED & PATH_ALPHA).
-  pose proof (marked_rm_derivation A alpha (inr t :: map inr z) MARKED) as DERIVATION.
+  use marked_rm_derivation as DERIVATION with MARKED.
   destruct DERIVATION as [n STEPS_N].
   econstructor; [exact STEPS_N | exact PATH_ALPHA].
 Qed.
@@ -10442,8 +8214,7 @@ Theorem marked_follow_derivation_after_start node t
   : marked_follow_derivation_after_start_spec node t.
 Proof.
   destruct DERIVATION as [alpha z n STEPS_N PATH_ALPHA].
-  pose proof (rm_steps_n_start_case n
-    (alpha ++ inl (snd node) :: inr t :: map inr z) STEPS_N) as CASE.
+  use (rm_steps_n_start_case n (alpha ++ inl (snd node) :: inr t :: map inr z)) as CASE with STEPS_N.
   destruct CASE as [EQ_N EQ_TARGET | n' EQ_N REST].
   - exfalso.
     assert (LEN : length (alpha ++ inl (snd node) :: inr t :: map inr z) = length ([@inl N' T' start_prime])).
@@ -10499,7 +8270,7 @@ Proof.
   destruct DERIVATION as [alpha z n STEPS_AFTER_START PATH_ALPHA].
   remember (alpha ++ inl (snd node) :: inr t :: map inr z) as final eqn: TARGET_FINAL.
   change (rm_steps_n n augmented_start_sentence final) in STEPS_AFTER_START.
-  pose proof (rm_steps_n_last_case n augmented_start_sentence final STEPS_AFTER_START) as CASE.
+  use (rm_steps_n_last_case n augmented_start_sentence final) as CASE with STEPS_AFTER_START.
   destruct CASE as [EQ_N EQ_TARGET | n' previous EQ_N PREFIX LAST].
   - rewrite TARGET_FINAL in EQ_TARGET. econstructor 1; [exact EQ_TARGET | exact PATH_ALPHA].
   - destruct LAST as [B omega alpha_parent z_parent PROD].
@@ -10557,7 +8328,7 @@ Lemma marked_follow_derivation_after_start_birth_split node t
 Proof.
   destruct LAST as [alpha z TARGET PATH_ALPHA | alpha z n alpha_parent B omega z_parent PARENT PROD TARGET PATH_ALPHA].
   - econstructor 1; [exact TARGET | exact PATH_ALPHA].
-  - pose proof (app_middle_occurrence_split alpha_parent omega (map inr z_parent) alpha (inl (snd node)) (inr t :: map inr z) (map_inr_no_nonterminal z_parent (snd node)) TARGET) as SPLIT.
+  - use (app_middle_occurrence_split alpha_parent omega (map inr z_parent) alpha (inl (snd node)) (inr t :: map inr z) (map_inr_no_nonterminal z_parent (snd node))) as SPLIT with TARGET.
     destruct SPLIT as [beta ALPHA_PARENT SUFFIX | beta gamma ALPHA OMEGA SUFFIX].
     + econstructor 2 with (n := n) (alpha_parent := alpha_parent) (B := B) (omega := omega) (z_parent := z_parent) (beta := beta); [exact PARENT | exact PROD | exact ALPHA_PARENT | exact SUFFIX | exact PATH_ALPHA].
     + subst omega. econstructor 3 with (n := n) (alpha_parent := alpha_parent) (B := B) (beta := beta) (gamma := gamma) (z_parent := z_parent); [exact PARENT | exact PROD | exact ALPHA | exact SUFFIX | exact PATH_ALPHA].
@@ -10633,7 +8404,7 @@ Proof.
   destruct SPLIT as [alpha z TARGET PATH_ALPHA | alpha z n alpha_parent B omega z_parent beta PARENT PROD ALPHA_PARENT SUFFIX PATH_ALPHA | alpha z n alpha_parent B beta gamma z_parent PARENT PROD ALPHA SUFFIX PATH_ALPHA].
   - econstructor 1; [exact TARGET | exact PATH_ALPHA].
   - econstructor 2 with (n := n) (alpha_parent := alpha_parent) (B := B) (omega := omega) (z_parent := z_parent) (beta := beta); [exact PARENT | exact PROD | exact ALPHA_PARENT | exact SUFFIX | exact PATH_ALPHA].
-  - pose proof (terminal_suffix_image_head_case gamma z_parent t z SUFFIX) as IMAGE.
+  - use terminal_suffix_image_head_case as IMAGE with SUFFIX.
     destruct IMAGE as [GAMMA Z_PARENT | gamma_tail GAMMA TAIL].
     + subst gamma. simpl in PROD. econstructor 3 with (n := n) (alpha_parent := alpha_parent) (B := B) (beta := beta) (z_parent := z_parent); [exact PARENT | exact PROD | exact ALPHA | exact Z_PARENT | exact PATH_ALPHA].
     + subst gamma. simpl in PROD. econstructor 4 with (n := n) (alpha_parent := alpha_parent) (B := B) (beta := beta) (gamma_tail := gamma_tail) (z_parent := z_parent); [exact PARENT | exact PROD | exact ALPHA | exact TAIL | exact PATH_ALPHA].
@@ -10703,7 +8474,7 @@ Lemma Follow_sem_to_marked_follow_derivation_after_start_suffix node t
   (FOLLOW : Follow_sem node t)
   : marked_follow_derivation_after_start_suffix_spec node t.
 Proof.
-  pose proof (Follow_sem_derivation_after_start node t FOLLOW) as AFTER_START.
+  use Follow_sem_derivation_after_start as AFTER_START with FOLLOW.
   destruct AFTER_START as [alpha z n STEPS_AFTER_START PATH_ALPHA].
   econstructor 1 with (alpha := alpha) (suffix := inr t :: map inr z) (z := z) (n := n); [exact STEPS_AFTER_START | constructor | exact PATH_ALPHA].
 Qed.
@@ -10728,8 +8499,9 @@ Proof.
     assert (TARGET_SUFFIX : inr t :: map inr z = [@inr N' T' eof]).
     { eapply plain_steps_terminal_inv with (ts := ([eof] : list T')) (ys := inr t :: map inr z). eapply rm_steps_plain_steps. eapply rm_steps_n_rm_steps. exact SUFFIX_STEPS. }
     simpl in TARGET_SUFFIX. injection TARGET_SUFFIX as T_EQ Z_EQ. subst t. destruct z as [ | z0 z]; [ | discriminate].
-    pose proof (npath_nil nq0 q0 nq0_state) as PATH_NIL.
-    pose proof (npath_deterministic [] nq0 p nq0 PATH_ALPHA PATH_NIL) as P_EQ. subst p.
+    assert (NQ0_STATE : state_of nq0 = Some q0) by exact nq0_state.
+    use (npath_nil nq0 q0) as PATH_NIL with NQ0_STATE.
+    use npath_deterministic as P_EQ with PATH_ALPHA PATH_NIL. subst p.
     exact Follow_augmented_start_to_closure.
   - simpl in TARGET. destruct X as [B | u]; [ | discriminate]. injection TARGET as START_EQ TAIL_EQ. destruct alpha_tail as [ | Y alpha_tail]; simpl in TAIL_EQ; [discriminate | ]. injection TAIL_EQ as HEAD_EQ NIL_EQ. exfalso.
     assert (LEN : length (@nil V') = length (alpha_tail ++ inl A :: suffix)) by (rewrite <- NIL_EQ; reflexivity). rewrite length_app in LEN. simpl in LEN. lia.
@@ -10741,12 +8513,12 @@ Lemma marked_follow_derivation_after_start_occurrence_root_npath alpha A suffix
 Proof.
   destruct alpha as [ | X alpha_tail].
   - simpl in TARGET. injection TARGET as A_EQ SUFFIX_EQ. subst A.
-    pose proof q_f_exists as (qf & FINAL).
-    pose proof (q_f_accept_path qf FINAL) as PATH_ACCEPT.
+    destruct q_f_exists as (qf & FINAL).
+    use q_f_accept_path as PATH_ACCEPT with FINAL.
     unfold accept_word in PATH_ACCEPT.
     inversion PATH_ACCEPT as [ | X' alpha' p0 qS r IN_Q0 STEP_START REST]; subst; clear PATH_ACCEPT.
-    pose proof (path_source_in_Q [inr eof] qS qf REST) as IN_QS.
-    pose proof (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS) STEP_START) as STEP_START_DELTA.
+    use path_source_in_Q as IN_QS with REST.
+    use (proj1 (lr0_graph_step_delta q0 (inl (lift_N Grammar.start)) qS)) as STEP_START_DELTA with STEP_START.
     set (p_after := state_index_nat qS).
     assert (STEP_START_N : dN nq0 (inl (lift_N Grammar.start)) = Some p_after).
     { unfold nq0, p_after. eapply dN_delta_some; [eapply index_of_complete; exact q0_in_Q | exact STEP_START_DELTA | eapply index_of_complete; exact IN_QS]. }
@@ -10765,22 +8537,22 @@ Proof.
   - inversion STEPS; subst. eapply marked_follow_derivation_after_start_occurrence_root_npath. exact H.
   - remember (alpha ++ inl A :: suffix) as target eqn: TARGET_OCC.
     change (rm_steps_n (S n) augmented_start_sentence target) in STEPS.
-    pose proof (rm_steps_n_last_case (S n) augmented_start_sentence target STEPS) as CASE.
+    use (rm_steps_n_last_case (S n) augmented_start_sentence target) as CASE with STEPS.
     destruct CASE as [EQ_N EQ_TARGET | n' previous EQ_N PREFIX LAST].
     + discriminate EQ_N.
     + injection EQ_N as N_EQ. subst n'. destruct LAST as [B omega alpha_parent z_parent PROD].
-      pose proof (app_middle_occurrence_split alpha_parent omega (map inr z_parent) alpha (inl A) suffix (map_inr_no_nonterminal z_parent A) TARGET_OCC) as SPLIT.
+      use (app_middle_occurrence_split alpha_parent omega (map inr z_parent) alpha (inl A) suffix (map_inr_no_nonterminal z_parent A)) as SPLIT with TARGET_OCC.
       destruct SPLIT as [beta ALPHA_PARENT SUFFIX_PARENT | beta gamma ALPHA OMEGA SUFFIX_BIRTH].
       * assert (STEPS_OCCURRENCE_PARENT : rm_steps_n n augmented_start_sentence (alpha ++ inl A :: (beta ++ inl B :: map inr z_parent))).
         { replace (alpha ++ inl A :: beta ++ inl B :: map inr z_parent) with ((alpha ++ inl A :: beta) ++ inl B :: map inr z_parent) by (repeat rewrite <- app_assoc; reflexivity). replace ((alpha ++ inl A :: beta) ++ inl B :: map inr z_parent) with (alpha_parent ++ inl B :: map inr z_parent) by (rewrite ALPHA_PARENT; reflexivity). exact PREFIX. }
         eapply IH. exact STEPS_OCCURRENCE_PARENT.
-      * subst omega. pose proof (IH alpha_parent B (map inr z_parent) PREFIX) as (p_after & PATH_PARENT_SHIFT).
-        pose proof (proj1 (npath_factorization alpha_parent [inl B] nq0 p_after) PATH_PARENT_SHIFT) as (p_parent & PATH_PARENT & PATH_B & _).
-        pose proof (read_domain_from_npath_singleton p_parent B p_after PATH_B) as IN_D.
-        pose proof (read_domain_seed_item p_parent B (beta ++ inl A :: gamma) IN_D PROD) as (q_parent & STATE_PARENT & SEED).
+      * subst omega. use IH as (p_after & PATH_PARENT_SHIFT) with PREFIX.
+        use (proj1 (npath_factorization alpha_parent [inl B] nq0 p_after)) as (p_parent & PATH_PARENT & PATH_B & _) with PATH_PARENT_SHIFT.
+        use read_domain_from_npath_singleton as IN_D with PATH_B.
+        use read_domain_seed_item as (q_parent & STATE_PARENT & SEED) with IN_D PROD.
         assert (SEED_PREFIX : {| i_lhs := B; i_left := []; i_right := (beta ++ [inl A]) ++ gamma |} ∈ q_parent).
         { replace ((beta ++ [inl A]) ++ gamma) with (beta ++ inl A :: gamma) by (repeat rewrite <- app_assoc; reflexivity). exact SEED. }
-        pose proof (lr0_item_prefix_transition p_parent q_parent B [] (beta ++ [inl A]) gamma STATE_PARENT SEED_PREFIX) as PREFIX_PATH.
+        use lr0_item_prefix_transition as PREFIX_PATH with STATE_PARENT SEED_PREFIX.
         destruct PREFIX_PATH as [q_source q_prefix r STATE_SOURCE STATE_R PATH_PREFIX IN_PREFIX].
         assert (PATH_COMBINED : npath (alpha_parent ++ (beta ++ [inl A])) nq0 r).
         { eapply npath_app with (m := p_parent); [exact PATH_PARENT | exact PATH_PREFIX]. }
@@ -10805,11 +8577,11 @@ Proof.
   - inversion STEPS_OCCURRENCE; subst. eapply marked_follow_derivation_after_start_suffix_root_to_closure; [exact H | exact STEPS_SUFFIX | exact PATH_ALPHA].
   - remember (alpha ++ inl (snd node) :: suffix) as target eqn: TARGET_OCC.
     change (rm_steps_n (S n) augmented_start_sentence target) in STEPS_OCCURRENCE.
-    pose proof (rm_steps_n_last_case (S n) augmented_start_sentence target STEPS_OCCURRENCE) as CASE.
+    use (rm_steps_n_last_case (S n) augmented_start_sentence target) as CASE with STEPS_OCCURRENCE.
     destruct CASE as [EQ_N EQ_TARGET | n' previous EQ_N PREFIX LAST].
     + discriminate EQ_N.
     + injection EQ_N as N_EQ. subst n'. destruct LAST as [B omega alpha_parent z_parent PROD].
-      pose proof (app_middle_occurrence_split alpha_parent omega (map inr z_parent) alpha (inl (snd node)) suffix (map_inr_no_nonterminal z_parent (snd node)) TARGET_OCC) as SPLIT.
+      use (app_middle_occurrence_split alpha_parent omega (map inr z_parent) alpha (inl (snd node)) suffix (map_inr_no_nonterminal z_parent (snd node))) as SPLIT with TARGET_OCC.
       destruct SPLIT as [beta ALPHA_PARENT SUFFIX_PARENT | beta gamma ALPHA OMEGA SUFFIX_BIRTH].
       * assert (STEPS_OCCURRENCE_PARENT : rm_steps_n n augmented_start_sentence (alpha ++ inl (snd node) :: (beta ++ inl B :: map inr z_parent))).
         { replace (alpha ++ inl (snd node) :: beta ++ inl B :: map inr z_parent) with ((alpha ++ inl (snd node) :: beta) ++ inl B :: map inr z_parent) by (repeat rewrite <- app_assoc; reflexivity). replace ((alpha ++ inl (snd node) :: beta) ++ inl B :: map inr z_parent) with (alpha_parent ++ inl B :: map inr z_parent) by (rewrite ALPHA_PARENT; reflexivity). exact PREFIX. }
@@ -10818,7 +8590,7 @@ Proof.
         assert (STEPS_SUFFIX_PARENT : rm_steps_n (S k) (beta ++ inl B :: map inr z_parent) (inr t :: map inr z)).
         { econstructor; [exact STEP_SUFFIX | exact STEPS_SUFFIX]. }
         eapply IH with (node := node) (t := t) (alpha := alpha) (suffix := beta ++ inl B :: map inr z_parent) (z := z) (k := S k); [exact STEPS_OCCURRENCE_PARENT | exact STEPS_SUFFIX_PARENT | exact PATH_ALPHA].
-      * subst omega. pose proof (PARENT_SHIFT alpha_parent B z_parent n PREFIX) as (p_after & PATH_PARENT_SHIFT).
+      * subst omega. use PARENT_SHIFT as (p_after & PATH_PARENT_SHIFT) with PREFIX.
         assert (SUFFIX_STEPS_BIRTH : rm_steps_n k (gamma ++ map inr z_parent) (inr t :: map inr z)).
         { rewrite SUFFIX_BIRTH. exact STEPS_SUFFIX. }
         eapply marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih; [exact PROD | exact ALPHA | exact SUFFIX_STEPS_BIRTH | exact PATH_ALPHA | exact PATH_PARENT_SHIFT | ].
@@ -10831,7 +8603,7 @@ Lemma Follow_sem_to_closure_by_suffix_parent_shift_resolver node t
   (PARENT_SHIFT : forall alpha_parent, forall B, forall z_parent, forall n, rm_steps_n n augmented_start_sentence (alpha_parent ++ inl B :: map inr z_parent) -> exists p_after, npath (alpha_parent ++ [inl B]) nq0 p_after)
   : Follow_closure node t.
 Proof.
-  pose proof (Follow_sem_to_marked_follow_derivation_after_start_suffix node t FOLLOW) as SUFFIX.
+  use Follow_sem_to_marked_follow_derivation_after_start_suffix as SUFFIX with FOLLOW.
   eapply marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver; [exact SUFFIX | exact PARENT_SHIFT].
 Qed.
 
@@ -10993,11 +8765,11 @@ Lemma marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers no
 Proof.
   destruct IMAGE as [alpha z TARGET PATH_ALPHA | alpha z n alpha_parent B omega z_parent beta PARENT PROD ALPHA_PARENT SUFFIX PATH_ALPHA | alpha z n alpha_parent B beta z_parent PARENT PROD ALPHA Z_PARENT PATH_ALPHA | alpha z n alpha_parent B beta gamma_tail z_parent PARENT PROD ALPHA TAIL PATH_ALPHA].
   - econstructor 1; [exact TARGET | exact PATH_ALPHA].
-  - pose proof (PARENT_RESOLVE alpha z n alpha_parent B omega z_parent beta PARENT PROD ALPHA_PARENT SUFFIX PATH_ALPHA) as FOLLOW_NODE.
+  - use (PARENT_RESOLVE alpha z n alpha_parent B omega z_parent beta) as FOLLOW_NODE with PARENT PROD ALPHA_PARENT SUFFIX PATH_ALPHA.
     econstructor 2 with (alpha := alpha) (z := z) (n := n) (alpha_parent := alpha_parent) (B := B) (omega := omega) (z_parent := z_parent) (beta := beta); [exact PARENT | exact PROD | exact ALPHA_PARENT | exact SUFFIX | exact PATH_ALPHA | exact FOLLOW_NODE].
-  - pose proof (EMPTY_RESOLVE alpha z n alpha_parent B beta z_parent PARENT PROD ALPHA Z_PARENT PATH_ALPHA) as (p_parent & PATH_PARENT & IN_D & FOLLOW_PARENT).
+  - use (EMPTY_RESOLVE alpha z n alpha_parent B beta z_parent) as (p_parent & PATH_PARENT & IN_D & FOLLOW_PARENT) with PARENT PROD ALPHA Z_PARENT PATH_ALPHA.
     econstructor 3 with (alpha := alpha) (z := z) (n := n) (alpha_parent := alpha_parent) (B := B) (beta := beta) (z_parent := z_parent) (p_parent := p_parent); [exact PARENT | exact PROD | exact ALPHA | exact Z_PARENT | exact PATH_ALPHA | exact PATH_PARENT | exact IN_D | exact FOLLOW_PARENT].
-  - pose proof (READ_RESOLVE alpha z n alpha_parent B beta gamma_tail z_parent PARENT PROD ALPHA TAIL PATH_ALPHA) as (p_parent & PATH_PARENT & IN_D).
+  - use (READ_RESOLVE alpha z n alpha_parent B beta gamma_tail z_parent) as (p_parent & PATH_PARENT & IN_D) with PARENT PROD ALPHA TAIL PATH_ALPHA.
     econstructor 4 with (alpha := alpha) (z := z) (n := n) (alpha_parent := alpha_parent) (B := B) (beta := beta) (gamma_tail := gamma_tail) (z_parent := z_parent) (p_parent := p_parent); [exact PARENT | exact PROD | exact ALPHA | exact TAIL | exact PATH_ALPHA | exact PATH_PARENT | exact IN_D].
 Qed.
 
@@ -11011,8 +8783,8 @@ Lemma marked_follow_derivation_after_start_birth_image_empty_resolver_from_paren
   (FOLLOW_PARENT : forall p_parent, npath alpha_parent nq0 p_parent -> Follow_closure (p_parent, B) t)
   : exists p_parent, npath alpha_parent nq0 p_parent /\ (p_parent, B) ∈ D /\ Follow_closure (p_parent, B) t.
 Proof.
-  pose proof (proj1 (npath_factorization alpha_parent [inl B] nq0 p_after) PATH_PARENT_SHIFT) as (p_parent & PATH_PARENT & PATH_B & _).
-  pose proof (read_domain_from_npath_singleton p_parent B p_after PATH_B) as IN_D.
+  use (proj1 (npath_factorization alpha_parent [inl B] nq0 p_after)) as (p_parent & PATH_PARENT & PATH_B & _) with PATH_PARENT_SHIFT.
+  use read_domain_from_npath_singleton as IN_D with PATH_B.
   exists p_parent. splits; [exact PATH_PARENT | exact IN_D | eapply FOLLOW_PARENT; exact PATH_PARENT].
 Qed.
 
@@ -11025,8 +8797,8 @@ Lemma marked_follow_derivation_after_start_birth_image_read_resolver_from_parent
   (PATH_PARENT_SHIFT : npath (alpha_parent ++ [inl B]) nq0 p_after)
   : exists p_parent, npath alpha_parent nq0 p_parent /\ (p_parent, B) ∈ D.
 Proof.
-  pose proof (proj1 (npath_factorization alpha_parent [inl B] nq0 p_after) PATH_PARENT_SHIFT) as (p_parent & PATH_PARENT & PATH_B & _).
-  pose proof (read_domain_from_npath_singleton p_parent B p_after PATH_B) as IN_D.
+  use (proj1 (npath_factorization alpha_parent [inl B] nq0 p_after)) as (p_parent & PATH_PARENT & PATH_B & _) with PATH_PARENT_SHIFT.
+  use read_domain_from_npath_singleton as IN_D with PATH_B.
   exists p_parent. split; [exact PATH_PARENT | exact IN_D].
 Qed.
 
@@ -11039,10 +8811,10 @@ Lemma marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift
 Proof.
   eapply marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers; [exact IMAGE | exact PARENT_RESOLVE | | ].
   - intros alpha z n alpha_parent B beta z_parent PARENT PROD ALPHA Z_PARENT PATH_ALPHA.
-    pose proof (EMPTY_PARENT_RESOLVE alpha z n alpha_parent B beta z_parent PARENT PROD ALPHA Z_PARENT PATH_ALPHA) as (p_after & PATH_PARENT_SHIFT & FOLLOW_PARENT).
+    use (EMPTY_PARENT_RESOLVE alpha z n alpha_parent B beta z_parent) as (p_after & PATH_PARENT_SHIFT & FOLLOW_PARENT) with PARENT PROD ALPHA Z_PARENT PATH_ALPHA.
     eapply marked_follow_derivation_after_start_birth_image_empty_resolver_from_parent_shift; [exact PARENT | exact PROD | exact ALPHA | exact Z_PARENT | exact PATH_ALPHA | exact PATH_PARENT_SHIFT | exact FOLLOW_PARENT].
   - intros alpha z n alpha_parent B beta gamma_tail z_parent PARENT PROD ALPHA TAIL PATH_ALPHA.
-    pose proof (READ_PARENT_RESOLVE alpha z n alpha_parent B beta gamma_tail z_parent PARENT PROD ALPHA TAIL PATH_ALPHA) as (p_after & PATH_PARENT_SHIFT).
+    use (READ_PARENT_RESOLVE alpha z n alpha_parent B beta gamma_tail z_parent) as (p_after & PATH_PARENT_SHIFT) with PARENT PROD ALPHA TAIL PATH_ALPHA.
     eapply marked_follow_derivation_after_start_birth_image_read_resolver_from_parent_shift; [exact PARENT | exact PROD | exact ALPHA | exact TAIL | exact PATH_ALPHA | exact PATH_PARENT_SHIFT].
 Qed.
 
@@ -11095,11 +8867,11 @@ Proof.
   destruct SHIFT as [alpha z TARGET PATH_ALPHA | alpha z n alpha_parent B omega z_parent beta PARENT PROD ALPHA_PARENT SUFFIX PATH_ALPHA FOLLOW_NODE | alpha z n alpha_parent B beta z_parent p_after PARENT PROD ALPHA Z_PARENT PATH_ALPHA PATH_PARENT_SHIFT FOLLOW_PARENT | alpha z n alpha_parent B beta gamma_tail z_parent p_after PARENT PROD ALPHA TAIL PATH_ALPHA PATH_PARENT_SHIFT].
   - econstructor 1; [exact TARGET | exact PATH_ALPHA].
   - econstructor 2 with (alpha := alpha) (z := z) (n := n) (alpha_parent := alpha_parent) (B := B) (omega := omega) (z_parent := z_parent) (beta := beta); [exact PARENT | exact PROD | exact ALPHA_PARENT | exact SUFFIX | exact PATH_ALPHA | exact FOLLOW_NODE].
-  - pose proof (proj1 (npath_factorization alpha_parent [inl B] nq0 p_after) PATH_PARENT_SHIFT) as (p_parent & PATH_PARENT & PATH_B & _).
-    pose proof (read_domain_from_npath_singleton p_parent B p_after PATH_B) as IN_D.
+  - use (proj1 (npath_factorization alpha_parent [inl B] nq0 p_after)) as (p_parent & PATH_PARENT & PATH_B & _) with PATH_PARENT_SHIFT.
+    use read_domain_from_npath_singleton as IN_D with PATH_B.
     econstructor 3 with (alpha := alpha) (z := z) (n := n) (alpha_parent := alpha_parent) (B := B) (beta := beta) (z_parent := z_parent) (p_parent := p_parent); [exact PARENT | exact PROD | exact ALPHA | exact Z_PARENT | exact PATH_ALPHA | exact PATH_PARENT | exact IN_D | eapply FOLLOW_PARENT; exact PATH_PARENT].
-  - pose proof (proj1 (npath_factorization alpha_parent [inl B] nq0 p_after) PATH_PARENT_SHIFT) as (p_parent & PATH_PARENT & PATH_B & _).
-    pose proof (read_domain_from_npath_singleton p_parent B p_after PATH_B) as IN_D.
+  - use (proj1 (npath_factorization alpha_parent [inl B] nq0 p_after)) as (p_parent & PATH_PARENT & PATH_B & _) with PATH_PARENT_SHIFT.
+    use read_domain_from_npath_singleton as IN_D with PATH_B.
     econstructor 4 with (alpha := alpha) (z := z) (n := n) (alpha_parent := alpha_parent) (B := B) (beta := beta) (gamma_tail := gamma_tail) (z_parent := z_parent) (p_parent := p_parent); [exact PARENT | exact PROD | exact ALPHA | exact TAIL | exact PATH_ALPHA | exact PATH_PARENT | exact IN_D].
 Qed.
 
@@ -11137,11 +8909,11 @@ Lemma marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolv
 Proof.
   destruct IMAGE as [alpha z TARGET PATH_ALPHA | alpha z n alpha_parent B omega z_parent beta PARENT PROD ALPHA_PARENT SUFFIX PATH_ALPHA | alpha z n alpha_parent B beta z_parent PARENT PROD ALPHA Z_PARENT PATH_ALPHA | alpha z n alpha_parent B beta gamma_tail z_parent PARENT PROD ALPHA TAIL PATH_ALPHA].
   - econstructor 1; [exact TARGET | exact PATH_ALPHA].
-  - pose proof (PARENT_RESOLVE alpha z n alpha_parent B omega z_parent beta PARENT PROD ALPHA_PARENT SUFFIX PATH_ALPHA) as FOLLOW_NODE.
+  - use (PARENT_RESOLVE alpha z n alpha_parent B omega z_parent beta) as FOLLOW_NODE with PARENT PROD ALPHA_PARENT SUFFIX PATH_ALPHA.
     econstructor 2 with (alpha := alpha) (z := z) (n := n) (alpha_parent := alpha_parent) (B := B) (omega := omega) (z_parent := z_parent) (beta := beta); [exact PARENT | exact PROD | exact ALPHA_PARENT | exact SUFFIX | exact PATH_ALPHA | exact FOLLOW_NODE].
-  - pose proof (EMPTY_PARENT_RESOLVE alpha z n alpha_parent B beta z_parent PARENT PROD ALPHA Z_PARENT PATH_ALPHA) as (p_after & PATH_PARENT_SHIFT & FOLLOW_PARENT).
+  - use (EMPTY_PARENT_RESOLVE alpha z n alpha_parent B beta z_parent) as (p_after & PATH_PARENT_SHIFT & FOLLOW_PARENT) with PARENT PROD ALPHA Z_PARENT PATH_ALPHA.
     econstructor 3 with (alpha := alpha) (z := z) (n := n) (alpha_parent := alpha_parent) (B := B) (beta := beta) (z_parent := z_parent) (p_after := p_after); [exact PARENT | exact PROD | exact ALPHA | exact Z_PARENT | exact PATH_ALPHA | exact PATH_PARENT_SHIFT | exact FOLLOW_PARENT].
-  - pose proof (READ_PARENT_RESOLVE alpha z n alpha_parent B beta gamma_tail z_parent PARENT PROD ALPHA TAIL PATH_ALPHA) as (p_after & PATH_PARENT_SHIFT).
+  - use (READ_PARENT_RESOLVE alpha z n alpha_parent B beta gamma_tail z_parent) as (p_after & PATH_PARENT_SHIFT) with PARENT PROD ALPHA TAIL PATH_ALPHA.
     econstructor 4 with (alpha := alpha) (z := z) (n := n) (alpha_parent := alpha_parent) (B := B) (beta := beta) (gamma_tail := gamma_tail) (z_parent := z_parent) (p_after := p_after); [exact PARENT | exact PROD | exact ALPHA | exact TAIL | exact PATH_ALPHA | exact PATH_PARENT_SHIFT].
 Qed.
 
@@ -11152,7 +8924,7 @@ Lemma Follow_sem_to_birth_parent_shift_by_resolvers node t
   (READ_PARENT_RESOLVE : forall alpha, forall z, forall n, forall alpha_parent, forall B, forall beta, forall gamma_tail, forall z_parent, rm_steps_n n augmented_start_sentence (alpha_parent ++ inl B :: map inr z_parent) -> {| p_lhs := B; p_rhs := beta ++ inl (snd node) :: inr t :: gamma_tail |} ∈ P' -> alpha = alpha_parent ++ beta -> gamma_tail ++ map inr z_parent = map inr z -> npath alpha nq0 (fst node) -> exists p_after, npath (alpha_parent ++ [inl B]) nq0 p_after)
   : marked_follow_derivation_after_start_birth_parent_shift_spec node t.
 Proof.
-  pose proof (Follow_sem_derivation_after_start_birth_image node t FOLLOW) as IMAGE.
+  use Follow_sem_derivation_after_start_birth_image as IMAGE with FOLLOW.
   eapply marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolvers; [exact IMAGE | exact PARENT_RESOLVE | exact EMPTY_PARENT_RESOLVE | exact READ_PARENT_RESOLVE].
 Qed.
 
@@ -11219,7 +8991,7 @@ Lemma Follow_sem_to_birth_domain_by_parent_shift_resolvers node t
   (READ_PARENT_RESOLVE : forall alpha, forall z, forall n, forall alpha_parent, forall B, forall beta, forall gamma_tail, forall z_parent, rm_steps_n n augmented_start_sentence (alpha_parent ++ inl B :: map inr z_parent) -> {| p_lhs := B; p_rhs := beta ++ inl (snd node) :: inr t :: gamma_tail |} ∈ P' -> alpha = alpha_parent ++ beta -> gamma_tail ++ map inr z_parent = map inr z -> npath alpha nq0 (fst node) -> exists p_after, npath (alpha_parent ++ [inl B]) nq0 p_after)
   : marked_follow_derivation_after_start_birth_domain_spec node t.
 Proof.
-  pose proof (Follow_sem_derivation_after_start_birth_image node t FOLLOW) as IMAGE.
+  use Follow_sem_derivation_after_start_birth_image as IMAGE with FOLLOW.
   eapply marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift_resolvers; [exact IMAGE | exact PARENT_RESOLVE | exact EMPTY_PARENT_RESOLVE | exact READ_PARENT_RESOLVE].
 Qed.
 
@@ -11281,729 +9053,9 @@ Proof.
   eapply Follow_bang_correct.
 Qed.
 
-Module Abs.
 
-Abbreviation incl_deps := incl_deps.
 
-Abbreviation Follow_closure := Follow_closure.
 
-Abbreviation Follow_sem := Follow_sem.
-
-Abbreviation Follow_read_seed_path_spec := Follow_read_seed_path_spec.
-
-Abbreviation Follow_read_seed_context_spec := Follow_read_seed_context_spec.
-
-Abbreviation Follow_read_seed_lr0_context_spec := Follow_read_seed_lr0_context_spec.
-
-Abbreviation lr0_item_next_symbol_transition_spec := lr0_item_next_symbol_transition_spec.
-
-Abbreviation lr0_item_prefix_transition_spec := lr0_item_prefix_transition_spec.
-
-Abbreviation lr0_item_terminal_read_path_spec := lr0_item_terminal_read_path_spec.
-
-Abbreviation Follow := Follow.
-
-Abbreviation marked_rm := marked_rm.
-
-Abbreviation marked_follow := marked_follow.
-
-Abbreviation marked_rm_derivation_spec := marked_rm_derivation_spec.
-
-Abbreviation marked_follow_derivation_spec := marked_follow_derivation_spec.
-
-Abbreviation marked_follow_derivation_after_start_spec := marked_follow_derivation_after_start_spec.
-
-Abbreviation marked_follow_derivation_after_start_last_step_spec := marked_follow_derivation_after_start_last_step_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_split_spec := marked_follow_derivation_after_start_birth_split_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_spec := marked_follow_derivation_after_start_birth_image_spec.
-
-Abbreviation rm_steps_n_suffix_terminal_image_spec := rm_steps_n_suffix_terminal_image_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain.
-
-Abbreviation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih.
-
-Abbreviation marked_follow_derivation_after_start_birth_semantic_spec := marked_follow_derivation_after_start_birth_semantic_spec.
-
-Abbreviation marked_follow_derivation_after_start_suffix_spec := marked_follow_derivation_after_start_suffix_spec.
-
-Abbreviation marked_follow_derivation_after_start_suffix_root_to_closure := marked_follow_derivation_after_start_suffix_root_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_occurrence_root_npath := marked_follow_derivation_after_start_occurrence_root_npath.
-
-Abbreviation marked_follow_derivation_after_start_occurrence_npath := marked_follow_derivation_after_start_occurrence_npath.
-
-Abbreviation marked_follow_derivation_after_start_parent_shift_resolver := marked_follow_derivation_after_start_parent_shift_resolver.
-
-Abbreviation marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver := marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver.
-
-Abbreviation Follow_sem_to_closure_by_suffix_parent_shift_resolver := Follow_sem_to_closure_by_suffix_parent_shift_resolver.
-
-Abbreviation Follow_sem_to_impl_by_suffix_parent_shift_resolver := Follow_sem_to_impl_by_suffix_parent_shift_resolver.
-
-Abbreviation Follow_sem_to_closure_by_occurrence_path := Follow_sem_to_closure_by_occurrence_path.
-
-Abbreviation Follow_sem_to_impl_by_occurrence_path := Follow_sem_to_impl_by_occurrence_path.
-
-Abbreviation marked_follow_derivation_after_start_birth_domain_spec := marked_follow_derivation_after_start_birth_domain_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_parent_shift_spec := marked_follow_derivation_after_start_birth_parent_shift_spec.
-
-Abbreviation Follow_bang := Follow_bang.
-
-Abbreviation Follow_productive_viable := Follow_productive_viable.
-
-Abbreviation Follow_closure_to_sem_productive := Follow_closure_to_sem_productive.
-
-Abbreviation Follow_impl_to_sem_productive := Follow_impl_to_sem_productive.
-
-Abbreviation Follow_closure_sem_correct_productive := Follow_closure_sem_correct_productive.
-
-Abbreviation Follow_bang_sem_correct_productive := Follow_bang_sem_correct_productive.
-
-End Abs.
-
-Module Impl.
-
-Abbreviation incl_candidate_from_item := incl_candidate_from_item.
-
-Abbreviation incl_item_deps := incl_item_deps.
-
-Abbreviation incl_deps := incl_deps.
-
-Abbreviation Follow_bang := Follow_bang.
-
-End Impl.
-
-Module Refine.
-
-Abbreviation incl_candidate_from_item_sound_spec_refines := incl_candidate_from_item_sound_spec.
-
-Abbreviation incl_candidate_from_item_sound_refines := incl_candidate_from_item_sound.
-
-Abbreviation incl_candidate_from_item_complete_refines := incl_candidate_from_item_complete.
-
-Abbreviation incl_item_deps_sound_spec_refines := incl_item_deps_sound_spec.
-
-Abbreviation incl_item_deps_sound_refines := incl_item_deps_sound.
-
-Abbreviation incl_item_deps_complete_refines := incl_item_deps_complete.
-
-Abbreviation incl_deps_sound_spec_refines := incl_deps_sound_spec.
-
-Abbreviation incl_deps_sound_refines := incl_deps_sound.
-
-Abbreviation incl_deps_complete_refines := incl_deps_complete.
-
-Abbreviation incl_deps_closed_refines := incl_deps_closed.
-
-Abbreviation Follow_bang_sound_refines := Follow_bang_sound.
-
-Abbreviation Follow_bang_complete_refines := Follow_bang_complete.
-
-Abbreviation Follow_bang_correct_refines := Follow_bang_correct.
-
-Abbreviation Follow_sem_nullable_suffix_refines := Follow_sem_nullable_suffix.
-
-Abbreviation Follow_read_seed_path_spec_refines := Follow_read_seed_path_spec.
-
-Abbreviation Follow_read_seed_path_refines := Follow_read_seed_path.
-
-Abbreviation Follow_read_seed_context_spec_refines := Follow_read_seed_context_spec.
-
-Abbreviation Follow_read_seed_context_refines := Follow_read_seed_context.
-
-Abbreviation Follow_read_seed_lr0_context_spec_refines := Follow_read_seed_lr0_context_spec.
-
-Abbreviation Follow_read_seed_lr0_context_refines := Follow_read_seed_lr0_context.
-
-Abbreviation Follow_read_seed_path_to_sem_refines := Follow_read_seed_path_to_sem.
-
-Abbreviation Follow_read_seed_lr0_context_to_sem_refines := Follow_read_seed_lr0_context_to_sem.
-
-Abbreviation Follow_read_bang_to_closure_refines := Follow_read_bang_to_closure.
-
-Abbreviation Follow_read_to_closure_refines := Follow_read_to_closure.
-
-Abbreviation read_domain_seed_item_refines := read_domain_seed_item.
-
-Abbreviation read_domain_birth_item_refines := read_domain_birth_item.
-
-Abbreviation lr0_item_next_symbol_transition_spec_refines := lr0_item_next_symbol_transition_spec.
-
-Abbreviation lr0_item_next_symbol_transition_refines := lr0_item_next_symbol_transition.
-
-Abbreviation lr0_item_prefix_transition_spec_refines := lr0_item_prefix_transition_spec.
-
-Abbreviation lr0_item_prefix_transition_refines := lr0_item_prefix_transition.
-
-Abbreviation Read_from_lr0_item_nullable_prefix_terminal_refines := Read_from_lr0_item_nullable_prefix_terminal.
-
-Abbreviation lr0_item_terminal_read_path_spec_refines := lr0_item_terminal_read_path_spec.
-
-Abbreviation lr0_item_plain_terminal_image_path_bounded_refines := lr0_item_plain_terminal_image_path_bounded.
-
-Abbreviation lr0_item_plain_terminal_image_path_refines := lr0_item_plain_terminal_image_path.
-
-Abbreviation Read_from_lr0_item_plain_terminal_image_refines := Read_from_lr0_item_plain_terminal_image.
-
-Abbreviation Read_from_lr0_item_rm_terminal_image_refines := Read_from_lr0_item_rm_terminal_image.
-
-Abbreviation Read_from_lr0_item_next_terminal_refines := Read_from_lr0_item_next_terminal.
-
-Abbreviation Follow_read_from_lr0_item_next_terminal_to_closure_refines := Follow_read_from_lr0_item_next_terminal_to_closure.
-
-Abbreviation Follow_includes_from_lr0_item_empty_to_closure_refines := Follow_includes_from_lr0_item_empty_to_closure.
-
-Abbreviation Follow_includes_from_lr0_item_nullable_to_closure_refines := Follow_includes_from_lr0_item_nullable_to_closure.
-
-Abbreviation Follow_read_birth_from_read_domain_to_closure_refines := Follow_read_birth_from_read_domain_to_closure.
-
-Abbreviation Follow_read_nullable_birth_from_read_domain_to_closure_refines := Follow_read_nullable_birth_from_read_domain_to_closure.
-
-Abbreviation Follow_read_rm_birth_from_read_domain_to_closure_refines := Follow_read_rm_birth_from_read_domain_to_closure.
-
-Abbreviation Follow_empty_birth_from_read_domain_to_closure_refines := Follow_empty_birth_from_read_domain_to_closure.
-
-Abbreviation Follow_nullable_birth_from_read_domain_to_closure_refines := Follow_nullable_birth_from_read_domain_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_read_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_image_read_to_closure_by_domain.
-
-Abbreviation marked_follow_derivation_after_start_birth_nullable_read_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_nullable_read_to_closure_by_domain.
-
-Abbreviation marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_empty_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_image_empty_to_closure_by_domain.
-
-Abbreviation marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain.
-
-Abbreviation Follow_sem_parent_from_after_start_derivation_refines := Follow_sem_parent_from_after_start_derivation.
-
-Abbreviation Follow_closure_parent_from_after_start_derivation_refines := Follow_closure_parent_from_after_start_derivation.
-
-Abbreviation Follow_includes_to_closure_refines := Follow_includes_to_closure.
-
-Abbreviation Follow_augmented_start_to_closure_refines := Follow_augmented_start_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_root_to_closure_refines := marked_follow_derivation_after_start_birth_image_root_to_closure.
-
-Abbreviation rm_steps_n_suffix_terminal_image_spec_refines := rm_steps_n_suffix_terminal_image_spec.
-
-Abbreviation rm_steps_n_suffix_terminal_image_refines := rm_steps_n_suffix_terminal_image.
-
-Abbreviation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain_refines := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain.
-
-Abbreviation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih_refines := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih.
-
-Abbreviation marked_follow_derivation_after_start_birth_semantic_spec_refines := marked_follow_derivation_after_start_birth_semantic_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_semantic_to_sem_refines := marked_follow_derivation_after_start_birth_semantic_to_sem.
-
-Abbreviation marked_follow_derivation_after_start_birth_semantic_to_closure_refines := marked_follow_derivation_after_start_birth_semantic_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_birth_semantic_refines := marked_follow_derivation_after_start_birth_semantic_refines.
-
-Abbreviation Follow_sem_includes_step_refines := Follow_sem_includes_step.
-
-Abbreviation Follow_closure_to_sem_by_viable_refines := Follow_closure_to_sem_by_viable.
-
-Abbreviation Follow_impl_to_sem_by_viable_refines := Follow_impl_to_sem_by_viable.
-
-Abbreviation Follow_closure_to_sem_by_lr0_viable_refines := Follow_closure_to_sem_by_lr0_viable.
-
-Abbreviation Follow_impl_to_sem_by_lr0_viable_refines := Follow_impl_to_sem_by_lr0_viable.
-
-Abbreviation Follow_productive_viable_refines := Follow_productive_viable.
-
-Abbreviation Follow_closure_to_sem_productive_refines := Follow_closure_to_sem_productive.
-
-Abbreviation Follow_impl_to_sem_productive_refines := Follow_impl_to_sem_productive.
-
-Abbreviation Follow_closure_sem_correct_productive_refines := Follow_closure_sem_correct_productive.
-
-Abbreviation Follow_bang_sem_correct_productive_refines := Follow_bang_sem_correct_productive.
-
-Abbreviation marked_rm_to_rm_steps_refines := marked_rm_to_rm_steps.
-
-Abbreviation rm_steps_to_marked_rm_refines := rm_steps_to_marked_rm.
-
-Abbreviation marked_rm_nullable_suffix_refines := marked_rm_nullable_suffix.
-
-Abbreviation Follow_sem_to_marked_follow_refines := Follow_sem_to_marked_follow.
-
-Abbreviation marked_follow_to_Follow_sem_refines := marked_follow_to_Follow_sem.
-
-Abbreviation marked_follow_correct_refines := marked_follow_correct.
-
-Abbreviation marked_rm_derivation_spec_refines := marked_rm_derivation_spec.
-
-Abbreviation marked_rm_derivation_refines := marked_rm_derivation.
-
-Abbreviation marked_rm_derivation_to_marked_refines := marked_rm_derivation_to_marked.
-
-Abbreviation marked_rm_derivation_correct_refines := marked_rm_derivation_correct.
-
-Abbreviation marked_follow_derivation_spec_refines := marked_follow_derivation_spec.
-
-Abbreviation marked_follow_derivation_refines := marked_follow_derivation.
-
-Abbreviation marked_follow_derivation_to_marked_refines := marked_follow_derivation_to_marked.
-
-Abbreviation marked_follow_derivation_to_sem_refines := marked_follow_derivation_to_sem.
-
-Abbreviation marked_follow_derivation_correct_refines := marked_follow_derivation_correct.
-
-Abbreviation Follow_sem_derivation_refines := Follow_sem_derivation.
-
-Abbreviation marked_follow_derivation_after_start_spec_refines := marked_follow_derivation_after_start_spec.
-
-Abbreviation marked_follow_derivation_after_start_refines := marked_follow_derivation_after_start.
-
-Abbreviation Follow_sem_derivation_after_start_refines := Follow_sem_derivation_after_start.
-
-Abbreviation marked_follow_derivation_after_start_to_sem_refines := marked_follow_derivation_after_start_to_sem.
-
-Abbreviation marked_follow_derivation_after_start_correct_refines := marked_follow_derivation_after_start_correct.
-
-Abbreviation marked_follow_derivation_after_start_last_step_spec_refines := marked_follow_derivation_after_start_last_step_spec.
-
-Abbreviation marked_follow_derivation_after_start_last_step_refines := marked_follow_derivation_after_start_last_step.
-
-Abbreviation marked_follow_derivation_after_start_last_step_to_sem_refines := marked_follow_derivation_after_start_last_step_to_sem.
-
-Abbreviation Follow_sem_derivation_after_start_last_step_refines := Follow_sem_derivation_after_start_last_step.
-
-Abbreviation marked_follow_derivation_after_start_last_step_correct_refines := marked_follow_derivation_after_start_last_step_correct.
-
-Abbreviation marked_follow_derivation_after_start_birth_split_spec_refines := marked_follow_derivation_after_start_birth_split_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_split_refines := marked_follow_derivation_after_start_birth_split.
-
-Abbreviation marked_follow_derivation_after_start_birth_split_to_last_step_refines := marked_follow_derivation_after_start_birth_split_to_last_step.
-
-Abbreviation marked_follow_derivation_after_start_birth_split_to_sem_refines := marked_follow_derivation_after_start_birth_split_to_sem.
-
-Abbreviation Follow_sem_derivation_after_start_birth_split_refines := Follow_sem_derivation_after_start_birth_split.
-
-Abbreviation marked_follow_derivation_after_start_birth_split_correct_refines := marked_follow_derivation_after_start_birth_split_correct.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_spec_refines := marked_follow_derivation_after_start_birth_image_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_refines := marked_follow_derivation_after_start_birth_image.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_to_birth_split_refines := marked_follow_derivation_after_start_birth_image_to_birth_split.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_to_sem_refines := marked_follow_derivation_after_start_birth_image_to_sem.
-
-Abbreviation Follow_sem_derivation_after_start_birth_image_refines := Follow_sem_derivation_after_start_birth_image.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_correct_refines := marked_follow_derivation_after_start_birth_image_correct.
-
-Abbreviation marked_follow_derivation_after_start_suffix_spec_refines := marked_follow_derivation_after_start_suffix_spec.
-
-Abbreviation marked_follow_derivation_after_start_suffix_to_sem_refines := marked_follow_derivation_after_start_suffix_to_sem.
-
-Abbreviation Follow_sem_to_marked_follow_derivation_after_start_suffix_refines := Follow_sem_to_marked_follow_derivation_after_start_suffix.
-
-Abbreviation marked_follow_derivation_after_start_suffix_correct_refines := marked_follow_derivation_after_start_suffix_correct.
-
-Abbreviation marked_follow_derivation_after_start_suffix_root_to_closure_refines := marked_follow_derivation_after_start_suffix_root_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_occurrence_root_npath_refines := marked_follow_derivation_after_start_occurrence_root_npath.
-
-Abbreviation marked_follow_derivation_after_start_occurrence_npath_refines := marked_follow_derivation_after_start_occurrence_npath.
-
-Abbreviation marked_follow_derivation_after_start_parent_shift_resolver_refines := marked_follow_derivation_after_start_parent_shift_resolver.
-
-Abbreviation marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver_refines := marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver.
-
-Abbreviation Follow_sem_to_closure_by_suffix_parent_shift_resolver_refines := Follow_sem_to_closure_by_suffix_parent_shift_resolver.
-
-Abbreviation Follow_sem_to_impl_by_suffix_parent_shift_resolver_refines := Follow_sem_to_impl_by_suffix_parent_shift_resolver.
-
-Abbreviation Follow_sem_to_closure_by_occurrence_path_refines := Follow_sem_to_closure_by_occurrence_path.
-
-Abbreviation Follow_sem_to_impl_by_occurrence_path_refines := Follow_sem_to_impl_by_occurrence_path.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_parent_to_suffix_refines := marked_follow_derivation_after_start_birth_image_parent_to_suffix.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_parent_resolver_from_suffix_complete_refines := marked_follow_derivation_after_start_birth_image_parent_resolver_from_suffix_complete.
-
-Abbreviation marked_follow_derivation_after_start_birth_domain_spec_refines := marked_follow_derivation_after_start_birth_domain_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_domain_to_image_refines := marked_follow_derivation_after_start_birth_domain_to_image.
-
-Abbreviation marked_follow_derivation_after_start_birth_domain_to_sem_refines := marked_follow_derivation_after_start_birth_domain_to_sem.
-
-Abbreviation marked_follow_derivation_after_start_birth_domain_to_closure_refines := marked_follow_derivation_after_start_birth_domain_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_birth_domain_refines := marked_follow_derivation_after_start_birth_domain_refines.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers_refines := marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_empty_resolver_from_parent_shift_refines := marked_follow_derivation_after_start_birth_image_empty_resolver_from_parent_shift.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_read_resolver_from_parent_shift_refines := marked_follow_derivation_after_start_birth_image_read_resolver_from_parent_shift.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift_resolvers_refines := marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift_resolvers.
-
-Abbreviation Follow_sem_to_birth_domain_by_parent_shift_resolvers_refines := Follow_sem_to_birth_domain_by_parent_shift_resolvers.
-
-Abbreviation Follow_sem_to_closure_by_parent_shift_resolvers_refines := Follow_sem_to_closure_by_parent_shift_resolvers.
-
-Abbreviation Follow_sem_to_impl_by_parent_shift_resolvers_refines := Follow_sem_to_impl_by_parent_shift_resolvers.
-
-Abbreviation marked_follow_derivation_after_start_birth_parent_shift_spec_refines := marked_follow_derivation_after_start_birth_parent_shift_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_image_refines := marked_follow_derivation_after_start_birth_parent_shift_to_image.
-
-Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_domain_refines := marked_follow_derivation_after_start_birth_parent_shift_to_domain.
-
-Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_sem_refines := marked_follow_derivation_after_start_birth_parent_shift_to_sem.
-
-Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_closure_refines := marked_follow_derivation_after_start_birth_parent_shift_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_birth_parent_shift_refines := marked_follow_derivation_after_start_birth_parent_shift_refines.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolvers_refines := marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolvers.
-
-Abbreviation Follow_sem_to_birth_parent_shift_by_resolvers_refines := Follow_sem_to_birth_parent_shift_by_resolvers.
-
-Abbreviation Follow_sem_to_closure_by_birth_parent_shift_resolvers_refines := Follow_sem_to_closure_by_birth_parent_shift_resolvers.
-
-Abbreviation Follow_sem_to_impl_by_birth_parent_shift_resolvers_refines := Follow_sem_to_impl_by_birth_parent_shift_resolvers.
-
-Abbreviation Follow_sem_to_birth_parent_shift_by_suffix_complete_and_resolvers_refines := Follow_sem_to_birth_parent_shift_by_suffix_complete_and_resolvers.
-
-Abbreviation Follow_sem_to_closure_by_suffix_complete_and_resolvers_refines := Follow_sem_to_closure_by_suffix_complete_and_resolvers.
-
-Abbreviation Follow_sem_to_impl_by_suffix_complete_and_resolvers_refines := Follow_sem_to_impl_by_suffix_complete_and_resolvers.
-
-Abbreviation Follow_closure_to_marked_by_lr0_viable_refines := Follow_closure_to_marked_by_lr0_viable.
-
-Abbreviation Follow_impl_to_marked_by_lr0_viable_refines := Follow_impl_to_marked_by_lr0_viable.
-
-Abbreviation Follow_impl_to_abs_refines := Follow_impl_to_abs.
-
-Abbreviation Follow_abs_to_impl_refines := Follow_abs_to_impl.
-
-Abbreviation Follow_refines := Follow_refines.
-
-End Refine.
-
-Module API.
-
-Abbreviation incl_deps := incl_deps.
-
-Abbreviation Follow_closure := Follow_closure.
-
-Abbreviation Follow_sem := Follow_sem.
-
-Abbreviation Follow_read_seed_path_spec := Follow_read_seed_path_spec.
-
-Abbreviation Follow_read_seed_context_spec := Follow_read_seed_context_spec.
-
-Abbreviation Follow_read_seed_lr0_context_spec := Follow_read_seed_lr0_context_spec.
-
-Abbreviation lr0_item_next_symbol_transition_spec := lr0_item_next_symbol_transition_spec.
-
-Abbreviation lr0_item_prefix_transition_spec := lr0_item_prefix_transition_spec.
-
-Abbreviation lr0_item_terminal_read_path_spec := lr0_item_terminal_read_path_spec.
-
-Abbreviation Follow := Follow.
-
-Abbreviation marked_rm := marked_rm.
-
-Abbreviation marked_follow := marked_follow.
-
-Abbreviation marked_rm_derivation_spec := marked_rm_derivation_spec.
-
-Abbreviation marked_follow_derivation_spec := marked_follow_derivation_spec.
-
-Abbreviation marked_follow_derivation_after_start_last_step_spec := marked_follow_derivation_after_start_last_step_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_split_spec := marked_follow_derivation_after_start_birth_split_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_spec := marked_follow_derivation_after_start_birth_image_spec.
-
-Abbreviation rm_steps_n_suffix_terminal_image_spec := rm_steps_n_suffix_terminal_image_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_domain.
-
-Abbreviation marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih := marked_follow_derivation_after_start_birth_suffix_image_to_closure_by_parent_shift_and_ih.
-
-Abbreviation marked_follow_derivation_after_start_birth_semantic_spec := marked_follow_derivation_after_start_birth_semantic_spec.
-
-Abbreviation marked_follow_derivation_after_start_suffix_spec := marked_follow_derivation_after_start_suffix_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_domain_spec := marked_follow_derivation_after_start_birth_domain_spec.
-
-Abbreviation marked_follow_derivation_after_start_birth_parent_shift_spec := marked_follow_derivation_after_start_birth_parent_shift_spec.
-
-Abbreviation Follow_bang := Follow_bang.
-
-Abbreviation incl_candidate_from_item_sound_spec := incl_candidate_from_item_sound_spec.
-
-Abbreviation incl_item_deps_sound_spec := incl_item_deps_sound_spec.
-
-Abbreviation incl_deps_sound_spec := incl_deps_sound_spec.
-
-Abbreviation incl_deps_sound := incl_deps_sound.
-
-Abbreviation incl_deps_complete := incl_deps_complete.
-
-Abbreviation Follow_bang_correct := Follow_bang_correct.
-
-Abbreviation Follow_sem_nullable_suffix := Follow_sem_nullable_suffix.
-
-Abbreviation Follow_read_seed_path := Follow_read_seed_path.
-
-Abbreviation Follow_read_seed_context := Follow_read_seed_context.
-
-Abbreviation Follow_read_seed_lr0_context := Follow_read_seed_lr0_context.
-
-Abbreviation Follow_read_seed_path_to_sem := Follow_read_seed_path_to_sem.
-
-Abbreviation Follow_read_seed_lr0_context_to_sem := Follow_read_seed_lr0_context_to_sem.
-
-Abbreviation Follow_read_bang_to_closure := Follow_read_bang_to_closure.
-
-Abbreviation Follow_read_to_closure := Follow_read_to_closure.
-
-Abbreviation read_domain_seed_item := read_domain_seed_item.
-
-Abbreviation read_domain_birth_item := read_domain_birth_item.
-
-Abbreviation lr0_item_next_symbol_transition := lr0_item_next_symbol_transition.
-
-Abbreviation lr0_item_prefix_transition := lr0_item_prefix_transition.
-
-Abbreviation Read_from_lr0_item_nullable_prefix_terminal := Read_from_lr0_item_nullable_prefix_terminal.
-
-Abbreviation lr0_item_plain_terminal_image_path := lr0_item_plain_terminal_image_path.
-
-Abbreviation Read_from_lr0_item_plain_terminal_image := Read_from_lr0_item_plain_terminal_image.
-
-Abbreviation Read_from_lr0_item_rm_terminal_image := Read_from_lr0_item_rm_terminal_image.
-
-Abbreviation Read_from_lr0_item_next_terminal := Read_from_lr0_item_next_terminal.
-
-Abbreviation Follow_read_from_lr0_item_next_terminal_to_closure := Follow_read_from_lr0_item_next_terminal_to_closure.
-
-Abbreviation Follow_includes_from_lr0_item_empty_to_closure := Follow_includes_from_lr0_item_empty_to_closure.
-
-Abbreviation Follow_includes_from_lr0_item_nullable_to_closure := Follow_includes_from_lr0_item_nullable_to_closure.
-
-Abbreviation Follow_read_birth_from_read_domain_to_closure := Follow_read_birth_from_read_domain_to_closure.
-
-Abbreviation Follow_read_nullable_birth_from_read_domain_to_closure := Follow_read_nullable_birth_from_read_domain_to_closure.
-
-Abbreviation Follow_read_rm_birth_from_read_domain_to_closure := Follow_read_rm_birth_from_read_domain_to_closure.
-
-Abbreviation Follow_empty_birth_from_read_domain_to_closure := Follow_empty_birth_from_read_domain_to_closure.
-
-Abbreviation Follow_nullable_birth_from_read_domain_to_closure := Follow_nullable_birth_from_read_domain_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_read_to_closure_by_domain := marked_follow_derivation_after_start_birth_image_read_to_closure_by_domain.
-
-Abbreviation marked_follow_derivation_after_start_birth_nullable_read_to_closure_by_domain := marked_follow_derivation_after_start_birth_nullable_read_to_closure_by_domain.
-
-Abbreviation marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain := marked_follow_derivation_after_start_birth_rm_read_to_closure_by_domain.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_empty_to_closure_by_domain := marked_follow_derivation_after_start_birth_image_empty_to_closure_by_domain.
-
-Abbreviation marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain := marked_follow_derivation_after_start_birth_nullable_to_closure_by_domain.
-
-Abbreviation Follow_sem_parent_from_after_start_derivation := Follow_sem_parent_from_after_start_derivation.
-
-Abbreviation Follow_closure_parent_from_after_start_derivation := Follow_closure_parent_from_after_start_derivation.
-
-Abbreviation Follow_includes_to_closure := Follow_includes_to_closure.
-
-Abbreviation Follow_augmented_start_to_closure := Follow_augmented_start_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_root_to_closure := marked_follow_derivation_after_start_birth_image_root_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_birth_semantic_to_sem := marked_follow_derivation_after_start_birth_semantic_to_sem.
-
-Abbreviation marked_follow_derivation_after_start_birth_semantic_to_closure := marked_follow_derivation_after_start_birth_semantic_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_birth_semantic_refines := marked_follow_derivation_after_start_birth_semantic_refines.
-
-Abbreviation marked_follow_derivation_after_start_suffix_to_sem := marked_follow_derivation_after_start_suffix_to_sem.
-
-Abbreviation Follow_sem_to_marked_follow_derivation_after_start_suffix := Follow_sem_to_marked_follow_derivation_after_start_suffix.
-
-Abbreviation marked_follow_derivation_after_start_suffix_correct := marked_follow_derivation_after_start_suffix_correct.
-
-Abbreviation marked_follow_derivation_after_start_suffix_root_to_closure := marked_follow_derivation_after_start_suffix_root_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_occurrence_root_npath := marked_follow_derivation_after_start_occurrence_root_npath.
-
-Abbreviation marked_follow_derivation_after_start_occurrence_npath := marked_follow_derivation_after_start_occurrence_npath.
-
-Abbreviation marked_follow_derivation_after_start_parent_shift_resolver := marked_follow_derivation_after_start_parent_shift_resolver.
-
-Abbreviation marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver := marked_follow_derivation_after_start_suffix_to_closure_by_parent_shift_resolver.
-
-Abbreviation Follow_sem_to_closure_by_suffix_parent_shift_resolver := Follow_sem_to_closure_by_suffix_parent_shift_resolver.
-
-Abbreviation Follow_sem_to_impl_by_suffix_parent_shift_resolver := Follow_sem_to_impl_by_suffix_parent_shift_resolver.
-
-Abbreviation Follow_sem_to_closure_by_occurrence_path := Follow_sem_to_closure_by_occurrence_path.
-
-Abbreviation Follow_sem_to_impl_by_occurrence_path := Follow_sem_to_impl_by_occurrence_path.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_parent_to_suffix := marked_follow_derivation_after_start_birth_image_parent_to_suffix.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_parent_resolver_from_suffix_complete := marked_follow_derivation_after_start_birth_image_parent_resolver_from_suffix_complete.
-
-Abbreviation Follow_sem_includes_step := Follow_sem_includes_step.
-
-Abbreviation Follow_closure_to_sem_by_viable := Follow_closure_to_sem_by_viable.
-
-Abbreviation Follow_impl_to_sem_by_viable := Follow_impl_to_sem_by_viable.
-
-Abbreviation Follow_closure_to_sem_by_lr0_viable := Follow_closure_to_sem_by_lr0_viable.
-
-Abbreviation Follow_impl_to_sem_by_lr0_viable := Follow_impl_to_sem_by_lr0_viable.
-
-Abbreviation Follow_productive_viable := Follow_productive_viable.
-
-Abbreviation Follow_closure_to_sem_productive := Follow_closure_to_sem_productive.
-
-Abbreviation Follow_impl_to_sem_productive := Follow_impl_to_sem_productive.
-
-Abbreviation Follow_closure_sem_correct_productive := Follow_closure_sem_correct_productive.
-
-Abbreviation Follow_bang_sem_correct_productive := Follow_bang_sem_correct_productive.
-
-Abbreviation marked_rm_to_rm_steps := marked_rm_to_rm_steps.
-
-Abbreviation rm_steps_to_marked_rm := rm_steps_to_marked_rm.
-
-Abbreviation marked_rm_nullable_suffix := marked_rm_nullable_suffix.
-
-Abbreviation Follow_sem_to_marked_follow := Follow_sem_to_marked_follow.
-
-Abbreviation marked_follow_to_Follow_sem := marked_follow_to_Follow_sem.
-
-Abbreviation marked_follow_correct := marked_follow_correct.
-
-Abbreviation marked_rm_derivation := marked_rm_derivation.
-
-Abbreviation marked_rm_derivation_to_marked := marked_rm_derivation_to_marked.
-
-Abbreviation marked_rm_derivation_correct := marked_rm_derivation_correct.
-
-Abbreviation marked_follow_derivation := marked_follow_derivation.
-
-Abbreviation marked_follow_derivation_to_marked := marked_follow_derivation_to_marked.
-
-Abbreviation marked_follow_derivation_to_sem := marked_follow_derivation_to_sem.
-
-Abbreviation marked_follow_derivation_correct := marked_follow_derivation_correct.
-
-Abbreviation Follow_sem_derivation := Follow_sem_derivation.
-
-Abbreviation marked_follow_derivation_after_start_spec := marked_follow_derivation_after_start_spec.
-
-Abbreviation marked_follow_derivation_after_start := marked_follow_derivation_after_start.
-
-Abbreviation Follow_sem_derivation_after_start := Follow_sem_derivation_after_start.
-
-Abbreviation marked_follow_derivation_after_start_to_sem := marked_follow_derivation_after_start_to_sem.
-
-Abbreviation marked_follow_derivation_after_start_correct := marked_follow_derivation_after_start_correct.
-
-Abbreviation marked_follow_derivation_after_start_last_step := marked_follow_derivation_after_start_last_step.
-
-Abbreviation marked_follow_derivation_after_start_last_step_to_sem := marked_follow_derivation_after_start_last_step_to_sem.
-
-Abbreviation Follow_sem_derivation_after_start_last_step := Follow_sem_derivation_after_start_last_step.
-
-Abbreviation marked_follow_derivation_after_start_last_step_correct := marked_follow_derivation_after_start_last_step_correct.
-
-Abbreviation marked_follow_derivation_after_start_birth_split := marked_follow_derivation_after_start_birth_split.
-
-Abbreviation marked_follow_derivation_after_start_birth_split_to_last_step := marked_follow_derivation_after_start_birth_split_to_last_step.
-
-Abbreviation marked_follow_derivation_after_start_birth_split_to_sem := marked_follow_derivation_after_start_birth_split_to_sem.
-
-Abbreviation Follow_sem_derivation_after_start_birth_split := Follow_sem_derivation_after_start_birth_split.
-
-Abbreviation marked_follow_derivation_after_start_birth_split_correct := marked_follow_derivation_after_start_birth_split_correct.
-
-Abbreviation marked_follow_derivation_after_start_birth_image := marked_follow_derivation_after_start_birth_image.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_to_birth_split := marked_follow_derivation_after_start_birth_image_to_birth_split.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_to_sem := marked_follow_derivation_after_start_birth_image_to_sem.
-
-Abbreviation Follow_sem_derivation_after_start_birth_image := Follow_sem_derivation_after_start_birth_image.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_correct := marked_follow_derivation_after_start_birth_image_correct.
-
-Abbreviation marked_follow_derivation_after_start_birth_domain_to_image := marked_follow_derivation_after_start_birth_domain_to_image.
-
-Abbreviation marked_follow_derivation_after_start_birth_domain_to_sem := marked_follow_derivation_after_start_birth_domain_to_sem.
-
-Abbreviation marked_follow_derivation_after_start_birth_domain_to_closure := marked_follow_derivation_after_start_birth_domain_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_birth_domain_refines := marked_follow_derivation_after_start_birth_domain_refines.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers := marked_follow_derivation_after_start_birth_image_to_domain_by_resolvers.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_empty_resolver_from_parent_shift := marked_follow_derivation_after_start_birth_image_empty_resolver_from_parent_shift.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_read_resolver_from_parent_shift := marked_follow_derivation_after_start_birth_image_read_resolver_from_parent_shift.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift_resolvers := marked_follow_derivation_after_start_birth_image_to_domain_by_parent_shift_resolvers.
-
-Abbreviation Follow_sem_to_birth_domain_by_parent_shift_resolvers := Follow_sem_to_birth_domain_by_parent_shift_resolvers.
-
-Abbreviation Follow_sem_to_closure_by_parent_shift_resolvers := Follow_sem_to_closure_by_parent_shift_resolvers.
-
-Abbreviation Follow_sem_to_impl_by_parent_shift_resolvers := Follow_sem_to_impl_by_parent_shift_resolvers.
-
-Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_image := marked_follow_derivation_after_start_birth_parent_shift_to_image.
-
-Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_domain := marked_follow_derivation_after_start_birth_parent_shift_to_domain.
-
-Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_sem := marked_follow_derivation_after_start_birth_parent_shift_to_sem.
-
-Abbreviation marked_follow_derivation_after_start_birth_parent_shift_to_closure := marked_follow_derivation_after_start_birth_parent_shift_to_closure.
-
-Abbreviation marked_follow_derivation_after_start_birth_parent_shift_refines := marked_follow_derivation_after_start_birth_parent_shift_refines.
-
-Abbreviation marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolvers := marked_follow_derivation_after_start_birth_image_to_parent_shift_by_resolvers.
-
-Abbreviation Follow_sem_to_birth_parent_shift_by_resolvers := Follow_sem_to_birth_parent_shift_by_resolvers.
-
-Abbreviation Follow_sem_to_closure_by_birth_parent_shift_resolvers := Follow_sem_to_closure_by_birth_parent_shift_resolvers.
-
-Abbreviation Follow_sem_to_impl_by_birth_parent_shift_resolvers := Follow_sem_to_impl_by_birth_parent_shift_resolvers.
-
-Abbreviation Follow_sem_to_birth_parent_shift_by_suffix_complete_and_resolvers := Follow_sem_to_birth_parent_shift_by_suffix_complete_and_resolvers.
-
-Abbreviation Follow_sem_to_closure_by_suffix_complete_and_resolvers := Follow_sem_to_closure_by_suffix_complete_and_resolvers.
-
-Abbreviation Follow_sem_to_impl_by_suffix_complete_and_resolvers := Follow_sem_to_impl_by_suffix_complete_and_resolvers.
-
-Abbreviation Follow_closure_to_marked_by_lr0_viable := Follow_closure_to_marked_by_lr0_viable.
-
-Abbreviation Follow_impl_to_marked_by_lr0_viable := Follow_impl_to_marked_by_lr0_viable.
-
-Abbreviation Follow_impl_to_abs := Follow_impl_to_abs.
-
-Abbreviation Follow_abs_to_impl := Follow_abs_to_impl.
-
-Abbreviation Follow_refines := Follow_refines.
-
-End API.
 
 End Follow.
 
@@ -12074,8 +9126,8 @@ Lemma LB_sound q it candidate
   (IN : candidate ∈ LB q it)
   : candidate ∈ D /\ (exists p, exists A, candidate = (p, A) /\ it.(i_lhs) = A /\ npathb it.(i_left) p q = true).
 Proof.
-  unfold LB in IN. pose proof (list_bind_sound _ _ _ IN) as (source & IN_D & IN_CANDIDATE).
-  pose proof (LB_candidate_sound q it source candidate IN_CANDIDATE) as (EQ_CANDIDATE & p & A & EQ_SOURCE & LHS & PATH).
+  unfold LB in IN. use list_bind_sound as (source & IN_D & IN_CANDIDATE) with IN.
+  use LB_candidate_sound as (EQ_CANDIDATE & p & A & EQ_SOURCE & LHS & PATH) with IN_CANDIDATE.
   subst candidate. split; [exact IN_D | ]. exists p. exists A. splits; [exact EQ_SOURCE | exact LHS | exact PATH].
 Qed.
 
@@ -12094,8 +9146,8 @@ Lemma LA_impl_sound q it t
   (IN : t ∈ LA_impl q it)
   : exists p, exists A, (p, A) ∈ D /\ it.(i_lhs) = A /\ npathb it.(i_left) p q = true /\ t ∈ Follow_bang (p, A).
 Proof.
-  unfold LA_impl in IN. pose proof (list_bind_sound _ _ _ IN) as (node & IN_LB & IN_FOLLOW).
-  pose proof (LB_sound q it node IN_LB) as (IN_D & p & A & EQ_NODE & LHS & PATH).
+  unfold LA_impl in IN. use list_bind_sound as (node & IN_LB & IN_FOLLOW) with IN.
+  use LB_sound as (IN_D & p & A & EQ_NODE & LHS & PATH) with IN_LB.
   subst node. exists p. exists A. splits; [exact IN_D | exact LHS | exact PATH | exact IN_FOLLOW].
 Qed.
 
@@ -12115,7 +9167,7 @@ Lemma LA_impl_no_start_prime_lhs q it t
   (IN : t ∈ LA_impl q it)
   : it.(i_lhs) ≠ start_prime.
 Proof.
-  intros EQ_LHS. pose proof (LA_impl_sound q it t IN) as (p & A & IN_D & LHS & PATH & IN_FOLLOW).
+  intros EQ_LHS. use LA_impl_sound as (p & A & IN_D & LHS & PATH & IN_FOLLOW) with IN.
   rewrite <- LHS in IN_D. rewrite EQ_LHS in IN_D.
   eapply read_domain_no_start_prime. exact IN_D.
 Qed.
@@ -12124,7 +9176,7 @@ Theorem LA_impl_correct q it t
   : t ∈ LA_impl q it <-> (exists p, exists A, (p, A) ∈ D /\ it.(i_lhs) = A /\ npath it.(i_left) p q /\ t ∈ Follow_bang (p, A)).
 Proof.
   split.
-  - intros IN. pose proof (LA_impl_sound q it t IN) as (p & A & IN_D & LHS & PATHB & IN_FOLLOW).
+  - intros IN. use LA_impl_sound as (p & A & IN_D & LHS & PATHB & IN_FOLLOW) with IN.
     rewrite npathb_correct in PATHB. exists p. exists A. splits; [exact IN_D | exact LHS | exact PATHB | exact IN_FOLLOW].
   - intros (p & A & IN_D & LHS & PATH & IN_FOLLOW). eapply LA_impl_complete; [exact IN_D | exact LHS | exact PATH | exact IN_FOLLOW].
 Qed.
@@ -12177,7 +9229,7 @@ Proof.
   destruct IN as (p & A & IN_D & LHS & PATH_ITEM & FOLLOW).
   unfold Follow_sem in FOLLOW.
   destruct FOLLOW as (alpha & z & STEPS & PATH_ALPHA).
-  pose proof (npath_app alpha it.(i_left) nq0 p q PATH_ALPHA PATH_ITEM) as PATH_FULL.
+  use npath_app as PATH_FULL with PATH_ALPHA PATH_ITEM.
   econstructor; [exact IN_D | exact LHS | exact PATH_ITEM | exact STEPS | exact PATH_ALPHA | exact PATH_FULL].
 Qed.
 
@@ -12199,7 +9251,7 @@ Proof.
   destruct IN as (p & A & IN_D & LHS & PATH_ITEM & MARKED_FOLLOW).
   unfold marked_follow in MARKED_FOLLOW.
   destruct MARKED_FOLLOW as (alpha & z & MARKED & PATH_ALPHA).
-  pose proof (npath_app alpha it.(i_left) nq0 p q PATH_ALPHA PATH_ITEM) as PATH_FULL.
+  use npath_app as PATH_FULL with PATH_ALPHA PATH_ITEM.
   econstructor; [exact IN_D | exact LHS | exact PATH_ITEM |
     exact MARKED | exact PATH_ALPHA | exact PATH_FULL].
 Qed.
@@ -12246,9 +9298,9 @@ Lemma LA_marked_derivation q it t
   (IN : LA_marked q it t)
   : LA_marked_derivation_spec q it t.
 Proof.
-  pose proof (LA_marked_witness q it t IN) as WITNESS.
+  use LA_marked_witness as WITNESS with IN.
   destruct WITNESS as [p A alpha z IN_D LHS PATH_ITEM MARKED PATH_ALPHA PATH_FULL].
-  pose proof (marked_rm_derivation A alpha (inr t :: map inr z) MARKED) as DERIVATION.
+  use marked_rm_derivation as DERIVATION with MARKED.
   destruct DERIVATION as [n STEPS_N].
   econstructor; [exact IN_D | exact LHS | exact PATH_ITEM | exact STEPS_N | exact PATH_ALPHA | exact PATH_FULL].
 Qed.
@@ -12306,8 +9358,7 @@ Theorem LA_marked_derivation_after_start q it t
   : LA_marked_derivation_after_start_spec q it t.
 Proof.
   destruct DERIVATION as [p A alpha z n IN_D LHS PATH_ITEM STEPS_N PATH_ALPHA PATH_FULL].
-  pose proof (rm_steps_n_start_case n
-    (alpha ++ inl A :: inr t :: map inr z) STEPS_N) as CASE.
+  use (rm_steps_n_start_case n (alpha ++ inl A :: inr t :: map inr z)) as CASE with STEPS_N.
   destruct CASE as [EQ_N EQ_TARGET | n' EQ_N REST].
   - exfalso.
     assert (LEN : length (alpha ++ inl A :: inr t :: map inr z) = length ([@inl N' T' start_prime])).
@@ -12328,9 +9379,9 @@ Theorem LA_sem_derivation_after_start q it t
 Proof.
   unfold LA_sem in IN.
   destruct IN as (p & A & IN_D & LHS & PATH_ITEM & FOLLOW).
-  pose proof (Follow_sem_derivation_after_start (p, A) t FOLLOW) as DERIVATION.
+  use Follow_sem_derivation_after_start as DERIVATION with FOLLOW.
   destruct DERIVATION as [alpha z n STEPS_AFTER_START PATH_ALPHA].
-  pose proof (npath_app alpha it.(i_left) nq0 p q PATH_ALPHA PATH_ITEM) as PATH_FULL.
+  use npath_app as PATH_FULL with PATH_ALPHA PATH_ITEM.
   econstructor.
   - exact IN_D.
   - exact LHS.
@@ -12497,217 +9548,9 @@ Proof.
   eapply Follow_impl_to_marked_by_lr0_viable; [exact VIABLE | exact FOLLOW].
 Qed.
 
-Module Abs.
 
-Abbreviation LB := LB.
 
-Abbreviation LA_closure := LA_closure.
 
-Abbreviation LA_sem := LA_sem.
-
-Abbreviation LA_marked := LA_marked.
-
-Abbreviation LA := LA.
-
-Abbreviation LA_sem_witness_spec := LA_sem_witness_spec.
-
-Abbreviation LA_marked_witness_spec := LA_marked_witness_spec.
-
-Abbreviation LA_marked_derivation_spec := LA_marked_derivation_spec.
-
-Abbreviation LA_marked_derivation_after_start_spec := LA_marked_derivation_after_start_spec.
-
-Abbreviation LA_impl := LA_impl.
-
-End Abs.
-
-Module Impl.
-
-Abbreviation LB_candidate := LB_candidate.
-
-Abbreviation LB := LB.
-
-Abbreviation LA_impl := LA_impl.
-
-End Impl.
-
-Module Refine.
-
-Abbreviation LB_candidate_sound_refines := LB_candidate_sound.
-
-Abbreviation LB_candidate_complete_refines := LB_candidate_complete.
-
-Abbreviation LB_sound_refines := LB_sound.
-
-Abbreviation LB_complete_refines := LB_complete.
-
-Abbreviation LA_impl_sound_refines := LA_impl_sound.
-
-Abbreviation LA_impl_complete_refines := LA_impl_complete.
-
-Abbreviation LA_impl_no_start_prime_lhs_refines := LA_impl_no_start_prime_lhs.
-
-Abbreviation LA_impl_correct_refines := LA_impl_correct.
-
-Abbreviation LA_impl_to_abs_refines := LA_impl_to_abs.
-
-Abbreviation LA_abs_to_impl_refines := LA_abs_to_impl.
-
-Abbreviation LA_refines := LA_refines.
-
-Abbreviation LA_sem_witness_spec_refines := LA_sem_witness_spec.
-
-Abbreviation LA_sem_witness_refines := LA_sem_witness.
-
-Abbreviation LA_marked_witness_spec_refines := LA_marked_witness_spec.
-
-Abbreviation LA_marked_witness_refines := LA_marked_witness.
-
-Abbreviation LA_marked_witness_to_marked_refines := LA_marked_witness_to_marked.
-
-Abbreviation LA_marked_witness_to_sem_refines := LA_marked_witness_to_sem.
-
-Abbreviation LA_marked_witness_correct_refines := LA_marked_witness_correct.
-
-Abbreviation LA_marked_derivation_spec_refines := LA_marked_derivation_spec.
-
-Abbreviation LA_marked_derivation_refines := LA_marked_derivation.
-
-Abbreviation LA_marked_derivation_to_witness_refines := LA_marked_derivation_to_witness.
-
-Abbreviation LA_marked_derivation_to_marked_refines := LA_marked_derivation_to_marked.
-
-Abbreviation LA_marked_derivation_to_sem_refines := LA_marked_derivation_to_sem.
-
-Abbreviation LA_marked_derivation_correct_refines := LA_marked_derivation_correct.
-
-Abbreviation LA_marked_derivation_after_start_spec_refines := LA_marked_derivation_after_start_spec.
-
-Abbreviation LA_marked_derivation_after_start_refines := LA_marked_derivation_after_start.
-
-Abbreviation LA_sem_derivation_after_start_refines := LA_sem_derivation_after_start.
-
-Abbreviation LA_marked_derivation_after_start_to_sem_refines := LA_marked_derivation_after_start_to_sem.
-
-Abbreviation LA_marked_derivation_after_start_correct_refines := LA_marked_derivation_after_start_correct.
-
-Abbreviation LA_closure_to_sem_by_follow_sem_refines := LA_closure_to_sem_by_follow_sem.
-
-Abbreviation LA_sem_to_closure_by_follow_sem_refines := LA_sem_to_closure_by_follow_sem.
-
-Abbreviation LA_impl_to_sem_by_follow_sem_refines := LA_impl_to_sem_by_follow_sem.
-
-Abbreviation LA_sem_to_impl_by_follow_sem_refines := LA_sem_to_impl_by_follow_sem.
-
-Abbreviation LA_sem_to_closure_refines := LA_sem_to_closure.
-
-Abbreviation LA_sem_to_impl_refines := LA_sem_to_impl.
-
-Abbreviation LA_impl_to_sem_by_lr0_viable_refines := LA_impl_to_sem_by_lr0_viable.
-
-Abbreviation LA_impl_to_sem_productive_refines := LA_impl_to_sem_productive.
-
-Abbreviation LA_sem_refines_productive_refines := LA_sem_refines_productive.
-
-Abbreviation LA_sem_refines_by_follow_sem_refines := LA_sem_refines_by_follow_sem.
-
-Abbreviation LA_sem_to_marked_refines := LA_sem_to_marked.
-
-Abbreviation LA_marked_to_sem_refines := LA_marked_to_sem.
-
-Abbreviation LA_marked_correct_refines := LA_marked_correct.
-
-Abbreviation LA_impl_to_marked_by_lr0_viable_refines := LA_impl_to_marked_by_lr0_viable.
-
-End Refine.
-
-Module API.
-
-Abbreviation LB := LB.
-
-Abbreviation LA_closure := LA_closure.
-
-Abbreviation LA_sem := LA_sem.
-
-Abbreviation LA_marked := LA_marked.
-
-Abbreviation LA := LA.
-
-Abbreviation LA_impl := LA_impl.
-
-Abbreviation LB_sound := LB_sound.
-
-Abbreviation LB_complete := LB_complete.
-
-Abbreviation LA_impl_correct := LA_impl_correct.
-
-Abbreviation LA_impl_no_start_prime_lhs := LA_impl_no_start_prime_lhs.
-
-Abbreviation LA_impl_to_abs := LA_impl_to_abs.
-
-Abbreviation LA_abs_to_impl := LA_abs_to_impl.
-
-Abbreviation LA_refines := LA_refines.
-
-Abbreviation LA_sem_witness := LA_sem_witness.
-
-Abbreviation LA_marked_witness := LA_marked_witness.
-
-Abbreviation LA_marked_witness_to_marked := LA_marked_witness_to_marked.
-
-Abbreviation LA_marked_witness_to_sem := LA_marked_witness_to_sem.
-
-Abbreviation LA_marked_witness_correct := LA_marked_witness_correct.
-
-Abbreviation LA_marked_derivation := LA_marked_derivation.
-
-Abbreviation LA_marked_derivation_to_witness := LA_marked_derivation_to_witness.
-
-Abbreviation LA_marked_derivation_to_marked := LA_marked_derivation_to_marked.
-
-Abbreviation LA_marked_derivation_to_sem := LA_marked_derivation_to_sem.
-
-Abbreviation LA_marked_derivation_correct := LA_marked_derivation_correct.
-
-Abbreviation LA_marked_derivation_after_start_spec := LA_marked_derivation_after_start_spec.
-
-Abbreviation LA_marked_derivation_after_start := LA_marked_derivation_after_start.
-
-Abbreviation LA_sem_derivation_after_start := LA_sem_derivation_after_start.
-
-Abbreviation LA_marked_derivation_after_start_to_sem := LA_marked_derivation_after_start_to_sem.
-
-Abbreviation LA_marked_derivation_after_start_correct := LA_marked_derivation_after_start_correct.
-
-Abbreviation LA_closure_to_sem_by_follow_sem := LA_closure_to_sem_by_follow_sem.
-
-Abbreviation LA_sem_to_closure_by_follow_sem := LA_sem_to_closure_by_follow_sem.
-
-Abbreviation LA_impl_to_sem_by_follow_sem := LA_impl_to_sem_by_follow_sem.
-
-Abbreviation LA_sem_to_impl_by_follow_sem := LA_sem_to_impl_by_follow_sem.
-
-Abbreviation LA_sem_to_closure := LA_sem_to_closure.
-
-Abbreviation LA_sem_to_impl := LA_sem_to_impl.
-
-Abbreviation LA_impl_to_sem_by_lr0_viable := LA_impl_to_sem_by_lr0_viable.
-
-Abbreviation LA_impl_to_sem_productive := LA_impl_to_sem_productive.
-
-Abbreviation LA_sem_refines_productive := LA_sem_refines_productive.
-
-Abbreviation LA_sem_refines_by_follow_sem := LA_sem_refines_by_follow_sem.
-
-Abbreviation LA_sem_to_marked := LA_sem_to_marked.
-
-Abbreviation LA_marked_to_sem := LA_marked_to_sem.
-
-Abbreviation LA_marked_correct := LA_marked_correct.
-
-Abbreviation LA_impl_to_marked_by_lr0_viable := LA_impl_to_marked_by_lr0_viable.
-
-End API.
 
 End Lookahead.
 
@@ -12874,13 +9717,14 @@ Lemma reduce_LA_sound q t pr
   : reduce_LA_sound_spec q t pr.
 Proof.
   unfold reduce_LA in IN. destruct (state_of q) as [st | ] eqn: STATE; [ | contradiction].
-  pose proof (list_bind_sound _ _ _ IN) as (it & IN_IT & IN_ITEM).
-  pose proof (reduce_LA_item_sound q t it pr IN_ITEM) as (DONE & EQ_PR & PROD & IN_LA).
+  use list_bind_sound as (it & IN_IT & IN_ITEM) with IN.
+  use reduce_LA_item_sound as (DONE & EQ_PR & PROD & IN_LA) with IN_ITEM.
   econstructor.
   - unfold reduceN. rewrite STATE. rewrite EQ_PR. eapply reduce_complete.
     + exact IN_IT.
     + exact DONE.
-    + pose proof (state_of_sound q st STATE) as (IN_Q & _). eapply Q_items_valid; [exact IN_Q | exact IN_IT].
+    + use state_of_sound as (IN_Q & _) with STATE.
+      use Q_items_valid as VALID with IN_Q IN_IT. exact VALID.
   - exact STATE.
   - exact IN_IT.
   - exact DONE.
@@ -12971,7 +9815,7 @@ Theorem reduce_LA_sound_sem_by_lr0_viable
   (IN : pr ∈ reduce_LA q t)
   : reduce_LA_sem_sound_spec q t pr.
 Proof.
-  pose proof (reduce_LA_sound q t pr IN) as SOUND.
+  use reduce_LA_sound as SOUND with IN.
   destruct SOUND as [st it IN_REDUCE STATE IN_IT DONE EQ_PR PROD IN_LA].
   econstructor.
   - exact IN_REDUCE.
@@ -12995,7 +9839,7 @@ Theorem reduce_LA_sound_marked_by_lr0_viable
   (IN : pr ∈ reduce_LA q t)
   : reduce_LA_marked_sound_spec q t pr.
 Proof.
-  pose proof (reduce_LA_sound q t pr IN) as SOUND.
+  use reduce_LA_sound as SOUND with IN.
   destruct SOUND as [st it IN_REDUCE STATE IN_IT DONE EQ_PR PROD IN_LA].
   econstructor.
   - exact IN_REDUCE.
@@ -13019,9 +9863,9 @@ Theorem reduce_LA_marked_witness_by_lr0_viable
   (IN : pr ∈ reduce_LA q t)
   : reduce_LA_marked_witness_spec q t pr.
 Proof.
-  pose proof (reduce_LA_sound_marked_by_lr0_viable VIABLE q t pr IN) as SOUND.
+  use! reduce_LA_sound_marked_by_lr0_viable as SOUND with VIABLE IN.
   destruct SOUND as [st it IN_REDUCE STATE IN_IT DONE EQ_PR PROD IN_LA].
-  pose proof (LA_marked_witness q it t IN_LA) as WITNESS.
+  use LA_marked_witness as WITNESS with IN_LA.
   destruct WITNESS as [p A alpha z IN_D LHS PATH_ITEM MARKED PATH_ALPHA PATH_FULL].
   econstructor.
   - exact IN_REDUCE.
@@ -13050,9 +9894,9 @@ Theorem reduce_LA_marked_derivation_by_lr0_viable
   (IN : pr ∈ reduce_LA q t)
   : reduce_LA_marked_derivation_spec q t pr.
 Proof.
-  pose proof (reduce_LA_sound_marked_by_lr0_viable VIABLE q t pr IN) as SOUND.
+  use! reduce_LA_sound_marked_by_lr0_viable as SOUND with VIABLE IN.
   destruct SOUND as [st it IN_REDUCE STATE IN_IT DONE EQ_PR PROD IN_LA].
-  pose proof (LA_marked_derivation q it t IN_LA) as DERIVATION.
+  use LA_marked_derivation as DERIVATION with IN_LA.
   destruct DERIVATION as [p A alpha z n IN_D LHS PATH_ITEM STEPS_N PATH_ALPHA PATH_FULL].
   econstructor.
   - exact IN_REDUCE.
@@ -13074,10 +9918,10 @@ Theorem reduce_LA_marked_derivation_after_start_by_lr0_viable q t pr
   (IN : pr ∈ reduce_LA q t)
   : reduce_LA_marked_derivation_after_start_spec q t pr.
 Proof.
-  pose proof (reduce_LA_sound_marked_by_lr0_viable VIABLE q t pr IN) as SOUND.
+  use! reduce_LA_sound_marked_by_lr0_viable as SOUND with VIABLE IN.
   destruct SOUND as [st it IN_REDUCE STATE IN_IT DONE EQ_PR PROD IN_LA].
-  pose proof (LA_marked_derivation q it t IN_LA) as DERIVATION.
-  pose proof (LA_marked_derivation_after_start q it t DERIVATION) as AFTER_START.
+  use LA_marked_derivation as DERIVATION with IN_LA.
+  use LA_marked_derivation_after_start as AFTER_START with DERIVATION.
   destruct AFTER_START as [p A alpha z n IN_D LHS PATH_ITEM STEPS_AFTER_START PATH_ALPHA PATH_FULL].
   econstructor.
   - exact IN_REDUCE.
@@ -13160,16 +10004,16 @@ Lemma reduce_LA_no_start_prime_lhs q t pr
   (IN : pr ∈ reduce_LA q t)
   : pr.(p_lhs) ≠ start_prime.
 Proof.
-  intros EQ_LHS. pose proof (reduce_LA_sound q t pr IN) as SOUND.
+  intros EQ_LHS. use reduce_LA_sound as SOUND with IN.
   destruct SOUND as [st it IN_REDUCE STATE IN_IT DONE EQ_PR PROD IN_LA].
-  pose proof (LA_impl_no_start_prime_lhs q it t IN_LA) as NO_START.
+  use LA_impl_no_start_prime_lhs as NO_START with IN_LA.
   rewrite EQ_PR in EQ_LHS. simpl in EQ_LHS. contradiction.
 Qed.
 
 Lemma reduce_LA_no_augmented_prod q t
   : ~ augmented_prod ∈ reduce_LA q t.
 Proof.
-  intros IN. pose proof (reduce_LA_no_start_prime_lhs q t augmented_prod IN) as NO_START.
+  intros IN. use reduce_LA_no_start_prime_lhs as NO_START with IN.
   unfold augmented_prod in NO_START. simpl in NO_START. contradiction NO_START. reflexivity.
 Qed.
 
@@ -13179,7 +10023,7 @@ Lemma reduce_LA_user_lhs q t pr
 Proof.
   destruct pr as [lhs rhs]. destruct lhs as [A | ].
   - exists A. reflexivity.
-  - exfalso. pose proof (reduce_LA_no_start_prime_lhs q t {| p_lhs := None; p_rhs := rhs |} IN) as NO_START.
+  - exfalso. use reduce_LA_no_start_prime_lhs as NO_START with IN.
     unfold start_prime in NO_START. simpl in NO_START. contradiction NO_START. reflexivity.
 Qed.
 
@@ -13193,8 +10037,8 @@ Proof.
   unfold reduce_LA. rewrite STATE. eapply list_bind_complete with (x := it).
   - exact IN_IT.
   - eapply reduce_LA_item_complete; [exact DONE | | exact IN_LA].
-    pose proof (state_of_sound q st STATE) as (IN_Q & _).
-    pose proof (Q_items_valid st IN_Q it IN_IT) as VALID.
+    use state_of_sound as (IN_Q & _) with STATE.
+    use Q_items_valid as VALID with IN_Q IN_IT.
     unfold valid_item, item_prod in VALID. rewrite DONE, app_nil_r in VALID. exact VALID.
 Qed.
 
@@ -13226,7 +10070,7 @@ Lemma reduceN_completed_item q A omega
   : exists st, state_of q = Some st /\ {| i_lhs := A; i_left := omega; i_right := [] |} ∈ st.
 Proof.
   unfold reduceN in IN. destruct (state_of q) as [st | ] eqn: STATE; [ | contradiction].
-  pose proof (reduce_sound st {| p_lhs := A; p_rhs := omega |} IN) as (it & IN_IT & DONE & EQ_PR & PROD).
+  use reduce_sound as (it & IN_IT & DONE & EQ_PR & PROD) with IN.
   destruct it as [A' beta right]. simpl in *. subst right. inv EQ_PR.
   exists st. split; [reflexivity | exact IN_IT].
 Qed.
@@ -13235,7 +10079,7 @@ Theorem reduce_LA_subset_reduceN q t pr
   (IN : pr ∈ reduce_LA q t)
   : pr ∈ reduceN q.
 Proof.
-  pose proof (reduce_LA_sound q t pr IN) as SOUND. destruct SOUND as [st it IN_REDUCE STATE IN_IT DONE EQ_PR PROD IN_LA]. exact IN_REDUCE.
+  use reduce_LA_sound as SOUND with IN. destruct SOUND as [st it IN_REDUCE STATE IN_IT DONE EQ_PR PROD IN_LA]. exact IN_REDUCE.
 Qed.
 
 Definition reduce_edge (lookahead : T') (q : nat) (q' : nat) : Prop :=
@@ -13280,7 +10124,7 @@ Lemma reduce_guard_by_la_sem_and_follow_sem(alpha : list V') (omega : list V') (
   (STEP : dN p (inl A) = Some dst')
   : {| p_lhs := A; p_rhs := omega |} ∈ reduce_LA dst (parser_lookahead rest).
 Proof.
-  pose proof (reduceN_completed_item dst A omega REDUCE) as (st & STATE & IN_IT).
+  use reduceN_completed_item as (st & STATE & IN_IT) with REDUCE.
   eapply reduce_LA_complete_sem_by_follow_sem with (it := {| i_lhs := A; i_left := omega; i_right := [] |}); [exact FOLLOW_COMPLETE | exact STATE | exact IN_IT | reflexivity | ].
   exact (REDUCE_SEM alpha omega src p dst rest A dst' path_src path_alpha path_omega path_tgt REDUCE STEP).
 Qed.
@@ -13291,7 +10135,7 @@ Lemma reduce_guard_by_la_sem(alpha : list V') (omega : list V') (src : nat) (p :
   (STEP : dN p (inl A) = Some dst')
   : {| p_lhs := A; p_rhs := omega |} ∈ reduce_LA dst (parser_lookahead rest).
 Proof.
-  pose proof (reduceN_completed_item dst A omega REDUCE) as (st & STATE & IN_IT).
+  use reduceN_completed_item as (st & STATE & IN_IT) with REDUCE.
   eapply reduce_LA_complete_sem with (it := {| i_lhs := A; i_left := omega; i_right := [] |}); [exact STATE | exact IN_IT | reflexivity | ].
   exact (REDUCE_SEM alpha omega src p dst rest A dst' path_src path_alpha path_omega path_tgt REDUCE STEP).
 Qed.
@@ -13435,9 +10279,9 @@ Proof.
   - destruct entry as [q t]. simpl in CHECK.
     destruct (check_action q t) as [err0 | []] eqn: CHECK_ACTION.
     + inversion CHECK. subst err0. clear CHECK.
-      pose proof (check_action_failure_conflict q t err CHECK_ACTION) as (CONFLICT & _).
+      use check_action_failure_conflict as (CONFLICT & _) with CHECK_ACTION.
       exists q. exists t. split; [left; reflexivity | exact CONFLICT].
-    + pose proof (IH CHECK) as (q' & t' & IN & CONFLICT).
+    + use IH as (q' & t' & IN & CONFLICT) with CHECK.
       exists q'. exists t'. split; [right; exact IN | exact CONFLICT].
 Qed.
 
@@ -13454,7 +10298,7 @@ Proof.
       unfold check_action. rewrite CONFLICT. exists (action_conflict_error q t). reflexivity.
     + destruct (check_action q0 t0) as [err | []] eqn: CHECK_ACTION.
       * exists err. reflexivity.
-      * pose proof (IH IN) as (err & CHECK). rewrite CHECK. exists err. reflexivity.
+      * use IH as (err & CHECK) with IN. rewrite CHECK. exists err. reflexivity.
 Qed.
 
 Theorem build_table_success_conflict_free tbl
@@ -13485,9 +10329,10 @@ Proof.
   unfold build_table in BUILD.
   destruct (check_table_entries table_entries) as [err | []] eqn: CHECK; [discriminate | ].
   inversion BUILD. subst tbl. clear BUILD.
-  pose proof (check_table_entries_success_no_conflict table_entries q t CHECK) as NO_CONFLICT.
-  pose proof (NO_CONFLICT (table_entries_complete q t st STATE)) as NO_CONFLICT_AT.
-  pose proof (action_conflictb_false_cases (actions q t) NO_CONFLICT_AT) as [NO_ACTION | ONE_ACTION].
+  use table_entries_complete as IN with STATE.
+  use check_table_entries_success_no_conflict as NO_CONFLICT_AT with CHECK IN.
+  use action_conflictb_false_cases as CASE with NO_CONFLICT_AT.
+  destruct CASE as [NO_ACTION | ONE_ACTION].
   - left. split; [exact NO_ACTION | unfold action_of; rewrite NO_ACTION; reflexivity].
   - destruct ONE_ACTION as (act & EQ_ACTIONS).
     right. exists act. split; [exact EQ_ACTIONS | unfold action_of; rewrite EQ_ACTIONS; reflexivity].
@@ -13507,8 +10352,8 @@ Theorem build_table_conflict_failure q t st
   (CONFLICT : action_conflictb (actions q t) = true)
   : exists err, build_table = inl err.
 Proof.
-  pose proof (table_entries_complete q t st STATE) as IN.
-  pose proof (check_table_entries_conflict_failure table_entries q t IN CONFLICT) as (err & CHECK).
+  use table_entries_complete as IN with STATE.
+  use check_table_entries_conflict_failure as (err & CHECK) with IN CONFLICT.
   unfold build_table. rewrite CHECK. exists err. reflexivity.
 Qed.
 
@@ -13517,7 +10362,7 @@ Lemma reduce_edge_targets_from_prod_sound lookahead q pr q'
   : exists p, npath pr.(p_rhs) p q /\ dN p (inl pr.(p_lhs)) = Some q'.
 Proof.
   unfold reduce_edge_targets_from_prod in IN.
-  pose proof (list_bind_sound _ _ _ IN) as (p & _ & IN_TARGET).
+  use! (list_bind_sound _ _ _ IN) as (p & _ & IN_TARGET) with *.
   destruct (npathb pr.(p_rhs) p q) eqn: PATHB; [ | contradiction].
   destruct (dN p (inl pr.(p_lhs))) as [q'' | ] eqn: STEP; [ | contradiction].
   destruct IN_TARGET as [EQ | []]. subst q''.
@@ -13530,7 +10375,7 @@ Lemma reduce_edge_targets_from_prod_complete lookahead q pr p q'
   : q' ∈ reduce_edge_targets_from_prod lookahead q pr.
 Proof.
   unfold reduce_edge_targets_from_prod. eapply list_bind_complete with (x := p).
-  - pose proof (npath_source_state pr.(p_rhs) p q PATH) as (p_state & STATE_P).
+  - use npath_source_state as (p_state & STATE_P) with PATH.
     rewrite in_seq. split; [lia | ].
     eapply state_of_lt. exact STATE_P.
   - assert (PATHB : npathb pr.(p_rhs) p q = true).
@@ -13543,8 +10388,8 @@ Lemma reduce_edge_targets_sound lookahead q q'
   : exists pr, exists p, pr ∈ reduce_LA q lookahead /\ npath pr.(p_rhs) p q /\ dN p (inl pr.(p_lhs)) = Some q'.
 Proof.
   unfold reduce_edge_targets in IN.
-  pose proof (list_bind_sound _ _ _ IN) as (pr & IN_REDUCE & IN_TARGET).
-  pose proof (reduce_edge_targets_from_prod_sound lookahead q pr q' IN_TARGET) as (p & PATH & STEP).
+  use list_bind_sound as (pr & IN_REDUCE & IN_TARGET) with IN.
+  use reduce_edge_targets_from_prod_sound as (p & PATH & STEP) with IN_TARGET.
   exists pr. exists p. splits; [exact IN_REDUCE | exact PATH | exact STEP].
 Qed.
 
@@ -13564,12 +10409,12 @@ Theorem reduce_edge_entries_sound edge
   : reduce_edge edge.(reduce_edge_entry_lookahead) edge.(reduce_edge_entry_source) edge.(reduce_edge_entry_target).
 Proof.
   unfold reduce_edge_entries in IN.
-  pose proof (list_bind_sound _ _ _ IN) as (lookahead & _ & IN_LOOKAHEAD).
-  pose proof (list_bind_sound _ _ _ IN_LOOKAHEAD) as (q & _ & IN_Q).
+  use list_bind_sound as (lookahead & _ & IN_LOOKAHEAD) with IN.
+  use list_bind_sound as (q & _ & IN_Q) with IN_LOOKAHEAD.
   unfold reduce_edge_entries_at in IN_Q.
-  pose proof (list_bind_sound _ _ _ IN_Q) as (q' & IN_TARGET & IN_ENTRY).
+  use list_bind_sound as (q' & IN_TARGET & IN_ENTRY) with IN_Q.
   destruct IN_ENTRY as [EQ | []]. subst edge.
-  pose proof (reduce_edge_targets_sound lookahead q q' IN_TARGET) as (pr & p & IN_REDUCE & PATH & STEP).
+  use reduce_edge_targets_sound as (pr & p & IN_REDUCE & PATH & STEP) with IN_TARGET.
   exists pr. exists p. splits; [exact IN_REDUCE | exact PATH | exact STEP].
 Qed.
 
@@ -13581,7 +10426,7 @@ Proof.
   unfold reduce_edge_entries. eapply list_bind_complete with (x := lookahead).
   - eapply T'_all_complete.
   - eapply list_bind_complete with (x := q).
-    + pose proof (reduce_LA_sound q lookahead pr IN_REDUCE) as SOUND. destruct SOUND as [st it IN_REDUCE_N STATE IN_IT DONE EQ_PR PROD IN_LA].
+    + use reduce_LA_sound as SOUND with IN_REDUCE. destruct SOUND as [st it IN_REDUCE_N STATE IN_IT DONE EQ_PR PROD IN_LA].
       rewrite in_seq. split; [lia | eapply state_of_lt; exact STATE].
     + unfold reduce_edge_entries_at. eapply list_bind_complete with (x := q').
       * eapply reduce_edge_targets_complete; [exact IN_REDUCE | exact PATH | exact STEP].
@@ -13613,8 +10458,8 @@ Theorem parser_termination_certb_sound rank
 Proof.
   unfold parser_termination_cert. intros lookahead q q' EDGE.
   unfold parser_termination_certb in CHECK. rewrite forallb_forall in CHECK.
-  pose proof (reduce_edge_entries_complete lookahead q q' EDGE) as IN_EDGE.
-  pose proof (CHECK {| reduce_edge_entry_lookahead := lookahead; reduce_edge_entry_source := q; reduce_edge_entry_target := q' |} IN_EDGE) as CHECK_EDGE.
+  use reduce_edge_entries_complete as IN_EDGE with EDGE.
+  use CHECK as CHECK_EDGE with IN_EDGE.
   unfold rank_decreases_edgeb in CHECK_EDGE.
   simpl in CHECK_EDGE. rewrite Nat.ltb_lt in CHECK_EDGE. exact CHECK_EDGE.
 Qed.
@@ -13652,8 +10497,8 @@ Lemma table_entries_sound_state q t
   : exists st, state_of q = Some st.
 Proof.
   unfold table_entries in IN.
-  pose proof (list_bind_sound _ _ _ IN) as (q0 & IN_Q & IN_TAIL).
-  pose proof (list_bind_sound _ _ _ IN_TAIL) as (t0 & _ & IN_PAIR).
+  use list_bind_sound as (q0 & IN_Q & IN_TAIL) with IN.
+  use list_bind_sound as (t0 & _ & IN_PAIR) with IN_TAIL.
   simpl in IN_PAIR. destruct IN_PAIR as [EQ | []]. inv EQ.
   rewrite in_seq in IN_Q. destruct IN_Q as (_ & LT).
   assert (LTB : Nat.ltb q num_states = true).
@@ -13678,10 +10523,9 @@ Theorem build_table_complete
   : build_table = inr action_of.
 Proof.
   unfold build_table.
-  pose proof (check_table_entries_no_conflict_complete table_entries) as COMPLETE.
-  rewrite COMPLETE.
+  rewrite check_table_entries_no_conflict_complete.
   - reflexivity.
-  - intros q t IN. pose proof (table_entries_sound_state q t IN) as (st & STATE). eapply FREE. exact STATE.
+  - intros q t IN. use table_entries_sound_state as (st & STATE) with IN. eapply FREE. exact STATE.
 Qed.
 
 Lemma rank_decreases_edgeb_complete rank edge
@@ -13721,8 +10565,8 @@ Theorem build_certified_table_complete cert
   : exists ctbl, build_certified_table cert = inr ctbl /\ ctbl.(certified_table_action) = action_of /\ ctbl.(certified_table_termination_certificate) = cert.
 Proof.
   unfold build_certified_table.
-  pose proof (build_table_complete FREE) as BUILD_TABLE.
-  pose proof (check_parser_termination_certificate_success_complete cert VALID) as CHECK.
+  use build_table_complete as BUILD_TABLE with FREE.
+  use check_parser_termination_certificate_success_complete as CHECK with VALID.
   rewrite BUILD_TABLE. rewrite CHECK. eexists. splits; reflexivity.
 Qed.
 
@@ -13750,7 +10594,7 @@ Theorem build_certified_table_success_conflict_free cert ctbl
   (BUILD : build_certified_table cert = inr ctbl)
   : conflict_free.
 Proof.
-  pose proof (build_certified_table_success cert ctbl BUILD) as (BUILD_TABLE & _ & _).
+  use build_certified_table_success as (BUILD_TABLE & _ & _) with BUILD.
   eapply build_table_success_conflict_free. exact BUILD_TABLE.
 Qed.
 
@@ -13759,7 +10603,7 @@ Theorem build_certified_table_success_single_action cert ctbl q t st
   (STATE : state_of q = Some st)
   : (actions q t = [] /\ ctbl.(certified_table_action) q t = None) \/ (exists act, actions q t = [act] /\ ctbl.(certified_table_action) q t = Some act).
 Proof.
-  pose proof (build_certified_table_success cert ctbl BUILD) as (BUILD_TABLE & _ & _).
+  use build_certified_table_success as (BUILD_TABLE & _ & _) with BUILD.
   eapply build_table_success_single_action; [exact BUILD_TABLE | exact STATE].
 Qed.
 
@@ -13769,7 +10613,8 @@ Lemma build_certified_table_success_select_action cert ctbl q t st act
   (IN : act ∈ actions q t)
   : actions q t = [act] /\ ctbl.(certified_table_action) q t = Some act.
 Proof.
-  pose proof (build_certified_table_success_single_action cert ctbl q t st BUILD STATE) as [NO_ACTION | ONE_ACTION].
+  use build_certified_table_success_single_action as CASE with BUILD STATE.
+  destruct CASE as [NO_ACTION | ONE_ACTION].
   - destruct NO_ACTION as (ACTIONS & TABLE). rewrite ACTIONS in IN. contradiction.
   - destruct ONE_ACTION as (act0 & ACTIONS & TABLE). rewrite ACTIONS in IN. simpl in IN. destruct IN as [EQ | []]. subst act0. split; [exact ACTIONS | exact TABLE].
 Qed.
@@ -13836,7 +10681,7 @@ Theorem build_certified_table_success_termination cert ctbl
   (BUILD : build_certified_table cert = inr ctbl)
   : parser_termination_cert (certified_table_rank ctbl).
 Proof.
-  pose proof (build_certified_table_success cert ctbl BUILD) as (_ & CERT & VALID).
+  use build_certified_table_success as (_ & CERT & VALID) with BUILD.
   unfold certified_table_rank. rewrite CERT. unfold parser_termination_certificate_valid in VALID. exact VALID.
 Qed.
 
@@ -13892,7 +10737,7 @@ Qed.
 Theorem parser_step_lt_wf rank
   : well_founded (parser_step_lt rank).
 Proof.
-  intros pm. pose proof (parser_measure_lt_wf rank pm) as ACC.
+  intros pm. use! (parser_measure_lt_wf rank pm) as ACC with *.
   induction ACC as [pm _ IH]. constructor. intros next STEP.
   eapply IH. eapply parser_step_lt_parser_measure_lt. exact STEP.
 Qed.
@@ -13932,7 +10777,7 @@ Lemma reduce_actions_sound q t act
   (IN : act ∈ reduce_actions q t)
   : exists pr, pr ∈ reduce_LA q t /\ act = Reduce pr.
 Proof.
-  unfold reduce_actions in IN. pose proof (list_bind_sound _ _ _ IN) as (pr & IN_REDUCE & IN_ACT).
+  unfold reduce_actions in IN. use list_bind_sound as (pr & IN_REDUCE & IN_ACT) with IN.
   destruct IN_ACT as [EQ | []]. subst act. exists pr. split; [exact IN_REDUCE | reflexivity].
 Qed.
 
@@ -13977,7 +10822,7 @@ Proof.
     destruct right as [ | X gamma].
     + destruct (mem (EQ_DEC := prod'_hasEqDec) {| p_lhs := A; p_rhs := beta |} P' && mem (EQ_DEC := T'_hasEqDec) t (LA_impl q {| i_lhs := A; i_left := beta; i_right := [] |})) eqn: GUARD; simpl.
       * constructor.
-        { intros IN_TAIL. pose proof (list_bind_sound _ _ _ IN_TAIL) as (it_tail & IN_ST & IN_ITEM). pose proof (reduce_LA_item_sound q t it_tail {| p_lhs := A; p_rhs := beta |} IN_ITEM) as (DONE & EQ_PR & _ & _). destruct it_tail as [A_tail beta_tail right_tail]. simpl in DONE. subst right_tail. simpl in EQ_PR. inv EQ_PR. contradiction. }
+        { intros IN_TAIL. use list_bind_sound as (it_tail & IN_ST & IN_ITEM) with IN_TAIL. use reduce_LA_item_sound as (DONE & EQ_PR & _ & _) with IN_ITEM. destruct it_tail as [A_tail beta_tail right_tail]. simpl in DONE. subst right_tail. simpl in EQ_PR. inv EQ_PR. contradiction. }
         { eapply IH. exact NO_DUP_TAIL. }
       * eapply IH. exact NO_DUP_TAIL.
     + eapply IH. exact NO_DUP_TAIL.
@@ -14005,12 +10850,12 @@ Lemma reduce_actions_NoDup q t st
   : NoDup (reduce_actions q t).
 Proof.
   unfold reduce_actions.
-  pose proof (reduce_LA_NoDup q t st STATE) as NO_DUP_REDUCE.
+  use (reduce_LA_NoDup q t st) as NO_DUP_REDUCE with STATE.
   induction (reduce_LA q t) as [ | pr prs IH]; simpl.
   - constructor.
   - inversion NO_DUP_REDUCE as [ | pr0 prs0 NOTIN NO_DUP_TAIL]; subst.
     constructor.
-    + intros IN. pose proof (list_bind_sound _ _ _ IN) as (pr_tail & IN_TAIL & IN_ACT). destruct IN_ACT as [EQ | []]. inv EQ. contradiction.
+    + intros IN. use! (list_bind_sound _ _ _ IN) as (pr_tail & IN_TAIL & IN_ACT) with *. destruct IN_ACT as [EQ | []]. inv EQ. contradiction.
     + eapply IH. exact NO_DUP_TAIL.
 Qed.
 
@@ -14032,10 +10877,10 @@ Proof.
   - eapply NoDup_app.
     + eapply reduce_actions_NoDup. exact STATE.
     + eapply accept_action_NoDup.
-    + intros act IN_REDUCE IN_ACCEPT. pose proof (reduce_actions_sound q t act IN_REDUCE) as (pr & _ & EQ_REDUCE). pose proof (accept_action_sound q t act IN_ACCEPT) as (EQ_ACCEPT & _). subst act. discriminate.
-  - intros act IN_SHIFT IN_REST. pose proof (shift_action_sound q t act IN_SHIFT) as (q' & _ & EQ_SHIFT). rewrite L.in_app_iff in IN_REST. destruct IN_REST as [IN_REDUCE | IN_ACCEPT].
-    + pose proof (reduce_actions_sound q t act IN_REDUCE) as (pr & _ & EQ_REDUCE). subst act. discriminate.
-    + pose proof (accept_action_sound q t act IN_ACCEPT) as (EQ_ACCEPT & _). subst act. discriminate.
+    + intros act IN_REDUCE IN_ACCEPT. use reduce_actions_sound as (pr & _ & EQ_REDUCE) with IN_REDUCE. use accept_action_sound as (EQ_ACCEPT & _) with IN_ACCEPT. subst act. discriminate.
+  - intros act IN_SHIFT IN_REST. use shift_action_sound as (q' & _ & EQ_SHIFT) with IN_SHIFT. rewrite L.in_app_iff in IN_REST. destruct IN_REST as [IN_REDUCE | IN_ACCEPT].
+    + use reduce_actions_sound as (pr & _ & EQ_REDUCE) with IN_REDUCE. subst act. discriminate.
+    + use accept_action_sound as (EQ_ACCEPT & _) with IN_ACCEPT. subst act. discriminate.
 Qed.
 
 Lemma actions_head_distinct q t st act1 act2 rest
@@ -14043,7 +10888,7 @@ Lemma actions_head_distinct q t st act1 act2 rest
   (ACTIONS : actions q t = act1 :: act2 :: rest)
   : act1 ≠ act2.
 Proof.
-  pose proof (actions_NoDup q t st STATE) as NO_DUP.
+  use actions_NoDup as NO_DUP with STATE.
   rewrite ACTIONS in NO_DUP. inversion NO_DUP as [ | act1' tail NOTIN NO_DUP_TAIL]; subst.
   intros EQ. subst act2. eapply NOTIN. simpl. left. reflexivity.
 Qed.
@@ -14055,17 +10900,17 @@ Lemma shift_actions_in_actions_unique q t q1 q2
 Proof.
   assert (STEP1 : dN q (inr t) = Some q1).
   { unfold actions in IN1. rewrite L.in_app_iff in IN1. destruct IN1 as [IN_SHIFT | IN_REST].
-    - pose proof (shift_action_sound q t (Shift q1) IN_SHIFT) as (q' & STEP & EQ). inv EQ. exact STEP.
+    - use shift_action_sound as (q' & STEP & EQ) with IN_SHIFT. inv EQ. exact STEP.
     - rewrite L.in_app_iff in IN_REST. destruct IN_REST as [IN_REDUCE | IN_ACCEPT].
-      + pose proof (reduce_actions_sound q t (Shift q1) IN_REDUCE) as (pr & _ & EQ). discriminate.
-      + pose proof (accept_action_sound q t (Shift q1) IN_ACCEPT) as (EQ & _). discriminate.
+      + use reduce_actions_sound as (pr & _ & EQ) with IN_REDUCE. discriminate.
+      + use accept_action_sound as (EQ & _) with IN_ACCEPT. discriminate.
   }
   assert (STEP2 : dN q (inr t) = Some q2).
   { unfold actions in IN2. rewrite L.in_app_iff in IN2. destruct IN2 as [IN_SHIFT | IN_REST].
-    - pose proof (shift_action_sound q t (Shift q2) IN_SHIFT) as (q' & STEP & EQ). inv EQ. exact STEP.
+    - use shift_action_sound as (q' & STEP & EQ) with IN_SHIFT. inv EQ. exact STEP.
     - rewrite L.in_app_iff in IN_REST. destruct IN_REST as [IN_REDUCE | IN_ACCEPT].
-      + pose proof (reduce_actions_sound q t (Shift q2) IN_REDUCE) as (pr & _ & EQ). discriminate.
-      + pose proof (accept_action_sound q t (Shift q2) IN_ACCEPT) as (EQ & _). discriminate.
+      + use reduce_actions_sound as (pr & _ & EQ) with IN_REDUCE. discriminate.
+      + use accept_action_sound as (EQ & _) with IN_ACCEPT. discriminate.
   }
   congruence.
 Qed.
@@ -14075,541 +10920,13 @@ Lemma actions_head_of_shift q t q_next act rest
   (ACTIONS : actions q t = act :: rest)
   : act = Shift q_next.
 Proof.
-  pose proof (shift_action_sound q t (Shift q_next) IN_SHIFT) as (q_mid & STEP & EQ). inv EQ.
+  use shift_action_sound as (q_mid & STEP & EQ) with IN_SHIFT. inv EQ.
   unfold actions in ACTIONS. unfold shift_action in ACTIONS. rewrite STEP in ACTIONS. simpl in ACTIONS. inv ACTIONS. reflexivity.
 Qed.
 
-Module Abs.
 
-Abbreviation action := action.
 
-Abbreviation reduce_LA := reduce_LA.
 
-Abbreviation reduce_LA_sound_spec := reduce_LA_sound_spec.
-
-Abbreviation reduce_LA_sem_sound_spec := reduce_LA_sem_sound_spec.
-
-Abbreviation reduce_LA_marked_sound_spec := reduce_LA_marked_sound_spec.
-
-Abbreviation reduce_LA_marked_witness_spec := reduce_LA_marked_witness_spec.
-
-Abbreviation reduce_LA_marked_derivation_spec := reduce_LA_marked_derivation_spec.
-
-Abbreviation reduce_LA_marked_derivation_after_start_spec := reduce_LA_marked_derivation_after_start_spec.
-
-Abbreviation reduce_LA_sound_sem_productive := reduce_LA_sound_sem_productive.
-
-Abbreviation reduce_LA_sound_marked_productive := reduce_LA_sound_marked_productive.
-
-Abbreviation reduce_LA_marked_witness_productive := reduce_LA_marked_witness_productive.
-
-Abbreviation reduce_LA_marked_derivation_productive := reduce_LA_marked_derivation_productive.
-
-Abbreviation reduce_LA_marked_derivation_after_start_productive := reduce_LA_marked_derivation_after_start_productive.
-
-Abbreviation actions := actions.
-
-Abbreviation table := table.
-
-Abbreviation certified_table := certified_table.
-
-Abbreviation certified_table_rank := certified_table_rank.
-
-Abbreviation build_table := build_table.
-
-Abbreviation build_certified_table := build_certified_table.
-
-Abbreviation conflict_free := conflict_free.
-
-Abbreviation build_table_complete := build_table_complete.
-
-Abbreviation parser_termination_certb_complete := parser_termination_certb_complete.
-
-Abbreviation build_certified_table_complete := build_certified_table_complete.
-
-Abbreviation build_certified_table_complete_from_rank := build_certified_table_complete_from_rank.
-
-Abbreviation reduce_edge := reduce_edge.
-
-Abbreviation reduce_edge_entry := reduce_edge_entry.
-
-Abbreviation reduce_edge_entries := reduce_edge_entries.
-
-Abbreviation reduce_edge_ensemble := reduce_edge_ensemble.
-
-Abbreviation parser_rank := parser_rank.
-
-Abbreviation parser_termination_certificate := parser_termination_certificate.
-
-Abbreviation parser_measure := parser_measure.
-
-Abbreviation parser_measure_key := parser_measure_key.
-
-Abbreviation parser_measure_lt := parser_measure_lt.
-
-Abbreviation parser_lookahead := parser_lookahead.
-
-Abbreviation parser_step_lt := parser_step_lt.
-
-Abbreviation parser_termination_cert := parser_termination_cert.
-
-Abbreviation parser_termination_certb := parser_termination_certb.
-
-Abbreviation parser_termination_certificate_valid := parser_termination_certificate_valid.
-
-End Abs.
-
-Module Impl.
-
-Abbreviation reduce_LA_item := reduce_LA_item.
-
-Abbreviation reduce_LA := reduce_LA.
-
-Abbreviation shift_action := shift_action.
-
-Abbreviation reduce_actions := reduce_actions.
-
-Abbreviation accept_action := accept_action.
-
-Abbreviation actions := actions.
-
-Abbreviation table := table.
-
-Abbreviation action_of := action_of.
-
-Abbreviation action_conflictb := action_conflictb.
-
-Abbreviation action_conflict_error := action_conflict_error.
-
-Abbreviation check_action := check_action.
-
-Abbreviation table_entries := table_entries.
-
-Abbreviation check_table_entries := check_table_entries.
-
-Abbreviation build_table := build_table.
-
-Abbreviation conflict_free := conflict_free.
-
-Abbreviation reduce_edge := reduce_edge.
-
-Abbreviation reduce_edge_entry := reduce_edge_entry.
-
-Abbreviation reduce_edge_targets_from_prod := reduce_edge_targets_from_prod.
-
-Abbreviation reduce_edge_targets := reduce_edge_targets.
-
-Abbreviation reduce_edge_entries_at := reduce_edge_entries_at.
-
-Abbreviation reduce_edge_entries := reduce_edge_entries.
-
-Abbreviation reduce_edge_ensemble := reduce_edge_ensemble.
-
-Abbreviation rank_decreases_edgeb := rank_decreases_edgeb.
-
-Abbreviation parser_rank := parser_rank.
-
-Abbreviation parser_termination_certificate := parser_termination_certificate.
-
-Abbreviation certified_table := certified_table.
-
-Abbreviation certified_table_rank := certified_table_rank.
-
-Abbreviation parser_measure := parser_measure.
-
-Abbreviation parser_measure_key := parser_measure_key.
-
-Abbreviation parser_measure_lt := parser_measure_lt.
-
-Abbreviation parser_lookahead := parser_lookahead.
-
-Abbreviation parser_step_lt := parser_step_lt.
-
-Abbreviation parser_termination_cert := parser_termination_cert.
-
-Abbreviation parser_termination_certb := parser_termination_certb.
-
-Abbreviation parser_termination_certificate_valid := parser_termination_certificate_valid.
-
-Abbreviation parser_termination_certificate_validb := parser_termination_certificate_validb.
-
-Abbreviation check_parser_termination_certificate := check_parser_termination_certificate.
-
-Abbreviation build_certified_table := build_certified_table.
-
-Abbreviation table_entries_sound_state := table_entries_sound_state.
-
-Abbreviation check_table_entries_no_conflict_complete := check_table_entries_no_conflict_complete.
-
-Abbreviation build_table_complete := build_table_complete.
-
-Abbreviation rank_decreases_edgeb_complete := rank_decreases_edgeb_complete.
-
-Abbreviation parser_termination_certb_complete := parser_termination_certb_complete.
-
-Abbreviation parser_termination_certificate_validb_complete := parser_termination_certificate_validb_complete.
-
-Abbreviation check_parser_termination_certificate_success_complete := check_parser_termination_certificate_success_complete.
-
-Abbreviation build_certified_table_complete := build_certified_table_complete.
-
-Abbreviation build_certified_table_complete_from_rank := build_certified_table_complete_from_rank.
-
-End Impl.
-
-Module Refine.
-
-Abbreviation reduce_LA_item_sound_refines := reduce_LA_item_sound.
-
-Abbreviation reduce_LA_item_complete_refines := reduce_LA_item_complete.
-
-Abbreviation reduce_LA_sound_spec_refines := reduce_LA_sound_spec.
-
-Abbreviation reduce_LA_sound_refines := reduce_LA_sound.
-
-Abbreviation reduce_LA_sem_sound_spec_refines := reduce_LA_sem_sound_spec.
-
-Abbreviation reduce_LA_sound_sem_by_lr0_viable_refines := reduce_LA_sound_sem_by_lr0_viable.
-
-Abbreviation reduce_LA_marked_sound_spec_refines := reduce_LA_marked_sound_spec.
-
-Abbreviation reduce_LA_sound_marked_by_lr0_viable_refines := reduce_LA_sound_marked_by_lr0_viable.
-
-Abbreviation reduce_LA_marked_witness_spec_refines := reduce_LA_marked_witness_spec.
-
-Abbreviation reduce_LA_marked_witness_by_lr0_viable_refines := reduce_LA_marked_witness_by_lr0_viable.
-
-Abbreviation reduce_LA_marked_derivation_spec_refines := reduce_LA_marked_derivation_spec.
-
-Abbreviation reduce_LA_marked_derivation_by_lr0_viable_refines := reduce_LA_marked_derivation_by_lr0_viable.
-
-Abbreviation reduce_LA_marked_derivation_after_start_spec_refines := reduce_LA_marked_derivation_after_start_spec.
-
-Abbreviation reduce_LA_marked_derivation_after_start_by_lr0_viable_refines := reduce_LA_marked_derivation_after_start_by_lr0_viable.
-
-Abbreviation reduce_LA_sound_sem_productive_refines := reduce_LA_sound_sem_productive.
-
-Abbreviation reduce_LA_sound_marked_productive_refines := reduce_LA_sound_marked_productive.
-
-Abbreviation reduce_LA_marked_witness_productive_refines := reduce_LA_marked_witness_productive.
-
-Abbreviation reduce_LA_marked_derivation_productive_refines := reduce_LA_marked_derivation_productive.
-
-Abbreviation reduce_LA_marked_derivation_after_start_productive_refines := reduce_LA_marked_derivation_after_start_productive.
-
-Abbreviation reduce_LA_marked_derivation_after_start_to_sem_sound_refines := reduce_LA_marked_derivation_after_start_to_sem_sound.
-
-Abbreviation reduce_LA_no_start_prime_lhs_refines := reduce_LA_no_start_prime_lhs.
-
-Abbreviation reduce_LA_no_augmented_prod_refines := reduce_LA_no_augmented_prod.
-
-Abbreviation reduce_LA_user_lhs_refines := reduce_LA_user_lhs.
-
-Abbreviation reduce_LA_complete_refines := reduce_LA_complete.
-
-Abbreviation reduce_LA_complete_sem_by_follow_sem_refines := reduce_LA_complete_sem_by_follow_sem.
-
-Abbreviation reduce_LA_complete_sem_refines := reduce_LA_complete_sem.
-
-Abbreviation reduceN_completed_item_refines := reduceN_completed_item.
-
-Abbreviation reduce_guard_by_la_sem_and_follow_sem_refines := reduce_guard_by_la_sem_and_follow_sem.
-
-Abbreviation reduce_guard_by_la_sem_refines := reduce_guard_by_la_sem.
-
-Abbreviation reduce_LA_subset_reduceN_refines := reduce_LA_subset_reduceN.
-
-Abbreviation build_table_success_conflict_free_refines := build_table_success_conflict_free.
-
-Abbreviation conflict_free_single_action_refines := conflict_free_single_action.
-
-Abbreviation build_table_success_single_action_refines := build_table_success_single_action.
-
-Abbreviation build_table_failure_conflict_refines := build_table_failure_conflict.
-
-Abbreviation build_table_conflict_failure_refines := build_table_conflict_failure.
-
-Abbreviation table_entries_sound_state_refines := table_entries_sound_state.
-
-Abbreviation check_table_entries_no_conflict_complete_refines := check_table_entries_no_conflict_complete.
-
-Abbreviation build_table_complete_refines := build_table_complete.
-
-Abbreviation reduce_edge_refines := reduce_edge.
-
-Abbreviation reduce_edge_entries_sound_refines := reduce_edge_entries_sound.
-
-Abbreviation reduce_edge_entries_complete_refines := reduce_edge_entries_complete.
-
-Abbreviation reduce_edge_entries_correct_refines := reduce_edge_entries_correct.
-
-Abbreviation parser_termination_certb_sound_refines := parser_termination_certb_sound.
-
-Abbreviation parser_termination_certificate_validb_sound_refines := parser_termination_certificate_validb_sound.
-
-Abbreviation check_parser_termination_certificate_success_valid_refines := check_parser_termination_certificate_success_valid.
-
-Abbreviation check_parser_termination_certificate_failure_invalid_refines := check_parser_termination_certificate_failure_invalid.
-
-Abbreviation rank_decreases_edgeb_complete_refines := rank_decreases_edgeb_complete.
-
-Abbreviation parser_termination_certb_complete_refines := parser_termination_certb_complete.
-
-Abbreviation parser_termination_certificate_validb_complete_refines := parser_termination_certificate_validb_complete.
-
-Abbreviation check_parser_termination_certificate_success_complete_refines := check_parser_termination_certificate_success_complete.
-
-Abbreviation build_certified_table_complete_refines := build_certified_table_complete.
-
-Abbreviation build_certified_table_complete_from_rank_refines := build_certified_table_complete_from_rank.
-
-Abbreviation build_certified_table_success_refines := build_certified_table_success.
-
-Abbreviation build_certified_table_success_conflict_free_refines := build_certified_table_success_conflict_free.
-
-Abbreviation build_certified_table_success_single_action_refines := build_certified_table_success_single_action.
-
-Abbreviation build_certified_table_success_select_action_refines := build_certified_table_success_select_action.
-
-Abbreviation shift_action_in_actions_refines := shift_action_in_actions.
-
-Abbreviation reduce_action_in_actions_refines := reduce_action_in_actions.
-
-Abbreviation accept_action_in_actions_refines := accept_action_in_actions.
-
-Abbreviation build_certified_table_success_select_shift_refines := build_certified_table_success_select_shift.
-
-Abbreviation build_certified_table_success_select_reduce_refines := build_certified_table_success_select_reduce.
-
-Abbreviation build_certified_table_success_select_accept_refines := build_certified_table_success_select_accept.
-
-Abbreviation build_certified_table_success_termination_refines := build_certified_table_success_termination.
-
-Abbreviation build_certified_table_success_reduce_edge_step_lt_refines := build_certified_table_success_reduce_edge_step_lt.
-
-Abbreviation parser_step_lt_parser_measure_lt_refines := parser_step_lt_parser_measure_lt.
-
-Abbreviation parser_measure_lt_wf_refines := parser_measure_lt_wf.
-
-Abbreviation parser_step_lt_wf_refines := parser_step_lt_wf.
-
-Abbreviation parser_terminates_refines := parser_terminates.
-
-Abbreviation parser_step_lt_reduce_edge_certb_refines := parser_step_lt_reduce_edge_certb.
-
-Abbreviation parser_step_lt_refines := parser_step_lt.
-
-Abbreviation parser_termination_cert_refines := parser_termination_cert.
-
-Abbreviation parser_step_lt_shift_refines := parser_step_lt_shift.
-
-Abbreviation parser_step_lt_reduce_refines := parser_step_lt_reduce.
-
-Abbreviation parser_step_lt_reduce_edge_refines := parser_step_lt_reduce_edge.
-
-Abbreviation shift_action_sound_refines := shift_action_sound.
-
-Abbreviation shift_action_complete_refines := shift_action_complete.
-
-Abbreviation reduce_actions_sound_refines := reduce_actions_sound.
-
-Abbreviation reduce_actions_complete_refines := reduce_actions_complete.
-
-Abbreviation accept_action_sound_refines := accept_action_sound.
-
-Abbreviation accept_action_complete_refines := accept_action_complete.
-
-Abbreviation reduce_LA_list_NoDup_refines := reduce_LA_list_NoDup.
-
-Abbreviation reduce_LA_NoDup_refines := reduce_LA_NoDup.
-
-Abbreviation shift_action_NoDup_refines := shift_action_NoDup.
-
-Abbreviation reduce_actions_NoDup_refines := reduce_actions_NoDup.
-
-Abbreviation accept_action_NoDup_refines := accept_action_NoDup.
-
-Abbreviation actions_NoDup_refines := actions_NoDup.
-
-Abbreviation actions_head_distinct_refines := actions_head_distinct.
-
-Abbreviation shift_actions_in_actions_unique_refines := shift_actions_in_actions_unique.
-
-Abbreviation actions_head_of_shift_refines := actions_head_of_shift.
-
-End Refine.
-
-Module API.
-
-Abbreviation action := action.
-
-Abbreviation reduce_LA := reduce_LA.
-
-Abbreviation actions := actions.
-
-Abbreviation table := table.
-
-Abbreviation certified_table := certified_table.
-
-Abbreviation certified_table_rank := certified_table_rank.
-
-Abbreviation build_table := build_table.
-
-Abbreviation build_certified_table := build_certified_table.
-
-Abbreviation conflict_free := conflict_free.
-
-Abbreviation build_table_success_conflict_free := build_table_success_conflict_free.
-
-Abbreviation conflict_free_single_action := conflict_free_single_action.
-
-Abbreviation build_table_success_single_action := build_table_success_single_action.
-
-Abbreviation build_table_failure_conflict := build_table_failure_conflict.
-
-Abbreviation build_table_conflict_failure := build_table_conflict_failure.
-
-Abbreviation build_table_complete := build_table_complete.
-
-Abbreviation build_certified_table_success := build_certified_table_success.
-
-Abbreviation parser_termination_certb_complete := parser_termination_certb_complete.
-
-Abbreviation build_certified_table_complete := build_certified_table_complete.
-
-Abbreviation build_certified_table_complete_from_rank := build_certified_table_complete_from_rank.
-
-Abbreviation build_certified_table_success_conflict_free := build_certified_table_success_conflict_free.
-
-Abbreviation build_certified_table_success_single_action := build_certified_table_success_single_action.
-
-Abbreviation build_certified_table_success_select_action := build_certified_table_success_select_action.
-
-Abbreviation shift_action_in_actions := shift_action_in_actions.
-
-Abbreviation reduce_action_in_actions := reduce_action_in_actions.
-
-Abbreviation accept_action_in_actions := accept_action_in_actions.
-
-Abbreviation build_certified_table_success_select_shift := build_certified_table_success_select_shift.
-
-Abbreviation build_certified_table_success_select_reduce := build_certified_table_success_select_reduce.
-
-Abbreviation build_certified_table_success_select_accept := build_certified_table_success_select_accept.
-
-Abbreviation build_certified_table_success_termination := build_certified_table_success_termination.
-
-Abbreviation build_certified_table_success_reduce_edge_step_lt := build_certified_table_success_reduce_edge_step_lt.
-
-Abbreviation reduce_LA_sound_spec := reduce_LA_sound_spec.
-
-Abbreviation reduce_LA_sound := reduce_LA_sound.
-
-Abbreviation reduce_LA_sem_sound_spec := reduce_LA_sem_sound_spec.
-
-Abbreviation reduce_LA_sound_sem_by_lr0_viable := reduce_LA_sound_sem_by_lr0_viable.
-
-Abbreviation reduce_LA_marked_sound_spec := reduce_LA_marked_sound_spec.
-
-Abbreviation reduce_LA_sound_marked_by_lr0_viable := reduce_LA_sound_marked_by_lr0_viable.
-
-Abbreviation reduce_LA_marked_witness_spec := reduce_LA_marked_witness_spec.
-
-Abbreviation reduce_LA_marked_witness_by_lr0_viable := reduce_LA_marked_witness_by_lr0_viable.
-
-Abbreviation reduce_LA_marked_derivation_spec := reduce_LA_marked_derivation_spec.
-
-Abbreviation reduce_LA_marked_derivation_by_lr0_viable := reduce_LA_marked_derivation_by_lr0_viable.
-
-Abbreviation reduce_LA_marked_derivation_after_start_spec := reduce_LA_marked_derivation_after_start_spec.
-
-Abbreviation reduce_LA_marked_derivation_after_start_by_lr0_viable := reduce_LA_marked_derivation_after_start_by_lr0_viable.
-
-Abbreviation reduce_LA_sound_sem_productive := reduce_LA_sound_sem_productive.
-
-Abbreviation reduce_LA_sound_marked_productive := reduce_LA_sound_marked_productive.
-
-Abbreviation reduce_LA_marked_witness_productive := reduce_LA_marked_witness_productive.
-
-Abbreviation reduce_LA_marked_derivation_productive := reduce_LA_marked_derivation_productive.
-
-Abbreviation reduce_LA_marked_derivation_after_start_productive := reduce_LA_marked_derivation_after_start_productive.
-
-Abbreviation reduce_LA_marked_derivation_after_start_to_sem_sound := reduce_LA_marked_derivation_after_start_to_sem_sound.
-
-Abbreviation reduce_LA_no_start_prime_lhs := reduce_LA_no_start_prime_lhs.
-
-Abbreviation reduce_LA_no_augmented_prod := reduce_LA_no_augmented_prod.
-
-Abbreviation reduce_LA_user_lhs := reduce_LA_user_lhs.
-
-Abbreviation reduce_LA_complete_sem_by_follow_sem := reduce_LA_complete_sem_by_follow_sem.
-
-Abbreviation reduce_LA_complete_sem := reduce_LA_complete_sem.
-
-Abbreviation reduceN_completed_item := reduceN_completed_item.
-
-Abbreviation reduce_guard_by_la_sem_and_follow_sem := reduce_guard_by_la_sem_and_follow_sem.
-
-Abbreviation reduce_guard_by_la_sem := reduce_guard_by_la_sem.
-
-Abbreviation reduce_LA_subset_reduceN := reduce_LA_subset_reduceN.
-
-Abbreviation reduce_LA_NoDup := reduce_LA_NoDup.
-
-Abbreviation actions_NoDup := actions_NoDup.
-
-Abbreviation actions_head_distinct := actions_head_distinct.
-
-Abbreviation shift_actions_in_actions_unique := shift_actions_in_actions_unique.
-
-Abbreviation actions_head_of_shift := actions_head_of_shift.
-
-Abbreviation reduce_edge := reduce_edge.
-
-Abbreviation reduce_edge_entry := reduce_edge_entry.
-
-Abbreviation reduce_edge_entries := reduce_edge_entries.
-
-Abbreviation reduce_edge_ensemble := reduce_edge_ensemble.
-
-Abbreviation parser_rank := parser_rank.
-
-Abbreviation parser_termination_certificate := parser_termination_certificate.
-
-Abbreviation parser_measure := parser_measure.
-
-Abbreviation parser_measure_key := parser_measure_key.
-
-Abbreviation parser_measure_lt := parser_measure_lt.
-
-Abbreviation parser_lookahead := parser_lookahead.
-
-Abbreviation parser_step_lt := parser_step_lt.
-
-Abbreviation parser_termination_cert := parser_termination_cert.
-
-Abbreviation parser_termination_certb := parser_termination_certb.
-
-Abbreviation parser_termination_certb_sound := parser_termination_certb_sound.
-
-Abbreviation parser_termination_certificate_valid := parser_termination_certificate_valid.
-
-Abbreviation parser_termination_certificate_validb := parser_termination_certificate_validb.
-
-Abbreviation parser_termination_certificate_validb_sound := parser_termination_certificate_validb_sound.
-
-Abbreviation check_parser_termination_certificate := check_parser_termination_certificate.
-
-Abbreviation check_parser_termination_certificate_success_valid := check_parser_termination_certificate_success_valid.
-
-Abbreviation parser_step_lt_wf := parser_step_lt_wf.
-
-Abbreviation parser_terminates := parser_terminates.
-
-Abbreviation parser_step_lt_reduce_edge_certb := parser_step_lt_reduce_edge_certb.
-
-End API.
 
 End Table.
 
@@ -14763,7 +11080,7 @@ Proof.
   induction PATH as [n q STATE | Y alpha n m r0 STEP0 REST IH]; simpl.
   - econstructor.
     + exact STEP.
-    + pose proof (dN_some_target_state n X r STEP) as (q' & STATE_R). econstructor. exact STATE_R.
+    + use dN_some_target_state as (q' & STATE_R) with STEP. econstructor. exact STATE_R.
   - econstructor; [exact STEP0 | ]. eapply IH. exact STEP.
 Qed.
 
@@ -14990,7 +11307,7 @@ Proof.
   revert children SEQ. induction stack as [ | [tree | ] stack IH]; intros children SEQ.
   - inv SEQ. splits; [reflexivity | reflexivity | reflexivity | intros _; constructor].
   - simpl in SEQ. destruct (run_sequence_trees stack) as [children' | ] eqn: SEQ'; [ | discriminate].
-    inv SEQ. pose proof (IH children' eq_refl) as (STACK & SYMBOLS & YIELD & VALID).
+    inv SEQ. use! IH as (STACK & SYMBOLS & YIELD & VALID) with *.
     splits.
     + rewrite STACK. reflexivity.
     + simpl. rewrite SYMBOLS. reflexivity.
@@ -15008,8 +11325,8 @@ Proof.
   - destruct symbols as [ | X symbols]; simpl in SYMBOLS; [discriminate | ].
     inversion SYMBOLS as [[EQ_HEAD EQ_TAIL]].
     destruct tree as [tok | A forest]; destruct X as [B | u]; simpl in EQ_HEAD; try discriminate.
-    + injection EQ_HEAD as EQ_HEAD. subst u. pose proof (IH symbols EQ_TAIL) as (children & SEQ & CHILDREN). exists (PLeaf tok :: children). simpl. rewrite SEQ. split; [reflexivity | rewrite CHILDREN; reflexivity].
-    + injection EQ_HEAD as EQ_HEAD. subst B. pose proof (IH symbols EQ_TAIL) as (children & SEQ & CHILDREN). exists (PNode A forest :: children). simpl. rewrite SEQ. split; [reflexivity | rewrite CHILDREN; reflexivity].
+    + injection EQ_HEAD as EQ_HEAD. subst u. use IH as (children & SEQ & CHILDREN) with EQ_TAIL. exists (PLeaf tok :: children). simpl. rewrite SEQ. split; [reflexivity | rewrite CHILDREN; reflexivity].
+    + injection EQ_HEAD as EQ_HEAD. subst B. use IH as (children & SEQ & CHILDREN) with EQ_TAIL. exists (PNode A forest :: children). simpl. rewrite SEQ. split; [reflexivity | rewrite CHILDREN; reflexivity].
   - destruct symbols as [ | X symbols]; simpl in SYMBOLS; [discriminate | ].
     inversion SYMBOLS as [[EQ_HEAD EQ_TAIL]]. destruct X as [A | t]; simpl in EQ_HEAD; discriminate.
 Qed.
@@ -15044,7 +11361,7 @@ Lemma run_accept_config_accept_config c
   (ACCEPT : run_accept_config c = true)
   : accept_config c.
 Proof.
-  pose proof (run_accept_config_sound c ACCEPT) as (nf & FINAL & WORD & DST & REST).
+  use run_accept_config_sound as (nf & FINAL & WORD & DST & REST) with ACCEPT.
   exists nf. splits; [exact FINAL | unfold run_accept_word in WORD; exact WORD | exact DST | exact REST].
 Qed.
 
@@ -15098,7 +11415,7 @@ Lemma map_lift_symbol_inj xs ys
 Proof.
   revert ys EQ. induction xs as [ | X xs IH]; intros ys EQ; destruct ys as [ | Y ys]; simpl in EQ; inv EQ.
   - reflexivity.
-  - pose proof (lift_symbol_inj X Y H0) as XY. subst Y. pose proof (IH ys H1) as XS. subst ys. reflexivity.
+  - use lift_symbol_inj as XY with H0. subst Y. use IH as XS with H1. subst ys. reflexivity.
 Qed.
 
 Lemma inject_eq_inv A rhs p
@@ -15107,7 +11424,7 @@ Lemma inject_eq_inv A rhs p
 Proof.
   destruct p as [B rhs0]. unfold inject in EQ. simpl in EQ.
   injection EQ as EQ_LHS EQ_RHS. inv EQ_LHS.
-  pose proof (map_lift_symbol_inj rhs0 rhs EQ_RHS) as RHS. subst rhs0. reflexivity.
+  use map_lift_symbol_inj as RHS with EQ_RHS. subst rhs0. reflexivity.
 Qed.
 
 Lemma P'_user_prod A rhs
@@ -15117,7 +11434,7 @@ Proof.
   unfold P' in PROD. simpl in PROD. destruct PROD as [AUGMENTED | USER].
   - discriminate.
   - rewrite L.in_map_iff in USER. destruct USER as (p & EQ & IN).
-    pose proof (inject_eq_inv A rhs p EQ) as P_EQ. subst p. exact IN.
+    use inject_eq_inv as P_EQ with EQ. subst p. exact IN.
 Qed.
 
 Lemma P'_some_prod A omega
@@ -15145,17 +11462,17 @@ Proof.
   destruct lhs as [A | ]; [ | destruct (run_sequence_trees suffix); discriminate].
   destruct (run_sequence_trees suffix) as [children | ] eqn: SEQ; [ | discriminate].
   injection REDUCE_STACK as REDUCE_STACK_EQ. subst stack'.
-  pose proof (run_split_suffix_map run_stack_entry_symbol (length rhs) stack prefix suffix SPLIT_STACK) as SPLIT_SYMBOLS.
+  use run_split_suffix_map as SPLIT_SYMBOLS with SPLIT_STACK.
   unfold run_stack_symbols in STACK_SYMBOLS. rewrite STACK_SYMBOLS in SPLIT_SYMBOLS.
-  pose proof (run_split_suffix_deterministic (length rhs) word alpha omega (map run_stack_entry_symbol prefix) (map run_stack_entry_symbol suffix) SPLIT_WORD SPLIT_SYMBOLS) as (ALPHA & OMEGA).
+  use run_split_suffix_deterministic as (ALPHA & OMEGA) with SPLIT_WORD SPLIT_SYMBOLS.
   subst alpha. subst omega.
-  pose proof (run_split_suffix_sound (length rhs) stack prefix suffix SPLIT_STACK) as STACK_EQ.
-  pose proof (run_sequence_trees_sound suffix children SEQ) as (SUFFIX_STACK & SUFFIX_SYMBOLS & SUFFIX_YIELD & SUFFIX_VALID).
+  use run_split_suffix_sound as STACK_EQ with SPLIT_STACK.
+  use run_sequence_trees_sound as (SUFFIX_STACK & SUFFIX_SYMBOLS & SUFFIX_YIELD & SUFFIX_VALID) with SEQ.
   rewrite STACK_EQ in STACK_VALID. rewrite run_stack_valid_app in STACK_VALID. destruct STACK_VALID as (PREFIX_VALID & SUFFIX_VALID_STACK).
   unfold run_stack_symbols in SUFFIX_SYMBOLS. rewrite SUFFIX_SYMBOLS in OMEGA. subst rhs.
-  pose proof (reduce_LA_sound dst lookahead {| p_lhs := Some A; p_rhs := map lift_symbol (parse_forest_symbols children) |} IN_REDUCE) as SOUND_REDUCE.
+  use reduce_LA_sound as SOUND_REDUCE with IN_REDUCE.
   destruct SOUND_REDUCE as [st it IN_REDUCE_N STATE IN_IT DONE EQ_PR PROD IN_LA].
-  pose proof (P'_user_prod A (parse_forest_symbols children) PROD) as USER_PROD.
+  use P'_user_prod as USER_PROD with PROD.
   splits.
   - rewrite run_stack_symbols_app. simpl. reflexivity.
   - rewrite run_stack_valid_app. split; [exact PREFIX_VALID | simpl]. split; [constructor; [exact USER_PROD | eapply SUFFIX_VALID; exact SUFFIX_VALID_STACK] | exact I].
@@ -15170,12 +11487,12 @@ Proof.
   destruct (run_split_suffix (length (map lift_symbol rhs)) stack) as [[prefix suffix] | ] eqn: SPLIT_STACK.
   - destruct (run_sequence_trees suffix) as [children | ] eqn: SEQ.
     + eexists. reflexivity.
-    + pose proof (run_split_suffix_map run_stack_entry_symbol (length (map lift_symbol rhs)) stack prefix suffix SPLIT_STACK) as SPLIT_SYMBOLS.
+    + use run_split_suffix_map as SPLIT_SYMBOLS with SPLIT_STACK.
       change (map run_stack_entry_symbol stack) with (run_stack_symbols stack) in SPLIT_SYMBOLS.
       change (map run_stack_entry_symbol suffix) with (run_stack_symbols suffix) in SPLIT_SYMBOLS.
-      pose proof (run_split_suffix_complete (length (map lift_symbol rhs)) (run_stack_symbols stack) alpha (map lift_symbol rhs) STACK_SYMBOLS eq_refl) as SPLIT_SYMBOLS_EXPECTED.
-      pose proof (run_split_suffix_deterministic (length (map lift_symbol rhs)) (run_stack_symbols stack) alpha (map lift_symbol rhs) (map run_stack_entry_symbol prefix) (run_stack_symbols suffix) SPLIT_SYMBOLS_EXPECTED SPLIT_SYMBOLS) as (_ & SUFFIX_SYMBOLS).
-      symmetry in SUFFIX_SYMBOLS. pose proof (run_sequence_trees_complete suffix rhs SUFFIX_SYMBOLS) as (children & SEQ' & _). rewrite SEQ in SEQ'. discriminate.
+      use! run_split_suffix_complete as SPLIT_SYMBOLS_EXPECTED with STACK_SYMBOLS.
+      use run_split_suffix_deterministic as (_ & SUFFIX_SYMBOLS) with SPLIT_SYMBOLS_EXPECTED SPLIT_SYMBOLS.
+      symmetry in SUFFIX_SYMBOLS. use run_sequence_trees_complete as (children & SEQ' & _) with SUFFIX_SYMBOLS. rewrite SEQ in SEQ'. discriminate.
   - exfalso. unfold run_split_suffix in SPLIT_STACK.
     assert (LEN_STACK : length stack = length alpha + length (map lift_symbol rhs)).
     { unfold run_stack_symbols in STACK_SYMBOLS. rewrite <- length_map with (f := run_stack_entry_symbol) (l := stack). rewrite STACK_SYMBOLS. rewrite length_app. reflexivity. }
@@ -15187,9 +11504,9 @@ Lemma run_reduce_stack_complete_reduce A omega stack alpha dst lookahead
   (IN_REDUCE : {| p_lhs := Some A; p_rhs := omega |} ∈ reduce_LA dst lookahead)
   : exists stack', run_reduce_stack {| p_lhs := Some A; p_rhs := omega |} stack = Some stack'.
 Proof.
-  pose proof (reduce_LA_sound dst lookahead {| p_lhs := Some A; p_rhs := omega |} IN_REDUCE) as SOUND_REDUCE.
+  use reduce_LA_sound as SOUND_REDUCE with IN_REDUCE.
   destruct SOUND_REDUCE as [st it IN_REDUCE_N STATE IN_IT DONE EQ_PR PROD IN_LA].
-  pose proof (P'_some_prod A omega PROD) as (rhs & OMEGA & _). subst omega.
+  use P'_some_prod as (rhs & OMEGA & _) with PROD. subst omega.
   eapply run_reduce_stack_complete_user. exact STACK_SYMBOLS.
 Qed.
 
@@ -15331,8 +11648,8 @@ Lemma steps_LA_1n_shape_transport c_run c_abs c_abs'
 Proof.
   revert c_run SHAPE. induction STEPS as [c | c c_mid c' STEP STEPS_TAIL IH]; intros c_run SHAPE.
   - exists c_run. split; [exact SHAPE | constructor].
-  - pose proof (step_LA_shape_transport c_run c c_mid SHAPE STEP) as (c_mid_run & SHAPE_MID & STEP_RUN).
-    pose proof (IH c_mid_run SHAPE_MID) as (c_run' & SHAPE_FINAL & STEPS_RUN).
+  - use step_LA_shape_transport as (c_mid_run & SHAPE_MID & STEP_RUN) with SHAPE STEP.
+    use IH as (c_run' & SHAPE_FINAL & STEPS_RUN) with SHAPE_MID.
     exists c_run'. split; [exact SHAPE_FINAL | econstructor; [exact STEP_RUN | exact STEPS_RUN]].
 Qed.
 
@@ -15395,7 +11712,7 @@ Lemma run_reduce_target_complete alpha src dst pr p dst'
   : exists target, run_reduce_target alpha src dst pr = Some target.
 Proof.
   unfold run_reduce_target. eapply run_reduce_target_from_complete with (p := p) (dst' := dst'); [ | exact PATH_ALPHA | exact PATH_OMEGA | exact STEP].
-  pose proof (npath_source_state pr.(p_rhs) p dst PATH_OMEGA) as (st & STATE).
+  use npath_source_state as (st & STATE) with PATH_OMEGA.
   rewrite in_seq. split; [lia | ]. eapply state_of_lt. exact STATE.
 Qed.
 
@@ -15421,7 +11738,7 @@ Proof.
       destruct (run_reduce_allowed pr dst (parser_lookahead rest)) as [IN_REDUCE | ]; [ | exact None].
       destruct (run_reduce_stack pr stack) as [stack' | ]; [ | exact None].
       destruct (run_reduce_target alpha src dst pr) as [(p & dst' & PATH_ALPHA & PATH_OMEGA & STEP) | ]; [ | exact None].
-      pose proof (npath_snoc alpha src p (inl pr.(p_lhs)) dst' PATH_ALPHA STEP) as path_tgt.
+      use npath_snoc as path_tgt with PATH_ALPHA STEP.
       set (c' := {| nc_word := alpha ++ [inl pr.(p_lhs)]; nc_src := src; nc_dst := dst'; nc_rest := rest; nc_path := path_tgt |}).
       assert (EDGE : reduce_edge (parser_lookahead rest) dst dst').
       { exists pr. exists p. splits; [exact IN_REDUCE | exact PATH_OMEGA | exact STEP]. }
@@ -15451,7 +11768,7 @@ Proof.
     destruct (run_reduce_allowed pr dst (parser_lookahead rest)) as [IN_REDUCE | ]; [ | reflexivity].
     destruct (run_reduce_stack pr stack) as [stack' | ] eqn: REDUCE_STACK; [ | reflexivity].
     destruct (run_reduce_target alpha src dst pr) as [(p & dst' & PATH_ALPHA & PATH_OMEGA & STEP) | ]; [ | reflexivity].
-    pose proof (npath_snoc alpha src p (inl pr.(p_lhs)) dst' PATH_ALPHA STEP) as path_tgt.
+    use npath_snoc as path_tgt with PATH_ALPHA STEP.
     set (c' := {| nc_word := alpha ++ [inl pr.(p_lhs)]; nc_src := src; nc_dst := dst'; nc_rest := rest; nc_path := path_tgt |}).
     pose (EDGE := (@ex_intro _ _ pr (@ex_intro _ _ p (conj IN_REDUCE (conj PATH_OMEGA STEP))) : reduce_edge (parser_lookahead rest) dst dst')).
     eapply run_parser_acc_irrel.
@@ -15472,7 +11789,7 @@ Proof.
     destruct (run_shift_target word src dst t path_src) as [(dst' & STEP & path_tgt) | ]; cbn in RUN; [ | discriminate].
     set (c' := {| nc_word := word ++ [inr t]; nc_src := src; nc_dst := dst'; nc_rest := rest'; nc_path := path_tgt |}) in RUN |- *.
     set (stack' := stack ++ [run_shift_tree t]) in RUN |- *.
-    pose proof (IH {| run_state_config := c'; run_state_stack := stack' |} (ACC_INV (nconfig_parser_measure c') (parser_step_lt_shift (certified_table_rank ctbl) dst dst' t rest')) tree RUN) as (rs' & STEPS & ACCEPT).
+    use! (IH {| run_state_config := c'; run_state_stack := stack' |} (ACC_INV (nconfig_parser_measure c') (parser_step_lt_shift (certified_table_rank ctbl) dst dst' t rest')) tree RUN) as (rs' & STEPS & ACCEPT) with *.
     exists rs'. split; [ | exact ACCEPT].
     eapply rt_trans; [ | exact STEPS]. constructor 1. unfold c'. econstructor. exact STEP.
   - destruct (run_split_suffix (length pr.(p_rhs)) word) as [[alpha omega] | ] eqn: SPLIT_WORD; cbn in RUN; [ | discriminate].
@@ -15480,16 +11797,16 @@ Proof.
     destruct (run_reduce_allowed pr dst (parser_lookahead rest)) as [IN_REDUCE | ]; [ | discriminate].
     destruct (run_reduce_stack pr stack) as [stack' | ]; [ | discriminate].
     destruct (run_reduce_target alpha src dst pr) as [(p & dst' & PATH_ALPHA & PATH_OMEGA & STEP) | ]; [ | discriminate].
-    pose proof (run_split_suffix_sound (length pr.(p_rhs)) word alpha omega SPLIT_WORD) as WORD.
+    use run_split_suffix_sound as WORD with SPLIT_WORD.
     rewrite EQ_RHS in WORD. subst word.
     set (path_tgt := npath_snoc alpha src p (inl pr.(p_lhs)) dst' PATH_ALPHA STEP).
     set (c' := {| nc_word := alpha ++ [inl pr.(p_lhs)]; nc_src := src; nc_dst := dst'; nc_rest := rest; nc_path := path_tgt |}) in RUN |- *.
     pose (EDGE := (@ex_intro _ _ pr (@ex_intro _ _ p (conj IN_REDUCE (conj PATH_OMEGA STEP))) : reduce_edge (parser_lookahead rest) dst dst')).
-    pose proof (IH {| run_state_config := c'; run_state_stack := stack' |} (ACC_INV (nconfig_parser_measure c') (parser_step_lt_reduce_edge (certified_table_rank ctbl) dst dst' rest CERT EDGE)) tree RUN) as (rs' & STEPS & ACCEPT).
+    use! (IH {| run_state_config := c'; run_state_stack := stack' |} (ACC_INV (nconfig_parser_measure c') (parser_step_lt_reduce_edge (certified_table_rank ctbl) dst dst' rest CERT EDGE)) tree RUN) as (rs' & STEPS & ACCEPT) with *.
     exists rs'. split; [ | exact ACCEPT].
     eapply rt_trans; [ | exact STEPS]. constructor 1. unfold c'. econstructor; [exact PATH_ALPHA | exact PATH_OMEGA | exact IN_REDUCE | exact STEP].
   - destruct (run_accept_config {| nc_word := word; nc_src := src; nc_dst := dst; nc_rest := rest; nc_path := path_src |}) eqn: ACCEPT_CONFIG; cbn in RUN; [ | discriminate].
-    pose proof (run_accept_config_sound {| nc_word := word; nc_src := src; nc_dst := dst; nc_rest := rest; nc_path := path_src |} ACCEPT_CONFIG) as (nf & FINAL & WORD & DST & REST).
+    use run_accept_config_sound as (nf & FINAL & WORD & DST & REST) with ACCEPT_CONFIG.
     exists {| run_state_config := {| nc_word := word; nc_src := src; nc_dst := dst; nc_rest := rest; nc_path := path_src |}; run_state_stack := stack |}. split.
     + constructor 2.
     + econstructor; [exact FINAL | simpl; exact WORD | simpl; exact DST | simpl; exact REST | simpl; exact RUN].
@@ -15513,7 +11830,7 @@ Proof.
     destruct (run_shift_target word src dst t path_src) as [(dst' & STEP & path_tgt) | ]; cbn in RUN; [ | discriminate].
     set (c' := {| nc_word := word ++ [inr t]; nc_src := src; nc_dst := dst'; nc_rest := rest'; nc_path := path_tgt |}) in RUN |- *.
     set (stack' := stack ++ [run_shift_tree t]) in RUN |- *.
-    pose proof (run_shift_stack_sound stack t rest' word w STACK_SYMBOLS STACK_VALID YIELD) as (STACK_SYMBOLS' & STACK_VALID' & YIELD').
+    use run_shift_stack_sound as (STACK_SYMBOLS' & STACK_VALID' & YIELD') with STACK_SYMBOLS STACK_VALID YIELD.
     assert (STACK_SYMBOLS_C' : run_stack_symbols stack' = c'.(nc_word)).
     { unfold stack', c'. simpl. exact STACK_SYMBOLS'. }
     assert (YIELD_C' : run_stack_yield stack' ++ parser_input_yield c'.(nc_rest) = w).
@@ -15524,7 +11841,7 @@ Proof.
     destruct (run_reduce_allowed pr dst (parser_lookahead rest)) as [IN_REDUCE | ]; [ | discriminate].
     destruct (run_reduce_stack pr stack) as [stack' | ] eqn: REDUCE_STACK; [ | discriminate].
     destruct (run_reduce_target alpha src dst pr) as [(p & dst' & PATH_ALPHA & PATH_OMEGA & STEP) | ]; [ | discriminate].
-    pose proof (run_reduce_stack_sound pr stack stack' word alpha omega dst (parser_lookahead rest) STACK_SYMBOLS STACK_VALID SPLIT_WORD EQ_RHS IN_REDUCE REDUCE_STACK) as (STACK_SYMBOLS' & STACK_VALID' & STACK_YIELD').
+    use run_reduce_stack_sound as (STACK_SYMBOLS' & STACK_VALID' & STACK_YIELD') with STACK_SYMBOLS STACK_VALID SPLIT_WORD EQ_RHS IN_REDUCE REDUCE_STACK.
     set (path_tgt := npath_snoc alpha src p (inl pr.(p_lhs)) dst' PATH_ALPHA STEP) in RUN |- *.
     set (c' := {| nc_word := alpha ++ [inl pr.(p_lhs)]; nc_src := src; nc_dst := dst'; nc_rest := rest; nc_path := path_tgt |}) in RUN |- *.
     set (EDGE := (@ex_intro _ _ pr (@ex_intro _ _ p (conj IN_REDUCE (conj PATH_OMEGA STEP))) : reduce_edge (parser_lookahead rest) dst dst')) in RUN |- *.
@@ -15534,10 +11851,10 @@ Proof.
     { unfold c'. simpl. exact STACK_SYMBOLS'. }
     exact (IH {| run_state_config := c'; run_state_stack := stack' |} (ACC_INV (nconfig_parser_measure c') (parser_step_lt_reduce_edge (certified_table_rank ctbl) dst dst' rest CERT EDGE)) tree STACK_SYMBOLS_C' STACK_VALID' YIELD_C' RUN).
   - destruct (run_accept_config {| nc_word := word; nc_src := src; nc_dst := dst; nc_rest := rest; nc_path := path_src |}) eqn: ACCEPT_CONFIG; cbn in RUN; [ | discriminate].
-    pose proof (run_accept_config_sound {| nc_word := word; nc_src := src; nc_dst := dst; nc_rest := rest; nc_path := path_src |} ACCEPT_CONFIG) as (nf & FINAL & WORD & DST & REST).
+    use run_accept_config_sound as (nf & FINAL & WORD & DST & REST) with ACCEPT_CONFIG.
     assert (STACK_SYMBOLS_ACCEPT : run_stack_symbols stack = run_accept_word).
     { rewrite STACK_SYMBOLS. exact WORD. }
-    pose proof (run_accept_stack_sound stack tree STACK_VALID STACK_SYMBOLS_ACCEPT RUN) as (TREE_VALID & ROOT & STACK_YIELD).
+    use run_accept_stack_sound as (TREE_VALID & ROOT & STACK_YIELD) with STACK_VALID STACK_SYMBOLS_ACCEPT RUN.
     simpl in REST.
     rewrite REST in YIELD. simpl in YIELD. rewrite STACK_YIELD in YIELD. rewrite app_nil_r in YIELD.
     splits; [exact TREE_VALID | exact ROOT | exact YIELD].
@@ -15560,10 +11877,10 @@ Lemma run_parser_impl_L_LA ctbl CERT w tree
   : L_LA w.
 Proof.
   unfold run_parser_impl in RUN.
-  pose proof (run_parser_acc_sound ctbl CERT (initial_run_state w) (certified_initial_acc ctbl w) tree RUN) as (rs' & STEPS & ACCEPT).
+  use run_parser_acc_sound as (rs' & STEPS & ACCEPT) with RUN.
   destruct rs' as [cf stack]. unfold run_state_accepts in ACCEPT. simpl in STEPS.
   destruct ACCEPT as [nf FINAL WORD DST REST STACK].
-  pose proof (steps_LA_preserves_src (initial_nconfig w) cf STEPS) as SRC.
+  use steps_LA_preserves_src as SRC with STEPS.
   unfold L_LA. eapply L_LA_spec_intro with (nf := nf) (c0 := initial_nconfig w) (cf := cf); [exact FINAL | reflexivity | reflexivity | reflexivity | reflexivity | exact WORD | simpl in SRC; exact SRC | exact DST | exact REST | exact STEPS].
 Qed.
 
@@ -15718,7 +12035,7 @@ Lemma grammar_accepts_L_LA_by_nq0_la_sem_and_follow_sem w
 Proof.
   eapply grammar_accepts_L_LA_by_nq0_reduce_guard.
   - intros alpha omega p dst rest A dst' path_src path_alpha path_omega path_tgt REDUCE STEP.
-    pose proof (reduceN_completed_item dst A omega REDUCE) as (st & STATE & IN_IT).
+    use reduceN_completed_item as (st & STATE & IN_IT) with REDUCE.
     eapply reduce_LA_complete_sem_by_follow_sem with (it := {| Item.i_lhs := A; Item.i_left := omega; Item.i_right := [] |}); [exact FOLLOW_COMPLETE | exact STATE | exact IN_IT | reflexivity | ].
     exact (REDUCE_SEM alpha omega p dst rest A dst' path_src path_alpha path_omega path_tgt REDUCE STEP).
   - exact ACCEPT.
@@ -15756,7 +12073,7 @@ Proof.
   - unfold Follow.Follow_sem. exists alpha. exists rest. split; [ | exact path_alpha].
     eapply rt_trans.
     + constructor 1. exact rm_step_start_augmented.
-    + pose proof (nsteps_nyield_invariant {| nc_word := alpha ++ [inl A]; nc_src := nq0; nc_dst := dst'; nc_rest := t :: rest; nc_path := path_tgt |} cf TAIL) as RM.
+    + use nsteps_nyield_invariant as RM with TAIL.
       unfold nyield in RM. simpl in RM. rewrite CF_WORD in RM. rewrite CF_REST in RM. simpl in RM.
       change accept_word with augmented_start_sentence in RM.
       replace ((alpha ++ [inl A]) ++ inr t :: map inr rest) with (alpha ++ inl A :: inr t :: map inr rest) in RM by (rewrite <- app_assoc; reflexivity).
@@ -15771,7 +12088,7 @@ Lemma reduce_guard_by_accepting_tail alpha omega p dst t rest A dst' cf (path_al
   (STEP : dN p (inl A) = Some dst')
   : {| p_lhs := A; p_rhs := omega |} ∈ reduce_LA dst (parser_lookahead (t :: rest)).
 Proof.
-  pose proof (reduceN_completed_item dst A omega REDUCE) as (st & STATE & IN_IT).
+  use reduceN_completed_item as (st & STATE & IN_IT) with REDUCE.
   simpl. eapply reduce_LA_complete_sem with (it := {| Item.i_lhs := A; Item.i_left := omega; Item.i_right := [] |}); [exact STATE | exact IN_IT | reflexivity | ].
   exact (reduce_LA_sem_from_accepting_tail alpha omega p dst t rest A dst' cf path_alpha path_omega path_tgt TAIL CF_WORD CF_REST STEP).
 Qed.
@@ -15782,16 +12099,16 @@ Lemma reduce_accepting_tail_empty_absurd alpha A dst' cf (path_tgt : npath (alph
   (CF_REST : cf.(nc_rest) = [])
   : False.
 Proof.
-  pose proof (nsteps_nyield_invariant {| nc_word := alpha ++ [inl A]; nc_src := nq0; nc_dst := dst'; nc_rest := []; nc_path := path_tgt |} cf TAIL) as RM.
+  use nsteps_nyield_invariant as RM with TAIL.
   unfold nyield in RM. simpl in RM. rewrite CF_WORD in RM. rewrite CF_REST in RM. simpl in RM.
   change accept_word with augmented_start_sentence in RM.
   rewrite app_nil_r in RM.
-  pose proof (rm_steps_plain_steps augmented_start_sentence (alpha ++ [inl A]) RM) as PLAIN.
+  use rm_steps_plain_steps as PLAIN with RM.
   assert (NO_START : ~ inl start_prime ∈ [(inl (lift_N Grammar.start) : V')]).
   { simpl. intros [EQ | []]. discriminate EQ. }
   change augmented_start_sentence with ([(inl (lift_N Grammar.start) : V')] ++ [inr eof]) in PLAIN.
-  pose proof (plain_steps_eof_suffix_grammar_steps [(inl (lift_N Grammar.start) : V')] (alpha ++ [inl A]) NO_START PLAIN) as (core & TARGET & _).
-  pose proof (@app_inj_tail V' alpha core (inl A) (inr eof) TARGET) as (_ & SYMBOL_EQ).
+  use plain_steps_eof_suffix_grammar_steps as (core & TARGET & _) with NO_START PLAIN.
+  use (@app_inj_tail V') as (_ & SYMBOL_EQ) with TARGET.
   discriminate SYMBOL_EQ.
 Qed.
 
@@ -15810,7 +12127,7 @@ Proof.
     + eapply rt_trans; [constructor 1; econstructor; exact STEP_DN | exact (IH CF_WORD CF_REST SRC_MID)].
     + destruct rest as [ | t rest].
       * exfalso. eapply reduce_accepting_tail_empty_absurd with (cf := cf) (path_tgt := path_tgt); [exact TAIL_STEPS | exact CF_WORD | exact CF_REST].
-      * pose proof (reduce_guard_by_accepting_tail alpha omega p dst t rest A dst' cf path_alpha path_omega path_tgt TAIL_STEPS CF_WORD CF_REST REDUCE STEP_DN) as REDUCE_LA.
+      * use! (reduce_guard_by_accepting_tail alpha omega p dst t rest A dst' cf path_alpha path_omega path_tgt TAIL_STEPS CF_WORD CF_REST REDUCE STEP_DN) as REDUCE_LA with *.
         eapply rt_trans; [constructor 1; econstructor; [exact path_alpha | exact path_omega | exact REDUCE_LA | exact STEP_DN] | exact (IH CF_WORD CF_REST SRC_MID)].
 Qed.
 
@@ -15875,8 +12192,8 @@ Lemma run_shift_branch_guards_complete cert ctbl alpha src dst t dst' (path_src 
   (STEP : dN dst (inr t) = Some dst')
   : ctbl.(certified_table_action) dst t = Some (Shift dst') /\ (exists target, run_shift_target alpha src dst t path_src = Some target).
 Proof.
-  pose proof (npath_target_state alpha src dst path_src) as (st & STATE).
-  pose proof (build_certified_table_success_select_shift cert ctbl dst t st dst' BUILD STATE STEP) as (_ & ACTION).
+  use npath_target_state as (st & STATE) with path_src.
+  use build_certified_table_success_select_shift as (_ & ACTION) with BUILD STATE STEP.
   split; [exact ACTION | ]. eapply run_shift_target_complete. exact STEP.
 Qed.
 
@@ -15896,8 +12213,8 @@ Lemma run_reduce_branch_guards_complete cert ctbl alpha omega src p dst rest B d
   (STEP : dN p (inl (Some B)) = Some dst')
   : run_reduce_branch_guards_complete_spec ctbl alpha omega src dst rest B stack.
 Proof.
-  pose proof (npath_target_state (alpha ++ omega) src dst path_src) as (st & STATE).
-  pose proof (build_certified_table_success_select_reduce cert ctbl dst (parser_lookahead rest) st {| p_lhs := Some B; p_rhs := omega |} BUILD STATE REDUCE) as (_ & ACTION).
+  use npath_target_state as (st & STATE) with path_src.
+  use build_certified_table_success_select_reduce as (_ & ACTION) with BUILD STATE REDUCE.
   econstructor.
   - exact ACTION.
   - eapply run_split_suffix_complete; [reflexivity | reflexivity].
@@ -15925,10 +12242,10 @@ Lemma run_shift_step_progress cert ctbl CERT alpha src dst rest t dst' path_src 
   : run_step_progress_spec ctbl CERT {| run_state_config := {| nc_word := alpha; nc_src := src; nc_dst := dst; nc_rest := t :: rest; nc_path := path_src |}; run_state_stack := stack |} ACC {| nc_word := alpha ++ [inr t]; nc_src := src; nc_dst := dst'; nc_rest := rest; nc_path := path_tgt |} w.
 Proof.
   destruct ACC as [ACC_INV].
-  pose proof (run_shift_branch_guards_complete cert ctbl alpha src dst t dst' path_src BUILD STEP) as (ACTION & target & TARGET).
+  use (run_shift_branch_guards_complete cert ctbl alpha src dst t dst' path_src) as (ACTION & target & TARGET) with BUILD STEP.
   destruct target as (dst_run & STEP_RUN & path_run).
   assert (DST_RUN : dst_run = dst') by congruence. subst dst_run.
-  pose proof (run_shift_stack_sound stack t rest alpha w STACK_SYMBOLS STACK_VALID YIELD) as (STACK_SYMBOLS' & STACK_VALID' & YIELD').
+  use run_shift_stack_sound as (STACK_SYMBOLS' & STACK_VALID' & YIELD') with STACK_SYMBOLS STACK_VALID YIELD.
   set (c_run := {| nc_word := alpha ++ [inr t]; nc_src := src; nc_dst := dst'; nc_rest := rest; nc_path := path_run |}).
   set (stack_run := stack ++ [run_shift_tree t]).
   set (rs_run := {| run_state_config := c_run; run_state_stack := stack_run |}).
@@ -15953,8 +12270,8 @@ Lemma run_reduce_step_progress cert ctbl CERT alpha omega src p dst rest A dst' 
   : run_step_progress_spec ctbl CERT {| run_state_config := {| nc_word := alpha ++ omega; nc_src := src; nc_dst := dst; nc_rest := rest; nc_path := path_src |}; run_state_stack := stack |} ACC {| nc_word := alpha ++ [inl A]; nc_src := src; nc_dst := dst'; nc_rest := rest; nc_path := path_tgt |} w.
 Proof.
   destruct ACC as [ACC_INV].
-  pose proof (reduce_LA_user_lhs dst (parser_lookahead rest) {| p_lhs := A; p_rhs := omega |} REDUCE) as (B & LHS). simpl in LHS. subst A.
-  pose proof (run_reduce_branch_guards_complete cert ctbl alpha omega src p dst rest B dst' path_src path_alpha path_omega stack BUILD STACK_SYMBOLS REDUCE STEP) as GUARDS.
+  use reduce_LA_user_lhs as (B & LHS) with REDUCE. simpl in LHS. subst A.
+  use (run_reduce_branch_guards_complete cert ctbl alpha omega src p dst rest B dst' path_src path_alpha path_omega stack) as GUARDS with BUILD STACK_SYMBOLS REDUCE STEP.
   destruct GUARDS as [ACTION SPLIT_WORD REDUCE_ALLOWED REDUCE_STACK REDUCE_TARGET].
   destruct REDUCE_ALLOWED as (IN_REDUCE' & REDUCE_ALLOWED).
   destruct REDUCE_STACK as (stack_run & REDUCE_STACK).
@@ -15962,9 +12279,9 @@ Proof.
   destruct target as (p_run & dst_run & PATH_ALPHA_RUN & PATH_OMEGA_RUN & STEP_RUN).
   change (p_rhs {| p_lhs := Some B; p_rhs := omega |}) with omega in *.
   change (p_lhs {| p_lhs := Some B; p_rhs := omega |}) with (Some B) in *.
-  pose proof (npath_deterministic alpha src p_run p PATH_ALPHA_RUN path_alpha) as P_EQ. subst p_run.
+  use npath_deterministic as P_EQ with PATH_ALPHA_RUN path_alpha. subst p_run.
   assert (DST_RUN : dst_run = dst') by congruence. subst dst_run.
-  pose proof (run_reduce_stack_sound {| p_lhs := Some B; p_rhs := omega |} stack stack_run (alpha ++ omega) alpha omega dst (parser_lookahead rest) STACK_SYMBOLS STACK_VALID SPLIT_WORD eq_refl REDUCE REDUCE_STACK) as (STACK_SYMBOLS' & STACK_VALID' & STACK_YIELD').
+  use! (run_reduce_stack_sound {| p_lhs := Some B; p_rhs := omega |} stack stack_run (alpha ++ omega) alpha omega dst (parser_lookahead rest)) as (STACK_SYMBOLS' & STACK_VALID' & STACK_YIELD') with STACK_SYMBOLS STACK_VALID SPLIT_WORD REDUCE REDUCE_STACK.
   set (path_run := npath_snoc alpha src p (inl (Some B)) dst' PATH_ALPHA_RUN STEP_RUN).
   set (c_run := {| nc_word := alpha ++ [inl (Some B)]; nc_src := src; nc_dst := dst'; nc_rest := rest; nc_path := path_run |}).
   set (rs_run := {| run_state_config := c_run; run_state_stack := stack_run |}).
@@ -16001,9 +12318,9 @@ Lemma run_accept_state_progress cert ctbl CERT src nf (path_src : npath run_acce
   (STACK_SYMBOLS : run_stack_symbols stack = run_accept_word)
   : exists tree, run_parser_acc ctbl CERT {| run_state_config := {| nc_word := run_accept_word; nc_src := src; nc_dst := nf; nc_rest := []; nc_path := path_src |}; run_state_stack := stack |} ACC = Some tree.
 Proof.
-  pose proof (nq_f_sound nf FINAL) as (qf & FINAL_Q & INDEX & STATE).
-  pose proof (build_certified_table_success_select_accept cert ctbl nf qf BUILD STATE FINAL) as (_ & ACTION).
-  pose proof (run_accept_stack_complete stack STACK_SYMBOLS) as (tree & STACK).
+  use nq_f_sound as (qf & FINAL_Q & INDEX & STATE) with FINAL.
+  use build_certified_table_success_select_accept as (_ & ACTION) with BUILD STATE FINAL.
+  use run_accept_stack_complete as (tree & STACK) with STACK_SYMBOLS.
   destruct ACC as [ACC_INV].
   exists tree. cbn [run_parser_acc]. change (parser_lookahead []) with eof. rewrite ACTION.
   assert (ACCEPT_CONFIG : run_accept_config {| nc_word := run_accept_word; nc_src := src; nc_dst := nf; nc_rest := []; nc_path := path_src |} = true).
@@ -16033,11 +12350,11 @@ Proof.
     + exact STACK_SYMBOLS.
     + exact STACK_VALID.
     + exact YIELD.
-  - pose proof (step_LA_shape_transport rs.(run_state_config) c c_mid SHAPE STEP) as (c_mid_run & SHAPE_MID_RUN & STEP_RUN).
-    pose proof (run_step_progress cert ctbl CERT rs ACC c_mid_run w BUILD STACK_SYMBOLS STACK_VALID YIELD STEP_RUN) as STEP_PROGRESS.
+  - use step_LA_shape_transport as (c_mid_run & SHAPE_MID_RUN & STEP_RUN) with SHAPE STEP.
+    use (run_step_progress cert ctbl CERT rs ACC c_mid_run w) as STEP_PROGRESS with BUILD STACK_SYMBOLS STACK_VALID YIELD STEP_RUN.
     destruct STEP_PROGRESS as [rs_mid ACC_MID TARGET_MID STEP_MID RUN_MID STACK_SYMBOLS_MID STACK_VALID_MID YIELD_MID].
-    pose proof (nconfig_shape_eq_trans rs_mid.(run_state_config) c_mid_run c_mid TARGET_MID SHAPE_MID_RUN) as SHAPE_MID.
-    pose proof (IH rs_mid ACC_MID w BUILD SHAPE_MID STACK_SYMBOLS_MID STACK_VALID_MID YIELD_MID) as TAIL_PROGRESS.
+    use nconfig_shape_eq_trans as SHAPE_MID with TARGET_MID SHAPE_MID_RUN.
+    use! (IH rs_mid ACC_MID w BUILD SHAPE_MID STACK_SYMBOLS_MID STACK_VALID_MID YIELD_MID) as TAIL_PROGRESS with *.
     destruct TAIL_PROGRESS as [rs_final ACC_FINAL TARGET_FINAL STEPS_FINAL RUN_FINAL STACK_SYMBOLS_FINAL STACK_VALID_FINAL YIELD_FINAL].
     eapply run_steps_progress_spec_intro with (rs' := rs_final) (ACC' := ACC_FINAL).
     + exact TARGET_FINAL.
@@ -16070,7 +12387,8 @@ Lemma steps_LA_shape_transport c_run c_abs c_abs'
   (STEPS : steps_LA c_abs c_abs')
   : exists c_run_final, nconfig_shape_eq c_run_final c_abs' /\ steps_LA c_run c_run_final.
 Proof.
-  pose proof (steps_LA_1n_shape_transport c_run c_abs c_abs' SHAPE (Operators_Properties.clos_rt_rt1n _ _ _ _ STEPS)) as (c_run_final & SHAPE_RUN & STEPS_RUN).
+  use Operators_Properties.clos_rt_rt1n as STEPS1N with STEPS.
+  use steps_LA_1n_shape_transport as (c_run_final & SHAPE_RUN & STEPS_RUN) with SHAPE STEPS1N.
   exists c_run_final. split.
   - exact SHAPE_RUN.
   - eapply Operators_Properties.clos_rt1n_rt. exact STEPS_RUN.
@@ -16084,14 +12402,14 @@ Proof.
   unfold L_LA in ACCEPT. destruct ACCEPT as [nf c0 cf FINAL_N C0_WORD C0_SRC C0_DST C0_REST CF_WORD CF_SRC CF_DST CF_REST STEPS].
   assert (SHAPE_INIT : nconfig_shape_eq (initial_nconfig w) c0).
   { unfold nconfig_shape_eq, initial_nconfig. simpl. splits; [symmetry; exact C0_WORD | symmetry; exact C0_SRC | symmetry; exact C0_DST | symmetry; exact C0_REST]. }
-  pose proof (steps_LA_shape_transport (initial_nconfig w) c0 cf SHAPE_INIT STEPS) as (cf_run & SHAPE_CF_RUN & STEPS_RUN).
+  use steps_LA_shape_transport as (cf_run & SHAPE_CF_RUN & STEPS_RUN) with SHAPE_INIT STEPS.
   assert (STACK_SYMBOLS_INIT : run_stack_symbols (initial_run_state w).(run_state_stack) = (initial_run_state w).(run_state_config).(nc_word)) by reflexivity.
   assert (STACK_VALID_INIT : run_stack_valid (initial_run_state w).(run_state_stack)) by exact I.
   assert (YIELD_INIT : run_stack_yield (initial_run_state w).(run_state_stack) ++ parser_input_yield (initial_run_state w).(run_state_config).(nc_rest) = w).
   { simpl. rewrite parser_input_yield_parser_input. reflexivity. }
-  pose proof (run_steps_progress cert ctbl CERT (initial_run_state w) (certified_initial_acc ctbl w) cf_run w BUILD STACK_SYMBOLS_INIT STACK_VALID_INIT YIELD_INIT STEPS_RUN) as PROGRESS.
+  use (run_steps_progress cert ctbl CERT (initial_run_state w) (certified_initial_acc ctbl w) cf_run w) as PROGRESS with BUILD STACK_SYMBOLS_INIT STACK_VALID_INIT YIELD_INIT STEPS_RUN.
   destruct PROGRESS as [rs_final ACC_FINAL TARGET_FINAL STEPS_FINAL RUN_FINAL STACK_SYMBOLS_FINAL STACK_VALID_FINAL YIELD_FINAL].
-  pose proof (nconfig_shape_eq_trans rs_final.(run_state_config) cf_run cf TARGET_FINAL SHAPE_CF_RUN) as SHAPE_FINAL.
+  use nconfig_shape_eq_trans as SHAPE_FINAL with TARGET_FINAL SHAPE_CF_RUN.
   clear TARGET_FINAL STEPS_FINAL STACK_VALID_FINAL YIELD_FINAL.
   unfold run_parser_impl.
   destruct rs_final as [c_final stack_final]. destruct c_final as [word_final src_final dst_final rest_final path_final]. simpl in ACC_FINAL, RUN_FINAL, STACK_SYMBOLS_FINAL, SHAPE_FINAL.
@@ -16099,7 +12417,7 @@ Proof.
   rewrite CF_WORD in WORD_FINAL. change [inl (lift_N Grammar.start); inr eof] with run_accept_word in WORD_FINAL. rewrite CF_DST in DST_FINAL. rewrite CF_REST in REST_FINAL.
   assert (STACK_SYMBOLS_ACCEPT : run_stack_symbols stack_final = run_accept_word) by congruence.
   clear STACK_SYMBOLS_FINAL. subst word_final. subst dst_final. subst rest_final.
-  pose proof (run_accept_state_progress cert ctbl CERT src_final nf path_final stack_final ACC_FINAL BUILD FINAL_N STACK_SYMBOLS_ACCEPT) as (tree & RUN_ACCEPT).
+  use (run_accept_state_progress cert ctbl CERT src_final nf path_final stack_final ACC_FINAL) as (tree & RUN_ACCEPT) with BUILD FINAL_N STACK_SYMBOLS_ACCEPT.
   exists tree. rewrite RUN_FINAL. exact RUN_ACCEPT.
 Qed.
 
@@ -16206,7 +12524,7 @@ Proof.
   destruct (run_parser_impl ctbl CERT w) as [tree | ] eqn: RUN; simpl.
   - eapply run_parser_impl_L_LA. exact RUN.
   - intros ACCEPT.
-    pose proof (run_parser_impl_complete cert ctbl CERT w BUILD ACCEPT) as (tree & RUN_SOME).
+    use (run_parser_impl_complete cert ctbl CERT w) as (tree & RUN_SOME) with BUILD ACCEPT.
     congruence.
 Qed.
 
@@ -16216,7 +12534,7 @@ Theorem run_parser_impl_correct_grammar cert ctbl CERT w
 Proof.
   destruct (run_parser_impl ctbl CERT w) as [tree | ] eqn: RUN; simpl.
   - eapply run_parser_impl_sound. exact RUN.
-  - intros ACCEPT. pose proof (run_parser_impl_complete_by_grammar cert ctbl w CERT BUILD ACCEPT) as (tree & RUN_SOME). congruence.
+  - intros ACCEPT. use (run_parser_impl_complete_by_grammar cert ctbl w CERT) as (tree & RUN_SOME) with BUILD ACCEPT. congruence.
 Qed.
 
 Lemma terminal_lift_app w1 w2
@@ -16313,7 +12631,7 @@ Lemma valid_tree_run_parser tree
   (ROOT : parse_tree_root tree = Some Grammar.start)
   : run_parser (parse_tree_yield tree).
 Proof.
-  unfold run_parser. pose proof (valid_tree_grammar_steps tree VALID) as STEPS.
+  unfold run_parser. use valid_tree_grammar_steps as STEPS with VALID.
   destruct VALID as [t | A children PROD CHILDREN]; simpl in ROOT; [discriminate | ].
   inv ROOT. exact STEPS.
 Qed.
@@ -16322,635 +12640,13 @@ Lemma run_parser_impl_tree_run_parser ctbl CERT w tree
   (RUN : run_parser_impl ctbl CERT w = Some tree)
   : run_parser w.
 Proof.
-  pose proof (run_parser_impl_tree_sound ctbl CERT w tree RUN) as (VALID & ROOT & YIELD).
+  use run_parser_impl_tree_sound as (VALID & ROOT & YIELD) with RUN.
   rewrite <- YIELD. eapply valid_tree_run_parser; [exact VALID | exact ROOT].
 Qed.
 
-Module Abs.
 
-Abbreviation parse_tree := parse_tree.
 
-Abbreviation parse_tree_symbol := parse_tree_symbol.
 
-Abbreviation parse_tree_yield := parse_tree_yield.
-
-Abbreviation parse_tree_root := parse_tree_root.
-
-Abbreviation valid_tree := valid_tree.
-
-Abbreviation accept_word := accept_word.
-
-Abbreviation accept_config := accept_config.
-
-Abbreviation accept_stack := accept_stack.
-
-Abbreviation accept_run_state := accept_run_state.
-
-Abbreviation step_LA := step_LA.
-
-Abbreviation steps_LA := steps_LA.
-
-Abbreviation L_LA_spec := L_LA_spec.
-
-Abbreviation L_LA := L_LA.
-
-Abbreviation run_parser := run_parser.
-
-Abbreviation parse_result_accept_similarity := parse_result_accept_similarity.
-
-End Abs.
-
-Module Impl.
-
-Abbreviation parser_input := parser_input.
-
-Abbreviation parser_input_yield := parser_input_yield.
-
-Abbreviation initial_parser_measure := initial_parser_measure.
-
-Abbreviation certified_initial_acc := certified_initial_acc.
-
-Abbreviation npath_dec := npath_dec.
-
-Abbreviation dN_target_dec := dN_target_dec.
-
-Abbreviation run_stack := run_stack.
-
-Abbreviation run_stack_entry_symbol := run_stack_entry_symbol.
-
-Abbreviation run_stack_symbols := run_stack_symbols.
-
-Abbreviation run_stack_entry_yield := run_stack_entry_yield.
-
-Abbreviation run_stack_yield := run_stack_yield.
-
-Abbreviation run_stack_valid := run_stack_valid.
-
-Abbreviation run_state := run_state.
-
-Abbreviation nconfig_parser_measure := nconfig_parser_measure.
-
-Abbreviation run_state_measure := run_state_measure.
-
-Abbreviation run_shift_tree := run_shift_tree.
-
-Abbreviation run_shift_target := run_shift_target.
-
-Abbreviation run_split_suffix := run_split_suffix.
-
-Abbreviation run_sequence_trees := run_sequence_trees.
-
-Abbreviation run_reduce_stack := run_reduce_stack.
-
-Abbreviation run_accept_stack := run_accept_stack.
-
-Abbreviation run_accept_word := run_accept_word.
-
-Abbreviation run_state_accepts_spec := run_state_accepts_spec.
-
-Abbreviation run_accept_config := run_accept_config.
-
-Abbreviation run_reduce_allowed := run_reduce_allowed.
-
-Abbreviation run_reduce_target_from := run_reduce_target_from.
-
-Abbreviation run_reduce_target := run_reduce_target.
-
-Abbreviation initial_nconfig := initial_nconfig.
-
-Abbreviation initial_run_state := initial_run_state.
-
-Abbreviation run_parser_acc := run_parser_acc.
-
-Abbreviation run_parser := run_parser_impl.
-
-Abbreviation parse_result_accept_similarity := parse_result_accept_similarity.
-
-End Impl.
-
-Module Refine.
-
-Abbreviation terminal_lift_app_refines := terminal_lift_app.
-
-Abbreviation grammar_step_context_refines := grammar_step_context.
-
-Abbreviation grammar_steps_context_refines := grammar_steps_context.
-
-Abbreviation valid_tree_forest_grammar_steps_refines := valid_tree_forest_grammar_steps.
-
-Abbreviation valid_tree_grammar_steps_refines := valid_tree_grammar_steps.
-
-Abbreviation valid_forest_grammar_steps_refines := valid_forest_grammar_steps.
-
-Abbreviation valid_tree_run_parser_refines := valid_tree_run_parser.
-
-Abbreviation step_LA_nstep_refines := step_LA_nstep.
-
-Abbreviation nstep_step_LA_by_reduce_guard_refines := nstep_step_LA_by_reduce_guard.
-
-Abbreviation nstep_preserves_src_refines := nstep_preserves_src.
-
-Abbreviation nstep_step_LA_by_nq0_reduce_guard_refines := nstep_step_LA_by_nq0_reduce_guard.
-
-Abbreviation steps_LA_nsteps_refines := steps_LA_nsteps.
-
-Abbreviation nsteps_steps_LA_by_reduce_guard_refines := nsteps_steps_LA_by_reduce_guard.
-
-Abbreviation nsteps_preserves_src_refines := nsteps_preserves_src.
-
-Abbreviation nsteps_steps_LA_by_nq0_reduce_guard_refines := nsteps_steps_LA_by_nq0_reduce_guard.
-
-Abbreviation L_LA_L_LRA_N_refines := L_LA_L_LRA_N.
-
-Abbreviation L_LRA_N_L_LA_by_reduce_guard_refines := L_LRA_N_L_LA_by_reduce_guard.
-
-Abbreviation L_LRA_N_L_LA_by_nq0_reduce_guard_refines := L_LRA_N_L_LA_by_nq0_reduce_guard.
-
-Abbreviation grammar_accepts_L_LA_by_reduce_guard_refines := grammar_accepts_L_LA_by_reduce_guard.
-
-Abbreviation grammar_accepts_L_LA_by_nq0_reduce_guard_refines := grammar_accepts_L_LA_by_nq0_reduce_guard.
-
-Abbreviation grammar_accepts_L_LA_by_la_sem_and_follow_sem_refines := grammar_accepts_L_LA_by_la_sem_and_follow_sem.
-
-Abbreviation grammar_accepts_L_LA_by_nq0_la_sem_and_follow_sem_refines := grammar_accepts_L_LA_by_nq0_la_sem_and_follow_sem.
-
-Abbreviation grammar_accepts_L_LA_by_la_sem_refines := grammar_accepts_L_LA_by_la_sem.
-
-Abbreviation grammar_accepts_L_LA_by_nq0_la_sem_refines := grammar_accepts_L_LA_by_nq0_la_sem.
-
-Abbreviation reduce_LA_sem_from_accepting_tail_refines := reduce_LA_sem_from_accepting_tail.
-
-Abbreviation reduce_guard_by_accepting_tail_refines := reduce_guard_by_accepting_tail.
-
-Abbreviation reduce_accepting_tail_empty_absurd_refines := reduce_accepting_tail_empty_absurd.
-
-Abbreviation nsteps_steps_LA_by_accepting_tail_1n_refines := nsteps_steps_LA_by_accepting_tail_1n.
-
-Abbreviation nsteps_steps_LA_by_accepting_tail_refines := nsteps_steps_LA_by_accepting_tail.
-
-Abbreviation L_LRA_N_L_LA_refines := L_LRA_N_L_LA.
-
-Abbreviation grammar_accepts_L_LA_refines := grammar_accepts_L_LA.
-
-Abbreviation L_LA_spec_refines := L_LA_spec.
-
-Abbreviation L_LA_sound_refines := L_LA_sound.
-
-Abbreviation run_parser_acc_irrel_refines := run_parser_acc_irrel.
-
-Abbreviation run_parser_acc_sound_refines := run_parser_acc_sound.
-
-Abbreviation run_parser_impl_L_LA_refines := run_parser_impl_L_LA.
-
-Abbreviation run_parser_impl_sound_refines := run_parser_impl_sound.
-
-Abbreviation step_LA_parser_step_lt_refines := step_LA_parser_step_lt.
-
-Abbreviation nconfig_shape_eq_refines := nconfig_shape_eq.
-
-Abbreviation nconfig_shape_eq_refl_refines := nconfig_shape_eq_refl.
-
-Abbreviation nconfig_shape_eq_trans_refines := nconfig_shape_eq_trans.
-
-Abbreviation step_LA_shape_transport_refines := step_LA_shape_transport.
-
-Abbreviation steps_LA_1n_shape_transport_refines := steps_LA_1n_shape_transport.
-
-Abbreviation steps_LA_shape_transport_refines := steps_LA_shape_transport.
-
-Abbreviation run_shift_branch_guards_complete_refines := run_shift_branch_guards_complete.
-
-Abbreviation run_reduce_branch_guards_complete_spec_refines := run_reduce_branch_guards_complete_spec.
-
-Abbreviation run_reduce_branch_guards_complete_refines := run_reduce_branch_guards_complete.
-
-Abbreviation run_step_progress_spec_refines := run_step_progress_spec.
-
-Abbreviation run_shift_step_progress_refines := run_shift_step_progress.
-
-Abbreviation run_reduce_step_progress_refines := run_reduce_step_progress.
-
-Abbreviation run_step_progress_refines := run_step_progress.
-
-Abbreviation run_accept_state_progress_refines := run_accept_state_progress.
-
-Abbreviation run_steps_progress_spec_refines := run_steps_progress_spec.
-
-Abbreviation run_steps_progress_1n_refines := run_steps_progress_1n.
-
-Abbreviation run_steps_progress_refines := run_steps_progress.
-
-Abbreviation run_parser_impl_L_LA_complete_refines := run_parser_impl_L_LA_complete.
-
-Abbreviation run_parser_impl_L_LA_correct_refines := run_parser_impl_L_LA_correct.
-
-Abbreviation parse_result_accept_similarity_refines := parse_result_accept_similarity.
-
-Abbreviation run_parser_impl_complete_refines := run_parser_impl_complete.
-
-Abbreviation run_parser_impl_complete_by_reduce_guard_refines := run_parser_impl_complete_by_reduce_guard.
-
-Abbreviation run_parser_impl_complete_by_nq0_reduce_guard_refines := run_parser_impl_complete_by_nq0_reduce_guard.
-
-Abbreviation run_parser_impl_complete_by_la_sem_and_follow_sem_refines := run_parser_impl_complete_by_la_sem_and_follow_sem.
-
-Abbreviation run_parser_impl_complete_by_nq0_la_sem_and_follow_sem_refines := run_parser_impl_complete_by_nq0_la_sem_and_follow_sem.
-
-Abbreviation run_parser_impl_complete_by_la_sem_refines := run_parser_impl_complete_by_la_sem.
-
-Abbreviation run_parser_impl_complete_by_nq0_la_sem_refines := run_parser_impl_complete_by_nq0_la_sem.
-
-Abbreviation run_parser_impl_complete_by_grammar_refines := run_parser_impl_complete_by_grammar.
-
-Abbreviation run_parser_impl_correct_refines := run_parser_impl_correct.
-
-Abbreviation run_parser_impl_correct_grammar_refines := run_parser_impl_correct_grammar.
-
-Abbreviation parser_input_yield_parser_input_refines := parser_input_yield_parser_input.
-
-Abbreviation run_split_suffix_sound_refines := run_split_suffix_sound.
-
-Abbreviation run_split_suffix_complete_refines := run_split_suffix_complete.
-
-Abbreviation run_split_suffix_map_refines := run_split_suffix_map.
-
-Abbreviation run_split_suffix_deterministic_refines := run_split_suffix_deterministic.
-
-Abbreviation run_stack_symbols_app_refines := run_stack_symbols_app.
-
-Abbreviation run_stack_yield_app_refines := run_stack_yield_app.
-
-Abbreviation run_stack_valid_app_refines := run_stack_valid_app.
-
-Abbreviation run_sequence_trees_sound_refines := run_sequence_trees_sound.
-
-Abbreviation run_sequence_trees_complete_refines := run_sequence_trees_complete.
-
-Abbreviation run_shift_stack_sound_refines := run_shift_stack_sound.
-
-Abbreviation run_shift_target_complete_refines := run_shift_target_complete.
-
-Abbreviation run_reduce_allowed_complete_refines := run_reduce_allowed_complete.
-
-Abbreviation lift_symbol_inj_refines := lift_symbol_inj.
-
-Abbreviation map_lift_symbol_inj_refines := map_lift_symbol_inj.
-
-Abbreviation inject_eq_inv_refines := inject_eq_inv.
-
-Abbreviation P'_user_prod_refines := P'_user_prod.
-
-Abbreviation P'_some_prod_refines := P'_some_prod.
-
-Abbreviation run_reduce_stack_sound_refines := run_reduce_stack_sound.
-
-Abbreviation run_reduce_stack_complete_user_refines := run_reduce_stack_complete_user.
-
-Abbreviation run_reduce_stack_complete_reduce_refines := run_reduce_stack_complete_reduce.
-
-Abbreviation run_reduce_target_from_complete_refines := run_reduce_target_from_complete.
-
-Abbreviation run_reduce_target_complete_refines := run_reduce_target_complete.
-
-Abbreviation run_accept_stack_shape_refines := run_accept_stack_shape.
-
-Abbreviation run_accept_stack_accept_stack_refines := run_accept_stack_accept_stack.
-
-Abbreviation accept_stack_run_accept_stack_refines := accept_stack_run_accept_stack.
-
-Abbreviation run_accept_stack_refines := run_accept_stack_refines.
-
-Abbreviation accept_stack_tree_sound_refines := accept_stack_tree_sound.
-
-Abbreviation run_accept_stack_sound_refines := run_accept_stack_sound.
-
-Abbreviation run_accept_stack_complete_refines := run_accept_stack_complete.
-
-Abbreviation run_accept_config_sound_refines := run_accept_config_sound.
-
-Abbreviation run_accept_config_accept_config_refines := run_accept_config_accept_config.
-
-Abbreviation accept_config_run_accept_config_refines := accept_config_run_accept_config.
-
-Abbreviation run_accept_config_refines := run_accept_config_refines.
-
-Abbreviation run_state_accepts_accept_run_state_refines := run_state_accepts_accept_run_state.
-
-Abbreviation accept_run_state_run_state_accepts_refines := accept_run_state_run_state_accepts.
-
-Abbreviation run_state_accepts_spec_refines := run_state_accepts_spec.
-
-Abbreviation run_state_accepts_refines := run_state_accepts_refines.
-
-Abbreviation run_parser_acc_tree_sound_refines := run_parser_acc_tree_sound.
-
-Abbreviation run_parser_impl_tree_sound_refines := run_parser_impl_tree_sound.
-
-Abbreviation run_parser_impl_tree_run_parser_refines := run_parser_impl_tree_run_parser.
-
-Abbreviation step_LA_preserves_src_refines := step_LA_preserves_src.
-
-Abbreviation steps_LA_preserves_src_refines := steps_LA_preserves_src.
-
-End Refine.
-
-Module API.
-
-Abbreviation parse_tree := parse_tree.
-
-Abbreviation PLeaf := PLeaf.
-
-Abbreviation PNode := PNode.
-
-Abbreviation parse_tree_yield := parse_tree_yield.
-
-Abbreviation parse_tree_root := parse_tree_root.
-
-Abbreviation valid_tree := valid_tree.
-
-Abbreviation accept_word := accept_word.
-
-Abbreviation accept_config := accept_config.
-
-Abbreviation accept_stack := accept_stack.
-
-Abbreviation accept_run_state := accept_run_state.
-
-Abbreviation step_LA := step_LA.
-
-Abbreviation steps_LA := steps_LA.
-
-Abbreviation L_LA_spec := L_LA_spec.
-
-Abbreviation L_LA := L_LA.
-
-Abbreviation run_parser := run_parser.
-
-Abbreviation parser_input := parser_input.
-
-Abbreviation parser_input_yield := parser_input_yield.
-
-Abbreviation parser_input_yield_parser_input := parser_input_yield_parser_input.
-
-Abbreviation initial_parser_measure := initial_parser_measure.
-
-Abbreviation certified_initial_acc := certified_initial_acc.
-
-Abbreviation npath_dec := npath_dec.
-
-Abbreviation dN_target_dec := dN_target_dec.
-
-Abbreviation run_stack := run_stack.
-
-Abbreviation run_stack_entry_symbol := run_stack_entry_symbol.
-
-Abbreviation run_stack_symbols := run_stack_symbols.
-
-Abbreviation run_stack_entry_yield := run_stack_entry_yield.
-
-Abbreviation run_stack_yield := run_stack_yield.
-
-Abbreviation run_stack_valid := run_stack_valid.
-
-Abbreviation run_state := run_state.
-
-Abbreviation nconfig_parser_measure := nconfig_parser_measure.
-
-Abbreviation run_state_measure := run_state_measure.
-
-Abbreviation run_shift_target := run_shift_target.
-
-Abbreviation run_shift_target_complete := run_shift_target_complete.
-
-Abbreviation run_shift_tree := run_shift_tree.
-
-Abbreviation run_accept_word := run_accept_word.
-
-Abbreviation run_state_accepts_spec := run_state_accepts_spec.
-
-Abbreviation run_state_accepts := run_state_accepts.
-
-Abbreviation run_split_suffix := run_split_suffix.
-
-Abbreviation run_split_suffix_complete := run_split_suffix_complete.
-
-Abbreviation run_sequence_trees := run_sequence_trees.
-
-Abbreviation run_sequence_trees_complete := run_sequence_trees_complete.
-
-Abbreviation run_reduce_stack := run_reduce_stack.
-
-Abbreviation run_accept_stack := run_accept_stack.
-
-Abbreviation run_reduce_allowed := run_reduce_allowed.
-
-Abbreviation run_reduce_allowed_complete := run_reduce_allowed_complete.
-
-Abbreviation run_reduce_target_from := run_reduce_target_from.
-
-Abbreviation run_reduce_target := run_reduce_target.
-
-Abbreviation run_reduce_target_from_complete := run_reduce_target_from_complete.
-
-Abbreviation run_reduce_target_complete := run_reduce_target_complete.
-
-Abbreviation run_parser_acc := run_parser_acc.
-
-Abbreviation run_parser_impl := run_parser_impl.
-
-Abbreviation run_parser_acc_irrel := run_parser_acc_irrel.
-
-Abbreviation run_parser_acc_sound := run_parser_acc_sound.
-
-Abbreviation run_parser_acc_tree_sound := run_parser_acc_tree_sound.
-
-Abbreviation run_parser_impl_L_LA := run_parser_impl_L_LA.
-
-Abbreviation run_parser_impl_sound := run_parser_impl_sound.
-
-Abbreviation run_parser_impl_tree_sound := run_parser_impl_tree_sound.
-
-Abbreviation run_parser_impl_tree_run_parser := run_parser_impl_tree_run_parser.
-
-Abbreviation step_LA_nstep := step_LA_nstep.
-
-Abbreviation nstep_step_LA_by_reduce_guard := nstep_step_LA_by_reduce_guard.
-
-Abbreviation nstep_preserves_src := nstep_preserves_src.
-
-Abbreviation nstep_step_LA_by_nq0_reduce_guard := nstep_step_LA_by_nq0_reduce_guard.
-
-Abbreviation steps_LA_nsteps := steps_LA_nsteps.
-
-Abbreviation nsteps_steps_LA_by_reduce_guard := nsteps_steps_LA_by_reduce_guard.
-
-Abbreviation nsteps_preserves_src := nsteps_preserves_src.
-
-Abbreviation nsteps_steps_LA_by_nq0_reduce_guard := nsteps_steps_LA_by_nq0_reduce_guard.
-
-Abbreviation L_LA_L_LRA_N := L_LA_L_LRA_N.
-
-Abbreviation L_LRA_N_L_LA_by_reduce_guard := L_LRA_N_L_LA_by_reduce_guard.
-
-Abbreviation L_LRA_N_L_LA_by_nq0_reduce_guard := L_LRA_N_L_LA_by_nq0_reduce_guard.
-
-Abbreviation grammar_accepts_L_LA_by_reduce_guard := grammar_accepts_L_LA_by_reduce_guard.
-
-Abbreviation grammar_accepts_L_LA_by_nq0_reduce_guard := grammar_accepts_L_LA_by_nq0_reduce_guard.
-
-Abbreviation grammar_accepts_L_LA_by_la_sem_and_follow_sem := grammar_accepts_L_LA_by_la_sem_and_follow_sem.
-
-Abbreviation grammar_accepts_L_LA_by_nq0_la_sem_and_follow_sem := grammar_accepts_L_LA_by_nq0_la_sem_and_follow_sem.
-
-Abbreviation grammar_accepts_L_LA_by_la_sem := grammar_accepts_L_LA_by_la_sem.
-
-Abbreviation grammar_accepts_L_LA_by_nq0_la_sem := grammar_accepts_L_LA_by_nq0_la_sem.
-
-Abbreviation reduce_LA_sem_from_accepting_tail := reduce_LA_sem_from_accepting_tail.
-
-Abbreviation reduce_guard_by_accepting_tail := reduce_guard_by_accepting_tail.
-
-Abbreviation reduce_accepting_tail_empty_absurd := reduce_accepting_tail_empty_absurd.
-
-Abbreviation nsteps_steps_LA_by_accepting_tail_1n := nsteps_steps_LA_by_accepting_tail_1n.
-
-Abbreviation nsteps_steps_LA_by_accepting_tail := nsteps_steps_LA_by_accepting_tail.
-
-Abbreviation L_LRA_N_L_LA := L_LRA_N_L_LA.
-
-Abbreviation grammar_accepts_L_LA := grammar_accepts_L_LA.
-
-Abbreviation L_LA_sound := L_LA_sound.
-
-Abbreviation step_LA_parser_step_lt := step_LA_parser_step_lt.
-
-Abbreviation nconfig_shape_eq := nconfig_shape_eq.
-
-Abbreviation nconfig_shape_eq_refl := nconfig_shape_eq_refl.
-
-Abbreviation nconfig_shape_eq_trans := nconfig_shape_eq_trans.
-
-Abbreviation step_LA_shape_transport := step_LA_shape_transport.
-
-Abbreviation steps_LA_1n_shape_transport := steps_LA_1n_shape_transport.
-
-Abbreviation steps_LA_shape_transport := steps_LA_shape_transport.
-
-Abbreviation run_shift_branch_guards_complete := run_shift_branch_guards_complete.
-
-Abbreviation run_reduce_branch_guards_complete_spec := run_reduce_branch_guards_complete_spec.
-
-Abbreviation run_reduce_branch_guards_complete := run_reduce_branch_guards_complete.
-
-Abbreviation run_step_progress_spec := run_step_progress_spec.
-
-Abbreviation run_shift_step_progress := run_shift_step_progress.
-
-Abbreviation run_reduce_step_progress := run_reduce_step_progress.
-
-Abbreviation run_step_progress := run_step_progress.
-
-Abbreviation run_accept_state_progress := run_accept_state_progress.
-
-Abbreviation run_steps_progress_spec := run_steps_progress_spec.
-
-Abbreviation run_steps_progress_1n := run_steps_progress_1n.
-
-Abbreviation run_steps_progress := run_steps_progress.
-
-Abbreviation run_parser_impl_L_LA_complete := run_parser_impl_L_LA_complete.
-
-Abbreviation run_parser_impl_L_LA_correct := run_parser_impl_L_LA_correct.
-
-Abbreviation parse_result_accept_similarity := parse_result_accept_similarity.
-
-Abbreviation run_parser_impl_complete := run_parser_impl_complete.
-
-Abbreviation run_parser_impl_complete_by_reduce_guard := run_parser_impl_complete_by_reduce_guard.
-
-Abbreviation run_parser_impl_complete_by_nq0_reduce_guard := run_parser_impl_complete_by_nq0_reduce_guard.
-
-Abbreviation run_parser_impl_complete_by_la_sem_and_follow_sem := run_parser_impl_complete_by_la_sem_and_follow_sem.
-
-Abbreviation run_parser_impl_complete_by_nq0_la_sem_and_follow_sem := run_parser_impl_complete_by_nq0_la_sem_and_follow_sem.
-
-Abbreviation run_parser_impl_complete_by_la_sem := run_parser_impl_complete_by_la_sem.
-
-Abbreviation run_parser_impl_complete_by_nq0_la_sem := run_parser_impl_complete_by_nq0_la_sem.
-
-Abbreviation run_parser_impl_complete_by_grammar := run_parser_impl_complete_by_grammar.
-
-Abbreviation run_parser_impl_correct := run_parser_impl_correct.
-
-Abbreviation run_parser_impl_correct_grammar := run_parser_impl_correct_grammar.
-
-Abbreviation run_split_suffix_sound := run_split_suffix_sound.
-
-Abbreviation run_split_suffix_map := run_split_suffix_map.
-
-Abbreviation run_split_suffix_deterministic := run_split_suffix_deterministic.
-
-Abbreviation run_stack_symbols_app := run_stack_symbols_app.
-
-Abbreviation run_stack_yield_app := run_stack_yield_app.
-
-Abbreviation run_stack_valid_app := run_stack_valid_app.
-
-Abbreviation run_sequence_trees_sound := run_sequence_trees_sound.
-
-Abbreviation run_shift_stack_sound := run_shift_stack_sound.
-
-Abbreviation lift_symbol_inj := lift_symbol_inj.
-
-Abbreviation map_lift_symbol_inj := map_lift_symbol_inj.
-
-Abbreviation inject_eq_inv := inject_eq_inv.
-
-Abbreviation P'_user_prod := P'_user_prod.
-
-Abbreviation P'_some_prod := P'_some_prod.
-
-Abbreviation run_reduce_stack_sound := run_reduce_stack_sound.
-
-Abbreviation run_reduce_stack_complete_user := run_reduce_stack_complete_user.
-
-Abbreviation run_reduce_stack_complete_reduce := run_reduce_stack_complete_reduce.
-
-Abbreviation run_accept_stack_shape := run_accept_stack_shape.
-
-Abbreviation run_accept_stack_accept_stack := run_accept_stack_accept_stack.
-
-Abbreviation accept_stack_run_accept_stack := accept_stack_run_accept_stack.
-
-Abbreviation run_accept_stack_refines := run_accept_stack_refines.
-
-Abbreviation accept_stack_tree_sound := accept_stack_tree_sound.
-
-Abbreviation run_accept_stack_sound := run_accept_stack_sound.
-
-Abbreviation run_accept_stack_complete := run_accept_stack_complete.
-
-Abbreviation run_accept_config_sound := run_accept_config_sound.
-
-Abbreviation run_accept_config_accept_config := run_accept_config_accept_config.
-
-Abbreviation accept_config_run_accept_config := accept_config_run_accept_config.
-
-Abbreviation run_accept_config_refines := run_accept_config_refines.
-
-Abbreviation run_state_accepts_accept_run_state := run_state_accepts_accept_run_state.
-
-Abbreviation accept_run_state_run_state_accepts := accept_run_state_run_state_accepts.
-
-Abbreviation run_state_accepts_refines := run_state_accepts_refines.
-
-Abbreviation step_LA_preserves_src := step_LA_preserves_src.
-
-Abbreviation steps_LA_preserves_src := steps_LA_preserves_src.
-
-Abbreviation valid_tree_run_parser := valid_tree_run_parser.
-
-End API.
 
 End Parser.
 
@@ -17052,7 +12748,7 @@ Lemma parser_run_correct_by_nq0_la_sem_and_follow_sem p w
 Proof.
   destruct (run_parser p w) as [tree | ] eqn: RUN; simpl.
   - unfold run_parser in RUN. eapply Parser.run_parser_impl_sound. exact RUN.
-  - intros ACCEPT. pose proof (parser_run_complete_by_nq0_la_sem_and_follow_sem p w FOLLOW_COMPLETE REDUCE_SEM ACCEPT) as (tree & RUN_SOME). rewrite RUN in RUN_SOME. congruence.
+  - intros ACCEPT. use (parser_run_complete_by_nq0_la_sem_and_follow_sem p w) as (tree & RUN_SOME) with FOLLOW_COMPLETE REDUCE_SEM ACCEPT. rewrite RUN in RUN_SOME. congruence.
 Qed.
 
 Lemma parser_run_correct_by_nq0_la_sem p w
@@ -17061,7 +12757,7 @@ Lemma parser_run_correct_by_nq0_la_sem p w
 Proof.
   destruct (run_parser p w) as [tree | ] eqn: RUN; simpl.
   - unfold run_parser in RUN. eapply Parser.run_parser_impl_sound. exact RUN.
-  - intros ACCEPT. pose proof (parser_run_complete_by_nq0_la_sem p w REDUCE_SEM ACCEPT) as (tree & RUN_SOME). rewrite RUN in RUN_SOME. congruence.
+  - intros ACCEPT. use (parser_run_complete_by_nq0_la_sem p w) as (tree & RUN_SOME) with REDUCE_SEM ACCEPT. rewrite RUN in RUN_SOME. congruence.
 Qed.
 
 Lemma parser_run_correct_grammar p w
@@ -17069,7 +12765,7 @@ Lemma parser_run_correct_grammar p w
 Proof.
   destruct (run_parser p w) as [tree | ] eqn: RUN; simpl.
   - unfold run_parser in RUN. eapply Parser.run_parser_impl_sound. exact RUN.
-  - intros ACCEPT. pose proof (parser_run_complete_by_grammar p w ACCEPT) as (tree & RUN_SOME). rewrite RUN in RUN_SOME. congruence.
+  - intros ACCEPT. use (parser_run_complete_by_grammar p w) as (tree & RUN_SOME) with ACCEPT. rewrite RUN in RUN_SOME. congruence.
 Qed.
 
 Lemma parser_accepts_correct p w
@@ -17106,115 +12802,9 @@ Proof.
   - eapply parser_run_complete_by_grammar.
 Qed.
 
-Module Abs.
 
-Abbreviation parser := parser.
 
-End Abs.
 
-Module Impl.
-
-Abbreviation parser := parser.
-
-Abbreviation parser_table := parser_table.
-
-Abbreviation parser_certificate := parser_certificate.
-
-Abbreviation parser_table_built := parser_table_built.
-
-Abbreviation parser_table_conflict_free := parser_table_conflict_free.
-
-Abbreviation parser_table_cert := parser_table_cert.
-
-Abbreviation build := build.
-
-Abbreviation run_parser := run_parser.
-
-End Impl.
-
-Module Refine.
-
-Abbreviation parser_build_correct_refines := parser_build_correct.
-
-Abbreviation parser_single_action_refines := parser_single_action.
-
-Abbreviation parser_run_complete_refines := parser_run_complete.
-
-Abbreviation parser_run_complete_by_nq0_reduce_guard_refines := parser_run_complete_by_nq0_reduce_guard.
-
-Abbreviation parser_run_complete_by_nq0_la_sem_and_follow_sem_refines := parser_run_complete_by_nq0_la_sem_and_follow_sem.
-
-Abbreviation parser_run_complete_by_nq0_la_sem_refines := parser_run_complete_by_nq0_la_sem.
-
-Abbreviation parser_run_complete_by_grammar_refines := parser_run_complete_by_grammar.
-
-Abbreviation parser_run_correct_refines := parser_run_correct.
-
-Abbreviation parser_run_correct_by_nq0_la_sem_and_follow_sem_refines := parser_run_correct_by_nq0_la_sem_and_follow_sem.
-
-Abbreviation parser_run_correct_by_nq0_la_sem_refines := parser_run_correct_by_nq0_la_sem.
-
-Abbreviation parser_run_correct_grammar_refines := parser_run_correct_grammar.
-
-Abbreviation parser_accepts_correct_refines := parser_accepts_correct.
-
-Abbreviation parser_accepts_correct_by_nq0_la_sem_and_follow_sem_refines := parser_accepts_correct_by_nq0_la_sem_and_follow_sem.
-
-Abbreviation parser_accepts_correct_by_nq0_la_sem_refines := parser_accepts_correct_by_nq0_la_sem.
-
-Abbreviation parser_accepts_correct_grammar_refines := parser_accepts_correct_grammar.
-
-End Refine.
-
-Module API.
-
-Abbreviation parser := parser.
-
-Abbreviation parser_table := parser_table.
-
-Abbreviation parser_certificate := parser_certificate.
-
-Abbreviation parser_table_built := parser_table_built.
-
-Abbreviation parser_table_conflict_free := parser_table_conflict_free.
-
-Abbreviation parser_table_cert := parser_table_cert.
-
-Abbreviation build := build.
-
-Abbreviation run_parser := run_parser.
-
-Abbreviation parser_build_correct := parser_build_correct.
-
-Abbreviation parser_single_action := parser_single_action.
-
-Abbreviation parser_run_complete := parser_run_complete.
-
-Abbreviation parser_run_complete_by_nq0_reduce_guard := parser_run_complete_by_nq0_reduce_guard.
-
-Abbreviation parser_run_complete_by_nq0_la_sem_and_follow_sem := parser_run_complete_by_nq0_la_sem_and_follow_sem.
-
-Abbreviation parser_run_complete_by_nq0_la_sem := parser_run_complete_by_nq0_la_sem.
-
-Abbreviation parser_run_complete_by_grammar := parser_run_complete_by_grammar.
-
-Abbreviation parser_run_correct := parser_run_correct.
-
-Abbreviation parser_run_correct_by_nq0_la_sem_and_follow_sem := parser_run_correct_by_nq0_la_sem_and_follow_sem.
-
-Abbreviation parser_run_correct_by_nq0_la_sem := parser_run_correct_by_nq0_la_sem.
-
-Abbreviation parser_run_correct_grammar := parser_run_correct_grammar.
-
-Abbreviation parser_accepts_correct := parser_accepts_correct.
-
-Abbreviation parser_accepts_correct_by_nq0_la_sem_and_follow_sem := parser_accepts_correct_by_nq0_la_sem_and_follow_sem.
-
-Abbreviation parser_accepts_correct_by_nq0_la_sem := parser_accepts_correct_by_nq0_la_sem.
-
-Abbreviation parser_accepts_correct_grammar := parser_accepts_correct_grammar.
-
-End API.
 
 End Builder.
 
@@ -17392,67 +12982,6 @@ Qed.
 
 End MAIN_THEOREMS.
 
-Module API.
-
-Abbreviation parser := Builder.parser.
-
-Abbreviation build := Builder.build.
-
-Abbreviation run_parser := Builder.run_parser.
-
-Abbreviation productive_certified_witness := productive_certified_witness.
-
-Abbreviation productive_certified_all_nonterminals := productive_certified_all_nonterminals.
-
-Abbreviation productive_certified_follow_impl_sound := productive_certified_follow_impl_sound.
-
-Abbreviation productive_certified_follow_impl_complete := productive_certified_follow_impl_complete.
-
-Abbreviation productive_certified_LA_impl_sound := productive_certified_LA_impl_sound.
-
-Abbreviation productive_certified_LA_impl_complete := productive_certified_LA_impl_complete.
-
-Abbreviation productive_certified_reduce_LA_sem_sound := productive_certified_reduce_LA_sem_sound.
-
-Abbreviation productive_certified_witness_from_productivity := productive_certified_witness_from_productivity.
-
-Abbreviation build_correct := build_correct.
-
-Abbreviation run_parser_sound := run_parser_sound.
-
-Abbreviation run_parser_tree_sound := run_parser_tree_sound.
-
-Abbreviation conflict_free_correct := conflict_free_correct.
-
-Abbreviation run_parser_complete := run_parser_complete.
-
-Abbreviation run_parser_complete_by_nq0_reduce_guard := run_parser_complete_by_nq0_reduce_guard.
-
-Abbreviation run_parser_complete_by_nq0_la_sem_and_follow_sem := run_parser_complete_by_nq0_la_sem_and_follow_sem.
-
-Abbreviation run_parser_complete_by_nq0_la_sem := run_parser_complete_by_nq0_la_sem.
-
-Abbreviation run_parser_complete_by_grammar := run_parser_complete_by_grammar.
-
-Abbreviation run_parser_correct := run_parser_correct.
-
-Abbreviation run_parser_correct_by_nq0_la_sem_and_follow_sem := run_parser_correct_by_nq0_la_sem_and_follow_sem.
-
-Abbreviation run_parser_correct_by_nq0_la_sem := run_parser_correct_by_nq0_la_sem.
-
-Abbreviation run_parser_correct_grammar := run_parser_correct_grammar.
-
-Abbreviation build_accepts_correct_L_LA := build_accepts_correct_L_LA.
-
-Abbreviation build_accepts_correct := build_accepts_correct.
-
-Abbreviation build_accepts_correct_by_nq0_la_sem_and_follow_sem := build_accepts_correct_by_nq0_la_sem_and_follow_sem.
-
-Abbreviation build_accepts_correct_by_nq0_la_sem := build_accepts_correct_by_nq0_la_sem.
-
-Abbreviation build_accepts_correct_grammar := build_accepts_correct_grammar.
-
-End API.
 
 End PGS.
 
@@ -17523,7 +13052,7 @@ Qed.
 Instance t_hasEqDec : hasEqDec t.
 Proof.
   intros [A LIVE_A] [B LIVE_B].
-  pose proof (G.NT.t_hasEqDec A B) as [EQ | NE].
+  destruct (G.NT.t_hasEqDec A B) as [EQ | NE].
   - subst B. left. f_equal. eapply old_nt_live_pirrel.
   - right. intros EQ. inv EQ. contradiction.
 Defined.
@@ -17570,8 +13099,9 @@ Qed.
 Lemma live_of_dec_self A
   : live_of_dec (old_nt A) = Some A.
 Proof.
-  pose proof (live_of_dec_complete (old_nt A) (old_nt_live A)) as (A' & LIVE_A & OLD_A).
-  rewrite LIVE_A. f_equal. eapply eq_by_old_nt. simpl. exact OLD_A.
+  destruct A as [A LIVE_A]. simpl.
+  use live_of_dec_complete as (A' & LIVE_A' & OLD_A) with LIVE_A.
+  rewrite LIVE_A'. f_equal. eapply eq_by_old_nt. simpl. exact OLD_A.
 Qed.
 
 Definition all : list t :=
@@ -17581,7 +13111,7 @@ Lemma all_complete
   : forall x : t, x ∈ all.
 Proof.
   intros [A LIVE].
-  pose proof (live_of_dec_complete A LIVE) as (A' & LIVE_A & OLD_A).
+  use live_of_dec_complete as (A' & LIVE_A & OLD_A) with LIVE.
   unfold all. rewrite L.nodup_In.
   eapply list_bind_complete with (x := A).
   - eapply G.NT.in_all_intro.
@@ -17651,8 +13181,8 @@ Proof.
   - inv LIVE. reflexivity.
   - destruct (live_symbol_of X) as [X' | ] eqn: LIVE_X; [ | discriminate].
     destruct (live_rhs_of rhs) as [rhs'' | ] eqn: LIVE_RHS; [ | discriminate].
-    pose proof (live_symbol_of_sound X X' LIVE_X) as X_ERASE.
-    pose proof (IH rhs'' eq_refl) as RHS_ERASE.
+    use live_symbol_of_sound as X_ERASE with LIVE_X.
+    use! IH as RHS_ERASE with *.
     injection LIVE as EQ_RHS. subst rhs'. simpl. rewrite X_ERASE. rewrite RHS_ERASE. reflexivity.
 Qed.
 
@@ -17666,13 +13196,13 @@ Proof.
     + unfold gen_rhsb in GEN. simpl in GEN. rewrite andb_true_iff in GEN. destruct GEN as (A_GEN & RHS_GEN).
       change (gen_rhsb rhs = true) in RHS_GEN.
       unfold gen_ntb in A_GEN.
-      pose proof (LiveNT.live_of_dec_complete A A_GEN) as (A' & LIVE_A & OLD_A).
-      pose proof (IH RHS_GEN) as (rhs' & LIVE_RHS & ERASE_RHS).
+      use LiveNT.live_of_dec_complete as (A' & LIVE_A & OLD_A) with A_GEN.
+      use IH as (rhs' & LIVE_RHS & ERASE_RHS) with RHS_GEN.
       exists (inl A' :: rhs'). simpl. rewrite LIVE_A. rewrite LIVE_RHS. split; [reflexivity | simpl; unfold erase_nt; simpl; rewrite OLD_A; rewrite ERASE_RHS; reflexivity].
     + simpl.
       assert (RHS_GEN : gen_rhsb rhs = true).
       { unfold gen_rhsb in *. simpl in GEN. exact GEN. }
-      pose proof (IH RHS_GEN) as (rhs' & LIVE_RHS & ERASE_RHS).
+      use IH as (rhs' & LIVE_RHS & ERASE_RHS) with RHS_GEN.
       exists (inr t :: rhs'). rewrite LIVE_RHS. split; [reflexivity | simpl; rewrite ERASE_RHS; reflexivity].
 Qed.
 
@@ -17684,8 +13214,8 @@ Proof.
   destruct (LiveNT.live_of_dec A0) as [A' | ] eqn: LIVE_A; [ | contradiction].
   destruct (live_rhs_of rhs0) as [rhs' | ] eqn: LIVE_RHS; [ | contradiction].
   destruct IN as [EQ | []]. inv EQ.
-  pose proof (LiveNT.live_of_dec_old A0 A LIVE_A) as LHS. simpl in LHS.
-  pose proof (live_rhs_of_sound rhs0 rhs LIVE_RHS) as RHS. subst rhs0.
+  use LiveNT.live_of_dec_old as LHS with LIVE_A. simpl in LHS.
+  use live_rhs_of_sound as RHS with LIVE_RHS. subst rhs0.
   subst A0. reflexivity.
 Qed.
 
@@ -17694,8 +13224,8 @@ Lemma pruned_prod_of_complete A rhs
   (LIVE_RHS : gen_rhsb rhs = true)
   : exists A', exists rhs', (A', rhs') ∈ pruned_prod_of (A, rhs) /\ erase_nt A' = A /\ erase_rhs rhs' = rhs.
 Proof.
-  pose proof (LiveNT.live_of_dec_complete A LIVE_A) as (A' & LIVE_A' & OLD_A).
-  pose proof (live_rhs_of_complete rhs LIVE_RHS) as (rhs' & LIVE_RHS' & ERASE_RHS).
+  use LiveNT.live_of_dec_complete as (A' & LIVE_A' & OLD_A) with LIVE_A.
+  use live_rhs_of_complete as (rhs' & LIVE_RHS' & ERASE_RHS) with LIVE_RHS.
   exists A'. exists rhs'. simpl. rewrite LIVE_A'. rewrite LIVE_RHS'. splits.
   - left. reflexivity.
   - exact OLD_A.
@@ -17715,8 +13245,8 @@ Lemma pruned_productions_sound A rhs
   : (erase_nt A, erase_rhs rhs) ∈ G.productions.
 Proof.
   unfold pruned_productions in IN.
-  pose proof (list_bind_sound _ _ _ IN) as (p & PROD & IN_PRUNED).
-  pose proof (pruned_prod_of_sound p A rhs IN_PRUNED) as ERASE. subst p.
+  use list_bind_sound as (p & PROD & IN_PRUNED) with IN.
+  use pruned_prod_of_sound as ERASE with IN_PRUNED. subst p.
   exact PROD.
 Qed.
 
@@ -17727,7 +13257,7 @@ Lemma pruned_productions_complete A rhs
   : exists A', exists rhs', (A', rhs') ∈ pruned_productions /\ erase_nt A' = A /\ erase_rhs rhs' = rhs.
 Proof.
   unfold pruned_productions.
-  pose proof (pruned_prod_of_complete A rhs LIVE_A LIVE_RHS) as (A' & rhs' & IN_PRUNED & ERASE_A & ERASE_RHS).
+  use pruned_prod_of_complete as (A' & rhs' & IN_PRUNED & ERASE_A & ERASE_RHS) with LIVE_A LIVE_RHS.
   exists A'. exists rhs'. splits.
   - eapply list_bind_complete with (x := (A, rhs)); [exact PROD | exact IN_PRUNED].
   - exact ERASE_A.
@@ -17789,11 +13319,11 @@ with orig_GenStr_pruned_GenStr rhs
   : exists rhs', live_rhs_of rhs = Some rhs' /\ Pruned.GrammarSyntax.GenStr (map Pruned.GrammarSyntax.lift_symbol rhs').
 Proof.
   - inversion GEN as [A0 omega PROD RHS EQ_GEN]. subst A0.
-    pose proof (orig_P'_some_prod A omega PROD) as (rhs & OMEGA & PROD_USER). subst omega.
-    pose proof (orig_GenStr_pruned_GenStr rhs RHS) as (rhs' & LIVE_RHS & RHS_PRUNED).
+    use orig_P'_some_prod as (rhs & OMEGA & PROD_USER) with PROD. subst omega.
+    use orig_GenStr_pruned_GenStr as (rhs' & LIVE_RHS & RHS_PRUNED) with RHS.
     assert (LIVE_A : LiveNT.live_of_dec A = Some A').
     { unfold erase_nt in OLD. subst A. eapply LiveNT.live_of_dec_self. }
-    pose proof (pruned_productions_complete_exact A rhs A' rhs' PROD_USER LIVE_A LIVE_RHS) as PROD_PRUNED.
+    use pruned_productions_complete_exact as PROD_PRUNED with PROD_USER LIVE_A LIVE_RHS.
     econstructor.
     + unfold Pruned.GrammarSyntax.P'. simpl. right. rewrite L.in_map_iff.
       exists (A', rhs'). split; [reflexivity | exact PROD_PRUNED].
@@ -17804,12 +13334,12 @@ Proof.
       * simpl in GENSTR. inversion GENSTR as [ | | A0 rhs0 GEN_A REST EQ_GENSTR]; subst A0 rhs0.
         assert (LIVE_A_BOOL : gen_ntb A = true).
         { rewrite gen_ntb_correct. exact GEN_A. }
-        pose proof (LiveNT.live_of_dec_complete A LIVE_A_BOOL) as (A' & LIVE_A & OLD_A).
-        pose proof (orig_Gen_pruned_Gen A A' OLD_A GEN_A) as GEN_A_PRUNED.
-        pose proof (orig_GenStr_pruned_GenStr rhs REST) as (rhs' & LIVE_RHS & REST_PRUNED).
+        use LiveNT.live_of_dec_complete as (A' & LIVE_A & OLD_A) with LIVE_A_BOOL.
+        use orig_Gen_pruned_Gen as GEN_A_PRUNED with OLD_A GEN_A.
+        use orig_GenStr_pruned_GenStr as (rhs' & LIVE_RHS & REST_PRUNED) with REST.
         exists (inl A' :: rhs'). simpl. rewrite LIVE_A. rewrite LIVE_RHS. split; [reflexivity | simpl; econstructor; [exact GEN_A_PRUNED | exact REST_PRUNED]].
       * simpl in GENSTR. inversion GENSTR as [ | t0 rhs0 REST EQ_GENSTR | ]; subst t0 rhs0.
-        pose proof (orig_GenStr_pruned_GenStr rhs REST) as (rhs' & LIVE_RHS & REST_PRUNED).
+        use orig_GenStr_pruned_GenStr as (rhs' & LIVE_RHS & REST_PRUNED) with REST.
         exists (inr t :: rhs'). simpl. rewrite LIVE_RHS. split; [reflexivity | simpl; constructor; exact REST_PRUNED].
 Qed.
 
@@ -17898,7 +13428,7 @@ Theorem pruned_accepts_orig w
   : Orig.GrammarSyntax.grammar_accepts w.
 Proof.
   unfold Pruned.GrammarSyntax.grammar_accepts in ACCEPT.
-  pose proof (pruned_grammar_steps_erase _ _ ACCEPT) as STEPS.
+  use pruned_grammar_steps_erase as STEPS with ACCEPT.
   unfold Orig.GrammarSyntax.grammar_accepts.
   replace (map erase_aug_symbol [@inl Pruned.GrammarSyntax.N' Pruned.GrammarSyntax.T' (Pruned.GrammarSyntax.lift_N PrunedGrammar.start)]) with [@inl Orig.GrammarSyntax.N' Orig.GrammarSyntax.T' (Orig.GrammarSyntax.lift_N G.start)] in STEPS by (unfold Pruned.GrammarSyntax.lift_N, Orig.GrammarSyntax.lift_N, PrunedGrammar.start, erase_aug_symbol, erase_aug_nt, erase_nt; reflexivity).
   rewrite erase_aug_terminal_lift in STEPS.
@@ -18036,7 +13566,7 @@ Lemma pruned_closure_rel_erase q it
 Proof.
   induction REL as [it IN | A omega B beta gamma PROD PARENT IH].
   - econstructor. eapply erase_state_in. exact IN.
-  - simpl in IH |- *. pose proof (pruned_P'_erase {| Pruned.GrammarSyntax.p_lhs := A; Pruned.GrammarSyntax.p_rhs := omega |} PROD) as PROD_ERASE. simpl in PROD_ERASE.
+  - simpl in IH |- *. use pruned_P'_erase as PROD_ERASE with PROD. simpl in PROD_ERASE.
     eapply Orig.Item.cl_step.
     + exact PROD_ERASE.
     + exact IH.
@@ -18062,7 +13592,7 @@ Lemma pruned_q0_item_erase it
   : erase_item it ∈ Orig.LR0.q0.
 Proof.
   unfold Pruned.LR0.q0, Orig.LR0.q0, Pruned.Item.kernel, Orig.Item.kernel in *.
-  pose proof (pruned_closure_erase [Pruned.Item.initial_item] it IN) as ERASE.
+  use pruned_closure_erase as ERASE with IN.
   simpl in ERASE. rewrite erase_initial_item in ERASE. exact ERASE.
 Qed.
 
@@ -18070,7 +13600,7 @@ Lemma pruned_goto_kernel_erase q X it
   (IN : it ∈ Pruned.Item.goto_kernel q X)
   : erase_item it ∈ Orig.Item.goto_kernel (erase_state q) (erase_aug_symbol X).
 Proof.
-  pose proof (Pruned.Item.goto_kernel_sound q X it IN) as (parent & gamma & IN_PARENT & RIGHT & EQ). subst it.
+  use Pruned.Item.goto_kernel_sound as (parent & gamma & IN_PARENT & RIGHT & EQ) with IN. subst it.
   unfold erase_item. simpl. rewrite map_app. simpl.
   eapply Orig.Item.goto_kernel_complete with (it := erase_item parent) (gamma := map erase_aug_symbol gamma).
   - eapply erase_state_in. exact IN_PARENT.
@@ -18092,7 +13622,7 @@ Lemma pruned_goto_erase_incl q X q_orig
   : forall it, it ∈ Pruned.Item.goto q X -> erase_item it ∈ Orig.Item.goto q_orig (erase_aug_symbol X).
 Proof.
   intros it IN.
-  pose proof (pruned_goto_erase q X it IN) as IN_ERASE.
+  use pruned_goto_erase as IN_ERASE with IN.
   eapply Orig.Item.goto_monotone; [ | exact IN_ERASE].
   intros it0 IN0. unfold erase_state in IN0. rewrite L.in_map_iff in IN0. destruct IN0 as (it1 & EQ & IN1). subst it0. eapply INCL. exact IN1.
 Qed.
@@ -18103,12 +13633,12 @@ Lemma pruned_delta_erase q X q' q_orig
   (DELTA : Pruned.LR0.delta q X = Some q')
   : exists q_orig', Orig.LR0.delta q_orig (erase_aug_symbol X) = Some q_orig' /\ q_orig' ∈ Orig.LR0.Q /\ (forall it, it ∈ q' -> erase_item it ∈ q_orig').
 Proof.
-  pose proof (Pruned.LR0.delta_some_nonempty q X q' DELTA) as (TARGET & NONEMPTY). subst q'.
+  use Pruned.LR0.delta_some_nonempty as (TARGET & NONEMPTY) with DELTA. subst q'.
   set (q_orig' := Orig.Item.goto q_orig (erase_aug_symbol X)).
   assert (INCL_GOTO : forall it, it ∈ Pruned.Item.goto q X -> erase_item it ∈ q_orig').
   { intros it IN. unfold q_orig'. eapply pruned_goto_erase_incl; [exact INCL | exact IN]. }
   assert (NONEMPTY_ORIG : nonempty q_orig' = true).
-  { pose proof (Pruned.LR0.nonempty_exists (Pruned.Item.goto q X) NONEMPTY) as (it & IN_IT). eapply Orig.LR0.nonempty_of_in with (x := erase_item it). eapply INCL_GOTO. exact IN_IT. }
+  { use Pruned.LR0.nonempty_exists as (it & IN_IT) with NONEMPTY. eapply Orig.LR0.nonempty_of_in with (x := erase_item it). eapply INCL_GOTO. exact IN_IT. }
   assert (DELTA_ORIG : Orig.LR0.delta q_orig (erase_aug_symbol X) = Some q_orig').
   { unfold Orig.LR0.delta. destruct (nonempty (Orig.Item.goto q_orig (erase_aug_symbol X))) eqn: NONEMPTY_CHECK.
     - unfold q_orig'. reflexivity.
@@ -18132,9 +13662,9 @@ Proof.
   - exists p_orig. split.
     + econstructor. exact IN_Q_ORIG.
     + exact INCL.
-  - pose proof (proj1 (Pruned.LR0.lr0_graph_step_delta p X q) STEP) as STEP_DELTA.
-    pose proof (pruned_delta_erase p X q p_orig IN_Q_ORIG INCL STEP_DELTA) as (q_orig & STEP_ORIG & IN_Q_NEXT & INCL_NEXT).
-    pose proof (IH q_orig IN_Q_NEXT INCL_NEXT) as (r_orig & PATH_ORIG & INCL_R).
+  - use (proj1 (Pruned.LR0.lr0_graph_step_delta p X q)) as STEP_DELTA with STEP.
+    use pruned_delta_erase as (q_orig & STEP_ORIG & IN_Q_NEXT & INCL_NEXT) with IN_Q_ORIG INCL STEP_DELTA.
+    use IH as (r_orig & PATH_ORIG & INCL_R) with IN_Q_NEXT INCL_NEXT.
     exists r_orig. split.
     + assert (STEP_ORIG_GRAPH : Orig.LR0.lr0_graph_step p_orig (erase_aug_symbol X) q_orig).
       { rewrite Orig.LR0.lr0_graph_step_delta. exact STEP_ORIG. }
@@ -18161,11 +13691,11 @@ Lemma pruned_state_of_numbered_embedding p q
   (STATE : Pruned.Numbering.state_of p = Some q)
   : exists p_orig, numbered_state_embedding_spec p p_orig.
 Proof.
-  pose proof (Pruned.Numbering.state_of_sound p q STATE) as (IN_Q & INDEX).
-  pose proof (Pruned.LR0.Q_reachable_path q IN_Q) as (alpha & PATH).
-  pose proof (pruned_path_erase alpha q PATH) as (q_orig & PATH_ORIG & INCL).
-  pose proof (Orig.LR0.path_target_in_Q (map erase_aug_symbol alpha) Orig.LR0.q0 q_orig PATH_ORIG) as IN_Q_ORIG.
-  pose proof (Orig.Numbering.index_of_complete q_orig IN_Q_ORIG) as INDEX_ORIG.
+  use Pruned.Numbering.state_of_sound as (IN_Q & INDEX) with STATE.
+  use Pruned.LR0.Q_reachable_path as (alpha & PATH) with IN_Q.
+  use pruned_path_erase as (q_orig & PATH_ORIG & INCL) with PATH.
+  use Orig.LR0.path_target_in_Q as IN_Q_ORIG with PATH_ORIG.
+  use Orig.Numbering.index_of_complete as INDEX_ORIG with IN_Q_ORIG.
   exists (Orig.Numbering.state_index_nat q_orig). econstructor.
   - exact STATE.
   - eapply Orig.Numbering.state_of_index_of. exact INDEX_ORIG.
@@ -18180,7 +13710,7 @@ Lemma erase_state_inclb_sound st st_orig
   : forall it, it ∈ st -> erase_item it ∈ st_orig.
 Proof.
   unfold erase_state_inclb in CHECK. rewrite forallb_forall in CHECK.
-  intros it IN. pose proof (CHECK it IN) as MEM. rewrite mem_true_iff in MEM. exact MEM.
+  intros it IN. use CHECK as MEM with IN. rewrite mem_true_iff in MEM. exact MEM.
 Qed.
 
 Lemma erase_state_inclb_complete st st_orig
@@ -18252,7 +13782,7 @@ Proof.
   - discriminate.
   - destruct (numbered_state_embedding_candidateb p candidate) eqn: CHECK.
     + inv FIND. split; [left; reflexivity | exact CHECK].
-    + pose proof (IH FIND) as (IN & CHECK_FOUND). split; [right; exact IN | exact CHECK_FOUND].
+    + use IH as (IN & CHECK_FOUND) with FIND. split; [right; exact IN | exact CHECK_FOUND].
 Qed.
 
 Lemma first_numbered_state_embedding_image_from_complete p candidates p_orig
@@ -18274,7 +13804,7 @@ Lemma first_numbered_state_embedding_image_sound p p_orig
   : numbered_state_embedding_spec p p_orig.
 Proof.
   unfold first_numbered_state_embedding_image in FIND.
-  pose proof (first_numbered_state_embedding_image_from_sound p (seq 0 Orig.Numbering.num_states) p_orig FIND) as (_ & CHECK).
+  use first_numbered_state_embedding_image_from_sound as (_ & CHECK) with FIND.
   eapply numbered_state_embedding_candidateb_sound. exact CHECK.
 Qed.
 
@@ -18285,11 +13815,11 @@ Proof.
   assert (CHECK : numbered_state_embedding_candidateb p p_orig = true).
   { eapply numbered_state_embedding_candidateb_complete. exact EMB. }
   destruct EMB as [st st_orig STATE STATE_ORIG INCL].
-  pose proof (Orig.Numbering.state_of_some_lt p_orig st_orig STATE_ORIG) as LT.
+  use Orig.Numbering.state_of_some_lt as LT with STATE_ORIG.
   assert (IN : p_orig ∈ seq 0 Orig.Numbering.num_states).
   { rewrite in_seq. split; [lia | exact LT]. }
   unfold first_numbered_state_embedding_image.
-  pose proof (first_numbered_state_embedding_image_from_complete p (seq 0 Orig.Numbering.num_states) p_orig IN CHECK) as (p_found & FIND & CHECK_FOUND).
+  use first_numbered_state_embedding_image_from_complete as (p_found & FIND & CHECK_FOUND) with IN CHECK.
   exists p_found. split; [exact FIND | ].
   eapply numbered_state_embedding_candidateb_sound. exact CHECK_FOUND.
 Qed.
@@ -18298,8 +13828,8 @@ Lemma canonical_pruned_state_image_by_search_embedding p st
   (STATE : Pruned.Numbering.state_of p = Some st)
   : numbered_state_embedding_spec p (canonical_pruned_state_image_by_search p).
 Proof.
-  pose proof (pruned_state_of_numbered_embedding p st STATE) as (p_orig & EMB).
-  pose proof (first_numbered_state_embedding_image_complete p p_orig EMB) as (p_found & FIND & EMB_FOUND).
+  use pruned_state_of_numbered_embedding as (p_orig & EMB) with STATE.
+  use first_numbered_state_embedding_image_complete as (p_found & FIND & EMB_FOUND) with EMB.
   unfold canonical_pruned_state_image_by_search. rewrite FIND. exact EMB_FOUND.
 Qed.
 
@@ -18308,7 +13838,7 @@ Lemma numbered_state_embedding_orig_Q p p_orig q_orig
   (STATE_ORIG : Orig.Numbering.state_of p_orig = Some q_orig)
   : q_orig ∈ Orig.LR0.Q.
 Proof.
-  pose proof (Orig.Numbering.state_of_sound p_orig q_orig STATE_ORIG) as (IN_Q & _). exact IN_Q.
+  use Orig.Numbering.state_of_sound as (IN_Q & _) with STATE_ORIG. exact IN_Q.
 Qed.
 
 Lemma pruned_reduceN_erase p p_orig pr
@@ -18319,7 +13849,7 @@ Proof.
   destruct EMB as [q q_orig STATE_PRUNED STATE_ORIG INCL_ITEMS].
   unfold Pruned.Numbering.reduceN in IN. rewrite STATE_PRUNED in IN.
   unfold Orig.Numbering.reduceN. rewrite STATE_ORIG.
-  pose proof (Pruned.LR0.reduce_sound q pr IN) as (it & IN_IT & DONE & EQ_PR & PROD). subst pr.
+  use Pruned.LR0.reduce_sound as (it & IN_IT & DONE & EQ_PR & PROD) with IN. subst pr.
   unfold erase_prod'. simpl.
   eapply Orig.LR0.reduce_complete with (it := erase_item it).
   - eapply INCL_ITEMS. exact IN_IT.
@@ -18338,9 +13868,9 @@ Proof.
   destruct (Pruned.LR0.delta q X) as [q_pruned_next | ] eqn: DELTA_PRUNED; simpl in STEP; [ | discriminate].
   destruct (Pruned.Numbering.index_of q_pruned_next) as [q_next_index | ] eqn: INDEX_PRUNED; simpl in STEP; [ | discriminate].
   injection STEP as EQ_NEXT. subst q_next_index.
-  pose proof (Orig.Numbering.state_of_sound p_orig q_orig STATE_ORIG) as (IN_Q_ORIG & _).
-  pose proof (pruned_delta_erase q X q_pruned_next q_orig IN_Q_ORIG INCL_ITEMS DELTA_PRUNED) as (q_orig_next_state & DELTA_ORIG & IN_Q_NEXT & INCL_NEXT).
-  pose proof (Orig.Numbering.index_of_complete q_orig_next_state IN_Q_NEXT) as INDEX_ORIG.
+  use Orig.Numbering.state_of_sound as (IN_Q_ORIG & _) with STATE_ORIG.
+  use pruned_delta_erase as (q_orig_next_state & DELTA_ORIG & IN_Q_NEXT & INCL_NEXT) with IN_Q_ORIG INCL_ITEMS DELTA_PRUNED.
+  use Orig.Numbering.index_of_complete as INDEX_ORIG with IN_Q_NEXT.
   exists (Orig.Numbering.state_index_nat q_orig_next_state). split.
   - unfold Orig.Numbering.dN. rewrite STATE_ORIG. cbn. rewrite DELTA_ORIG. cbn. rewrite INDEX_ORIG. reflexivity.
   - econstructor.
@@ -18397,8 +13927,8 @@ Proof.
     exists p_orig. split.
     + simpl. econstructor. exact STATE_ORIG.
     + econstructor; [exact STATE_PRUNED | exact STATE_ORIG | exact INCL_ITEMS].
-  - pose proof (numbered_state_embedding_dN p p_orig X mid EMB STEP) as (mid_orig & STEP_ORIG & EMB_MID).
-    pose proof (IH mid_orig EMB_MID) as (q_orig & PATH_ORIG & EMB_Q).
+  - use numbered_state_embedding_dN as (mid_orig & STEP_ORIG & EMB_MID) with EMB STEP.
+    use IH as (q_orig & PATH_ORIG & EMB_Q) with EMB_MID.
     exists q_orig. split.
     + simpl. econstructor; [exact STEP_ORIG | exact PATH_ORIG].
     + exact EMB_Q.
@@ -18416,8 +13946,8 @@ Lemma pruned_read_domain_erase p p_orig A
   (IN : (p, A) ∈ Pruned.Read.D)
   : (p_orig, erase_aug_nt A) ∈ Orig.Read.D.
 Proof.
-  pose proof (Pruned.Read.read_domain_sound p A IN) as (r & STEP).
-  pose proof (numbered_state_embedding_dN p p_orig (inl A) r EMB STEP) as (r_orig & STEP_ORIG & _).
+  use Pruned.Read.read_domain_sound as (r & STEP) with IN.
+  use numbered_state_embedding_dN as (r_orig & STEP_ORIG & _) with EMB STEP.
   eapply Orig.Read.read_domain_complete; [eapply Orig.Numbering.dN_source_lt; exact STEP_ORIG | exact STEP_ORIG].
 Qed.
 
@@ -18427,8 +13957,8 @@ Lemma pruned_Follow_sem_erase p A t
 Proof.
   unfold Pruned.Follow.Follow_sem in FOLLOW.
   destruct FOLLOW as (alpha & z & STEPS & PATH).
-  pose proof (pruned_npath_erase_from_start alpha p PATH) as (p_orig & PATH_ORIG & EMB).
-  pose proof (pruned_rm_steps_erase [@inl Pruned.GrammarSyntax.N' Pruned.GrammarSyntax.T' Pruned.GrammarSyntax.start_prime] (alpha ++ inl A :: inr t :: map inr z) STEPS) as STEPS_ORIG.
+  use pruned_npath_erase_from_start as (p_orig & PATH_ORIG & EMB) with PATH.
+  use pruned_rm_steps_erase as STEPS_ORIG with STEPS.
   repeat rewrite map_app in STEPS_ORIG. simpl in STEPS_ORIG. rewrite erase_aug_terminal_symbols in STEPS_ORIG.
   exists p_orig. split; [exact EMB | ].
   unfold Orig.Follow.Follow_sem. exists (map erase_aug_symbol alpha). exists z. split; [exact STEPS_ORIG | exact PATH_ORIG].
@@ -18449,8 +13979,8 @@ Lemma pruned_Follow_sem_path_erase p A t
 Proof.
   unfold Pruned.Follow.Follow_sem in FOLLOW.
   destruct FOLLOW as (alpha & z & STEPS & PATH).
-  pose proof (pruned_npath_erase_from_start alpha p PATH) as (p_orig & PATH_ORIG & EMB).
-  pose proof (pruned_rm_steps_erase [@inl Pruned.GrammarSyntax.N' Pruned.GrammarSyntax.T' Pruned.GrammarSyntax.start_prime] (alpha ++ inl A :: inr t :: map inr z) STEPS) as STEPS_ORIG.
+  use pruned_npath_erase_from_start as (p_orig & PATH_ORIG & EMB) with PATH.
+  use pruned_rm_steps_erase as STEPS_ORIG with STEPS.
   repeat rewrite map_app in STEPS_ORIG. simpl in STEPS_ORIG. rewrite erase_aug_terminal_symbols in STEPS_ORIG.
   assert (FOLLOW_ORIG : Orig.Follow.Follow_sem (p_orig, erase_aug_nt A) t).
   { unfold Orig.Follow.Follow_sem. exists (map erase_aug_symbol alpha). exists z. split; [exact STEPS_ORIG | exact PATH_ORIG]. }
@@ -18477,9 +14007,9 @@ Lemma pruned_LA_sem_path_erase q it t
 Proof.
   unfold Pruned.Lookahead.LA_sem in IN.
   destruct IN as (p & A & IN_D & LHS & PATH & FOLLOW).
-  pose proof (pruned_Follow_sem_path_erase p A t FOLLOW) as FOLLOW_ERASE.
+  use pruned_Follow_sem_path_erase as FOLLOW_ERASE with FOLLOW.
   destruct FOLLOW_ERASE as [alpha z p_orig STEPS PATH_FOLLOW PATH_FOLLOW_ORIG EMB_P FOLLOW_ORIG].
-  pose proof (numbered_state_embedding_npath it.(Pruned.Item.i_left) p q p_orig EMB_P PATH) as (q_orig & PATH_ITEM_ORIG & EMB_Q).
+  use numbered_state_embedding_npath as (q_orig & PATH_ITEM_ORIG & EMB_Q) with EMB_P PATH.
   assert (LA_ORIG : Orig.Lookahead.LA_sem q_orig (erase_item it) t).
   { unfold Orig.Lookahead.LA_sem. exists p_orig. exists (erase_aug_nt A). splits.
     - eapply pruned_read_domain_erase; [exact EMB_P | exact IN_D].
@@ -18494,7 +14024,7 @@ Lemma pruned_LA_sem_erase q it t
   (IN : Pruned.Lookahead.LA_sem q it t)
   : exists q_orig, numbered_state_embedding_spec q q_orig /\ Orig.Lookahead.LA_sem q_orig (erase_item it) t.
 Proof.
-  pose proof (pruned_LA_sem_path_erase q it t IN) as LA_ERASE.
+  use pruned_LA_sem_path_erase as LA_ERASE with IN.
   destruct LA_ERASE as [p A alpha z p_orig q_orig IN_D LHS PATH_ITEM_PRUNED FOLLOW_STEPS_PRUNED PATH_FOLLOW_PRUNED PATH_FOLLOW_ORIG PATH_ITEM_ORIG EMB_P EMB_Q LA_ORIG].
   exists q_orig. split; [exact EMB_Q | exact LA_ORIG].
 Qed.
@@ -18503,7 +14033,7 @@ Lemma pruned_LA_impl_erase_to_orig_sem q it t
   (IN : t ∈ Pruned.Lookahead.LA_impl q it)
   : exists q_orig, numbered_state_embedding_spec q q_orig /\ Orig.Lookahead.LA_sem q_orig (erase_item it) t.
 Proof.
-  pose proof (Pruned.productive_certified_LA_impl_sound pruned_productive_certified q it t IN) as SEM.
+  use (Pruned.productive_certified_LA_impl_sound pruned_productive_certified) as SEM with IN.
   eapply pruned_LA_sem_erase. exact SEM.
 Qed.
 
@@ -18532,11 +14062,11 @@ Lemma pruned_reduce_LA_sem_sound_path_erase q t pr
   (IN : pr ∈ Pruned.Table.reduce_LA q t)
   : pruned_reduce_LA_sem_sound_path_erase_spec q t pr.
 Proof.
-  pose proof (Pruned.productive_certified_reduce_LA_sem_sound pruned_productive_certified q t pr IN) as SOUND.
+  use (Pruned.productive_certified_reduce_LA_sem_sound pruned_productive_certified) as SOUND with IN.
   destruct SOUND as [st it IN_REDUCE STATE IN_IT DONE EQ_PR PROD IN_LA].
-  pose proof (pruned_LA_sem_path_erase q it t IN_LA) as LA_ERASE.
+  use pruned_LA_sem_path_erase as LA_ERASE with IN_LA.
   destruct LA_ERASE as [p A alpha z p_orig q_orig IN_D LHS PATH_ITEM_PRUNED FOLLOW_STEPS_PRUNED PATH_FOLLOW_PRUNED PATH_FOLLOW_ORIG PATH_ITEM_ORIG EMB_P EMB_Q LA_ORIG].
-  pose proof (pruned_reduceN_erase q q_orig pr EMB_Q IN_REDUCE) as IN_REDUCE_ORIG.
+  use pruned_reduceN_erase as IN_REDUCE_ORIG with EMB_Q IN_REDUCE.
   assert (SEMANTIC_REDUCE_ORIG : Orig.Table.reduce_LA_sem_sound_spec q_orig t (erase_prod' pr)).
   { destruct EMB_Q as [q_pruned q_orig_state STATE_PRUNED STATE_ORIG INCL_ITEMS].
     rewrite STATE in STATE_PRUNED. inv STATE_PRUNED.
@@ -18556,7 +14086,7 @@ Lemma pruned_reduce_LA_sem_sound_erase q t pr
   (IN : pr ∈ Pruned.Table.reduce_LA q t)
   : exists q_orig, numbered_state_embedding_spec q q_orig /\ Orig.Table.reduce_LA_sem_sound_spec q_orig t (erase_prod' pr).
 Proof.
-  pose proof (pruned_reduce_LA_sem_sound_path_erase q t pr IN) as REDUCE_ERASE.
+  use pruned_reduce_LA_sem_sound_path_erase as REDUCE_ERASE with IN.
   destruct REDUCE_ERASE as [st it p A alpha z p_orig q_orig IN_REDUCE STATE IN_IT DONE EQ_PR PROD IN_D LHS PATH_ITEM_PRUNED FOLLOW_STEPS_PRUNED PATH_FOLLOW_PRUNED PATH_FOLLOW_ORIG PATH_ITEM_ORIG EMB_P EMB_Q IN_REDUCE_ORIG SEMANTIC_REDUCE_ORIG].
   exists q_orig. split; [exact EMB_Q | exact SEMANTIC_REDUCE_ORIG].
 Qed.
@@ -18572,7 +14102,7 @@ Lemma pruned_nq_f_erase q
   : exists q_orig, numbered_state_embedding_spec q q_orig /\ Orig.Numbering.nq_f = Some q_orig.
 Proof.
   rewrite Pruned.Numbering.nq_f_accept_path_iff in FINAL.
-  pose proof (pruned_npath_erase_from_start Pruned.LR0.accept_word q FINAL) as (q_orig & PATH_ORIG & EMB_Q).
+  use pruned_npath_erase_from_start as (q_orig & PATH_ORIG & EMB_Q) with FINAL.
   rewrite erase_accept_word in PATH_ORIG.
   exists q_orig. split; [exact EMB_Q | ].
   rewrite Orig.Numbering.nq_f_accept_path_iff. exact PATH_ORIG.
@@ -18586,7 +14116,7 @@ Proof.
   destruct Pruned.Numbering.nq_f as [pf | ] eqn: FINAL_PRUNED; destruct Orig.Numbering.nq_f as [qf | ] eqn: FINAL_ORIG; try (eapply canonical_pruned_state_image_by_search_embedding; exact STATE).
   destruct (eqb p pf) eqn: EQ_FINAL; [ | eapply canonical_pruned_state_image_by_search_embedding; exact STATE].
   rewrite eqb_eq in EQ_FINAL. subst pf.
-  pose proof (pruned_nq_f_erase p FINAL_PRUNED) as (q_orig & EMB & FINAL_ORIG_ERASE).
+  use pruned_nq_f_erase as (q_orig & EMB & FINAL_ORIG_ERASE) with FINAL_PRUNED.
   rewrite FINAL_ORIG in FINAL_ORIG_ERASE. inv FINAL_ORIG_ERASE. exact EMB.
 Qed.
 
@@ -18594,8 +14124,8 @@ Lemma orig_initial_item_not_in_goto_kernel q X
   (IN : Orig.Item.initial_item ∈ Orig.Item.goto_kernel q X)
   : False.
 Proof.
-  pose proof (Orig.Item.goto_kernel_sound q X Orig.Item.initial_item IN) as (parent & gamma & IN_PARENT & RIGHT & EQ).
-  pose proof (f_equal Orig.Item.i_left EQ) as LEFT.
+  use Orig.Item.goto_kernel_sound as (parent & gamma & IN_PARENT & RIGHT & EQ) with IN.
+  use! (f_equal Orig.Item.i_left EQ) as LEFT with *.
   simpl in LEFT. destruct parent.(Orig.Item.i_left); simpl in LEFT; discriminate.
 Qed.
 
@@ -18604,17 +14134,17 @@ Lemma orig_initial_item_not_in_goto q X
   (IN : Orig.Item.initial_item ∈ Orig.Item.goto q X)
   : False.
 Proof.
-  pose proof (Orig.Item.goto_sound q X Orig.Item.initial_item IN) as REL.
+  use Orig.Item.goto_sound as REL with IN.
   remember Orig.Item.initial_item as target eqn: TARGET.
   induction REL as [it IN_KERNEL | A omega B beta gamma PROD PARENT IH].
   - subst it. eapply orig_initial_item_not_in_goto_kernel. exact IN_KERNEL.
   - assert (A_EQ : A = Orig.GrammarSyntax.start_prime).
-    { pose proof (f_equal Orig.Item.i_lhs TARGET) as EQ. simpl in EQ. exact EQ. }
+    { use! (f_equal Orig.Item.i_lhs TARGET) as EQ with *. simpl in EQ. exact EQ. }
     assert (VALID_KERNEL : forall it, it ∈ Orig.Item.goto_kernel q X -> Orig.Item.valid_item it).
     { intros it IN_KERNEL. eapply Orig.Item.goto_kernel_valid; [exact VALID_Q | exact IN_KERNEL]. }
-    pose proof (Orig.Item.closure_rel_valid (Orig.Item.goto_kernel q X) {| Orig.Item.i_lhs := B; Orig.Item.i_left := beta; Orig.Item.i_right := inl A :: gamma |} VALID_KERNEL PARENT) as VALID_PARENT.
+    use Orig.Item.closure_rel_valid as VALID_PARENT with VALID_KERNEL PARENT.
     unfold Orig.Item.valid_item, Orig.Item.item_prod in VALID_PARENT. simpl in VALID_PARENT.
-    pose proof (Orig.GrammarSyntax.start_prime_not_in_rhs {| Orig.GrammarSyntax.p_lhs := B; Orig.GrammarSyntax.p_rhs := beta ++ inl A :: gamma |} VALID_PARENT) as NOTIN.
+    use Orig.GrammarSyntax.start_prime_not_in_rhs as NOTIN with VALID_PARENT.
     eapply NOTIN. rewrite A_EQ. eapply in_or_app. right. simpl. left. reflexivity.
 Qed.
 
@@ -18624,7 +14154,7 @@ Lemma orig_delta_target_initial_item_absurd q X q'
   (IN_INIT : Orig.Item.initial_item ∈ q')
   : False.
 Proof.
-  pose proof (Orig.LR0.delta_some_nonempty q X q' DELTA) as (TARGET & _). subst q'.
+  use Orig.LR0.delta_some_nonempty as (TARGET & _) with DELTA. subst q'.
   eapply orig_initial_item_not_in_goto; [eapply Orig.LR0.Q_items_valid; exact IN_Q | exact IN_INIT].
 Qed.
 
@@ -18635,8 +14165,8 @@ Lemma orig_path_initial_item_backwards alpha p q
 Proof.
   induction PATH as [p IN_Q | X alpha p mid q IN_P STEP REST IH].
   - exact IN_INIT.
-  - pose proof (IH IN_INIT) as IN_MID.
-    pose proof (proj1 (Orig.LR0.lr0_graph_step_delta p X mid) STEP) as STEP_DELTA.
+  - use IH as IN_MID with IN_INIT.
+    use (proj1 (Orig.LR0.lr0_graph_step_delta p X mid)) as STEP_DELTA with STEP.
     exfalso. eapply orig_delta_target_initial_item_absurd; [exact IN_P | exact STEP_DELTA | exact IN_MID].
 Qed.
 
@@ -18647,8 +14177,8 @@ Lemma orig_path_from_q0_initial_item_target alpha q
 Proof.
   destruct PATH as [p IN_Q | X beta p mid r IN_P STEP REST].
   - split; reflexivity.
-  - pose proof (orig_path_initial_item_backwards beta mid r REST IN_INIT) as IN_MID.
-    pose proof (proj1 (Orig.LR0.lr0_graph_step_delta p X mid) STEP) as STEP_DELTA.
+  - use orig_path_initial_item_backwards as IN_MID with REST IN_INIT.
+    use (proj1 (Orig.LR0.lr0_graph_step_delta p X mid)) as STEP_DELTA with STEP.
     exfalso. eapply orig_delta_target_initial_item_absurd; [exact IN_P | exact STEP_DELTA | exact IN_MID].
 Qed.
 
@@ -18664,13 +14194,15 @@ Lemma numbered_state_embedding_nq0_unique p_orig
 Proof.
   destruct EMB as [q_pruned q_orig STATE_PRUNED STATE_ORIG INCL_ITEMS].
   rewrite Pruned.Numbering.nq0_state in STATE_PRUNED. inv STATE_PRUNED.
-  pose proof (INCL_ITEMS Pruned.Item.initial_item pruned_initial_item_in_q0) as IN_INIT_ORIG.
+  assert (PRUNED_INIT : Pruned.Item.initial_item ∈ Pruned.LR0.q0) by exact pruned_initial_item_in_q0.
+  use (INCL_ITEMS Pruned.Item.initial_item) as IN_INIT_ORIG with PRUNED_INIT.
   rewrite erase_initial_item in IN_INIT_ORIG.
-  pose proof (Orig.Numbering.state_of_sound p_orig q_orig STATE_ORIG) as (IN_Q_ORIG & INDEX_ORIG).
-  pose proof (Orig.LR0.Q_reachable_path q_orig IN_Q_ORIG) as (alpha & PATH).
-  pose proof (orig_path_from_q0_initial_item_target alpha q_orig PATH IN_INIT_ORIG) as (_ & Q_ORIG). subst q_orig.
-  pose proof (Orig.Numbering.index_of_state_of p_orig Orig.LR0.q0 STATE_ORIG) as INDEX_P.
-  pose proof (Orig.Numbering.index_of_state_of Orig.Numbering.nq0 Orig.LR0.q0 Orig.Numbering.nq0_state) as INDEX_Q0.
+  use Orig.Numbering.state_of_sound as (IN_Q_ORIG & INDEX_ORIG) with STATE_ORIG.
+  use Orig.LR0.Q_reachable_path as (alpha & PATH) with IN_Q_ORIG.
+  use orig_path_from_q0_initial_item_target as (_ & Q_ORIG) with PATH IN_INIT_ORIG. subst q_orig.
+  use Orig.Numbering.index_of_state_of as INDEX_P with STATE_ORIG.
+  assert (ORIG_NQ0_STATE : Orig.Numbering.state_of Orig.Numbering.nq0 = Some Orig.LR0.q0) by exact Orig.Numbering.nq0_state.
+  use (Orig.Numbering.index_of_state_of Orig.Numbering.nq0 Orig.LR0.q0) as INDEX_Q0 with ORIG_NQ0_STATE.
   rewrite INDEX_Q0 in INDEX_P. inv INDEX_P. reflexivity.
 Qed.
 
@@ -18686,8 +14218,8 @@ Lemma pruned_shift_action_erase q q_orig t q_next
   (IN : Pruned.Table.Shift q_next ∈ Pruned.Table.shift_action q t)
   : exists q_orig_next, Orig.Table.Shift q_orig_next ∈ Orig.Table.shift_action q_orig t /\ numbered_state_embedding_spec q_next q_orig_next.
 Proof.
-  pose proof (Pruned.Table.shift_action_sound q t (Pruned.Table.Shift q_next) IN) as (q_mid & STEP & EQ). inv EQ.
-  pose proof (numbered_state_embedding_dN q q_orig (inr t) q_mid EMB STEP) as (q_orig_next & STEP_ORIG & EMB_NEXT).
+  use Pruned.Table.shift_action_sound as (q_mid & STEP & EQ) with IN. inv EQ.
+  use numbered_state_embedding_dN as (q_orig_next & STEP_ORIG & EMB_NEXT) with EMB STEP.
   exists q_orig_next. split.
   - eapply Orig.Table.shift_action_complete. exact STEP_ORIG.
   - exact EMB_NEXT.
@@ -18697,7 +14229,7 @@ Lemma pruned_reduce_action_sem_erase q t pr
   (IN : Pruned.Table.Reduce pr ∈ Pruned.Table.reduce_actions q t)
   : exists q_orig, numbered_state_embedding_spec q q_orig /\ Orig.Table.reduce_LA_sem_sound_spec q_orig t (erase_prod' pr).
 Proof.
-  pose proof (Pruned.Table.reduce_actions_sound q t (Pruned.Table.Reduce pr) IN) as (pr0 & IN_REDUCE & EQ). inv EQ.
+  use Pruned.Table.reduce_actions_sound as (pr0 & IN_REDUCE & EQ) with IN. inv EQ.
   eapply pruned_reduce_LA_sem_sound_erase. exact IN_REDUCE.
 Qed.
 
@@ -18705,9 +14237,9 @@ Lemma pruned_accept_action_erase q t
   (IN : Pruned.Table.Accept ∈ Pruned.Table.accept_action q t)
   : exists q_orig, numbered_state_embedding_spec q q_orig /\ Orig.Table.Accept ∈ Orig.Table.accept_action q_orig t.
 Proof.
-  pose proof (Pruned.Table.accept_action_sound q t Pruned.Table.Accept IN) as (_ & FINAL_SPEC).
+  use Pruned.Table.accept_action_sound as (_ & FINAL_SPEC) with IN.
   destruct FINAL_SPEC as (qf & FINAL & Q & T). subst q. subst t.
-  pose proof (pruned_nq_f_erase qf FINAL) as (q_orig & EMB_Q & FINAL_ORIG).
+  use pruned_nq_f_erase as (q_orig & EMB_Q & FINAL_ORIG) with FINAL.
   exists q_orig. split; [exact EMB_Q | ].
   eapply Orig.Table.accept_action_complete. exact FINAL_ORIG.
 Qed.
@@ -18770,10 +14302,10 @@ Lemma pruned_shift_action_semantic_image q t q_next
   (IN : Pruned.Table.Shift q_next ∈ Pruned.Table.shift_action q t)
   : pruned_action_semantic_image_spec q t (Pruned.Table.Shift q_next).
 Proof.
-  pose proof (Pruned.Table.shift_action_sound q t (Pruned.Table.Shift q_next) IN) as (q_mid & STEP & EQ). inv EQ.
-  pose proof (Pruned.Numbering.dN_some_source_state q (inr t) q_mid STEP) as (st & STATE).
-  pose proof (pruned_state_of_numbered_embedding q st STATE) as (q_orig & EMB_Q).
-  pose proof (pruned_shift_action_erase q q_orig t q_mid EMB_Q IN) as (q_orig_next & IN_ORIG & EMB_NEXT).
+  use Pruned.Table.shift_action_sound as (q_mid & STEP & EQ) with IN. inv EQ.
+  use Pruned.Numbering.dN_some_source_state as (st & STATE) with STEP.
+  use pruned_state_of_numbered_embedding as (q_orig & EMB_Q) with STATE.
+  use pruned_shift_action_erase as (q_orig_next & IN_ORIG & EMB_NEXT) with EMB_Q IN.
   econstructor.
   - econstructor. exact EMB_NEXT.
   - econstructor. exact IN_ORIG.
@@ -18783,7 +14315,7 @@ Lemma pruned_reduce_action_semantic_image q t pr
   (IN : Pruned.Table.Reduce pr ∈ Pruned.Table.reduce_actions q t)
   : pruned_action_semantic_image_spec q t (Pruned.Table.Reduce pr).
 Proof.
-  pose proof (pruned_reduce_action_sem_erase q t pr IN) as (q_orig & _ & SEM).
+  use pruned_reduce_action_sem_erase as (q_orig & _ & SEM) with IN.
   econstructor.
   - constructor.
   - econstructor. exact SEM.
@@ -18793,7 +14325,7 @@ Lemma pruned_accept_action_semantic_image q t
   (IN : Pruned.Table.Accept ∈ Pruned.Table.accept_action q t)
   : pruned_action_semantic_image_spec q t Pruned.Table.Accept.
 Proof.
-  pose proof (pruned_accept_action_erase q t IN) as (q_orig & _ & IN_ORIG).
+  use pruned_accept_action_erase as (q_orig & _ & IN_ORIG) with IN.
   econstructor.
   - constructor.
   - econstructor. exact IN_ORIG.
@@ -18805,12 +14337,12 @@ Lemma pruned_action_semantic_image q t act
 Proof.
   unfold Pruned.Table.actions in IN. rewrite L.in_app_iff in IN.
   destruct IN as [IN_SHIFT | IN_REST].
-  - pose proof (Pruned.Table.shift_action_sound q t act IN_SHIFT) as (q_next & STEP & EQ). subst act.
+  - use Pruned.Table.shift_action_sound as (q_next & STEP & EQ) with IN_SHIFT. subst act.
     eapply pruned_shift_action_semantic_image. exact IN_SHIFT.
   - rewrite L.in_app_iff in IN_REST. destruct IN_REST as [IN_REDUCE | IN_ACCEPT].
-    + pose proof (Pruned.Table.reduce_actions_sound q t act IN_REDUCE) as (pr & IN_PR & EQ). subst act.
+    + use Pruned.Table.reduce_actions_sound as (pr & IN_PR & EQ) with IN_REDUCE. subst act.
       eapply pruned_reduce_action_semantic_image. exact IN_REDUCE.
-    + pose proof (Pruned.Table.accept_action_sound q t act IN_ACCEPT) as (EQ & _). subst act.
+    + use Pruned.Table.accept_action_sound as (EQ & _) with IN_ACCEPT. subst act.
       eapply pruned_accept_action_semantic_image. exact IN_ACCEPT.
 Qed.
 
@@ -18849,10 +14381,10 @@ Lemma pruned_shift_action_semantic_path_image q t q_next
   (IN : Pruned.Table.Shift q_next ∈ Pruned.Table.shift_action q t)
   : pruned_action_semantic_path_image_spec q t (Pruned.Table.Shift q_next).
 Proof.
-  pose proof (Pruned.Table.shift_action_sound q t (Pruned.Table.Shift q_next) IN) as (q_mid & STEP & EQ). inv EQ.
-  pose proof (Pruned.Numbering.dN_some_source_state q (inr t) q_mid STEP) as (st & STATE).
-  pose proof (pruned_state_of_numbered_embedding q st STATE) as (q_orig & EMB_Q).
-  pose proof (pruned_shift_action_erase q q_orig t q_mid EMB_Q IN) as (q_orig_next & IN_ORIG & EMB_NEXT).
+  use Pruned.Table.shift_action_sound as (q_mid & STEP & EQ) with IN. inv EQ.
+  use Pruned.Numbering.dN_some_source_state as (st & STATE) with STEP.
+  use pruned_state_of_numbered_embedding as (q_orig & EMB_Q) with STATE.
+  use pruned_shift_action_erase as (q_orig_next & IN_ORIG & EMB_NEXT) with EMB_Q IN.
   econstructor; [exact EMB_Q | exact IN_ORIG | exact EMB_NEXT].
 Qed.
 
@@ -18860,7 +14392,7 @@ Lemma pruned_reduce_action_semantic_path_image q t pr
   (IN : Pruned.Table.Reduce pr ∈ Pruned.Table.reduce_actions q t)
   : pruned_action_semantic_path_image_spec q t (Pruned.Table.Reduce pr).
 Proof.
-  pose proof (Pruned.Table.reduce_actions_sound q t (Pruned.Table.Reduce pr) IN) as (pr0 & IN_REDUCE & EQ). inv EQ.
+  use Pruned.Table.reduce_actions_sound as (pr0 & IN_REDUCE & EQ) with IN. inv EQ.
   econstructor. eapply pruned_reduce_LA_sem_sound_path_erase. exact IN_REDUCE.
 Qed.
 
@@ -18868,7 +14400,7 @@ Lemma pruned_accept_action_semantic_path_image q t
   (IN : Pruned.Table.Accept ∈ Pruned.Table.accept_action q t)
   : pruned_action_semantic_path_image_spec q t Pruned.Table.Accept.
 Proof.
-  pose proof (pruned_accept_action_erase q t IN) as (q_orig & EMB_Q & IN_ORIG).
+  use pruned_accept_action_erase as (q_orig & EMB_Q & IN_ORIG) with IN.
   econstructor; [exact EMB_Q | exact IN_ORIG].
 Qed.
 
@@ -18878,12 +14410,12 @@ Lemma pruned_action_semantic_path_image q t act
 Proof.
   unfold Pruned.Table.actions in IN. rewrite L.in_app_iff in IN.
   destruct IN as [IN_SHIFT | IN_REST].
-  - pose proof (Pruned.Table.shift_action_sound q t act IN_SHIFT) as (q_next & STEP & EQ). subst act.
+  - use Pruned.Table.shift_action_sound as (q_next & STEP & EQ) with IN_SHIFT. subst act.
     eapply pruned_shift_action_semantic_path_image. exact IN_SHIFT.
   - rewrite L.in_app_iff in IN_REST. destruct IN_REST as [IN_REDUCE | IN_ACCEPT].
-    + pose proof (Pruned.Table.reduce_actions_sound q t act IN_REDUCE) as (pr & IN_PR & EQ). subst act.
+    + use Pruned.Table.reduce_actions_sound as (pr & IN_PR & EQ) with IN_REDUCE. subst act.
       eapply pruned_reduce_action_semantic_path_image. exact IN_REDUCE.
-    + pose proof (Pruned.Table.accept_action_sound q t act IN_ACCEPT) as (EQ & _). subst act.
+    + use Pruned.Table.accept_action_sound as (EQ & _) with IN_ACCEPT. subst act.
       eapply pruned_accept_action_semantic_path_image. exact IN_ACCEPT.
 Qed.
 
@@ -18906,8 +14438,8 @@ Proof.
   { rewrite ACTIONS. simpl. left. reflexivity. }
   assert (IN2 : act2 ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. right. left. reflexivity. }
-  pose proof (pruned_action_semantic_path_image q t act1 IN1) as IMAGE1.
-  pose proof (pruned_action_semantic_path_image q t act2 IN2) as IMAGE2.
+  use pruned_action_semantic_path_image as IMAGE1 with IN1.
+  use pruned_action_semantic_path_image as IMAGE2 with IN2.
   econstructor; [exact STATE | exact ACTIONS | exact IMAGE1 | exact IMAGE2].
 Qed.
 
@@ -18923,29 +14455,29 @@ Lemma pruned_action_conflict_semantic_path_image_shift_to_orig q t q_next
   : exists q_orig, orig_semantic_action_conflict_spec q_orig t.
 Proof.
   destruct CONFLICT as [st act1 act2 rest STATE ACTIONS IMAGE1 IMAGE2].
-  pose proof (Pruned.Table.actions_head_of_shift q t q_next act1 (act2 :: rest) IN_SHIFT ACTIONS) as HEAD. subst act1.
+  use (Pruned.Table.actions_head_of_shift q t q_next act1 (act2 :: rest)) as HEAD with IN_SHIFT ACTIONS. subst act1.
   assert (IN1 : Pruned.Table.Shift q_next ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. left. reflexivity. }
   assert (IN2 : act2 ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. right. left. reflexivity. }
   destruct IMAGE1 as [q_next1 q_orig1 q_orig_next1 EMB_Q1 IN_SHIFT_ORIG1 EMB_NEXT1 | pr1 REDUCE_ERASE1 | q_orig1 EMB_Q1 IN_ACCEPT_ORIG1].
   - destruct IMAGE2 as [q_next2 q_orig2 q_orig_next2 EMB_Q2 IN_SHIFT_ORIG2 EMB_NEXT2 | pr2 REDUCE_ERASE2 | q_orig2 EMB_Q2 IN_ACCEPT_ORIG2].
-    + pose proof (Pruned.Table.shift_actions_in_actions_unique q t q_next1 q_next2 IN1 IN2) as EQ_NEXT. subst q_next2.
-      pose proof (Pruned.Table.actions_head_distinct q t st (Pruned.Table.Shift q_next1) (Pruned.Table.Shift q_next1) rest STATE ACTIONS) as DIFF.
+    + use Pruned.Table.shift_actions_in_actions_unique as EQ_NEXT with IN1 IN2. subst q_next2.
+      use (Pruned.Table.actions_head_distinct q t st (Pruned.Table.Shift q_next1) (Pruned.Table.Shift q_next1) rest) as DIFF with STATE ACTIONS.
       exfalso. eapply DIFF. reflexivity.
     + destruct REDUCE_ERASE2 as [st2 it2 p2 A2 alpha2 z2 p_orig2 q_orig_reduce2 IN_REDUCE2 STATE2 IN_IT2 DONE2 EQ_PR2 PROD2 IN_D2 LHS2 PATH_ITEM_PRUNED2 FOLLOW_STEPS_PRUNED2 PATH_FOLLOW_PRUNED2 PATH_FOLLOW_ORIG2 PATH_ITEM_ORIG2 EMB_P2 EMB_Q_REDUCE2 IN_REDUCE_ORIG2 SEMANTIC_REDUCE_ORIG2].
-      pose proof (pruned_shift_action_erase q q_orig_reduce2 t q_next1 EMB_Q_REDUCE2 IN_SHIFT) as (q_orig_next & IN_SHIFT_ORIG & EMB_NEXT).
+      use pruned_shift_action_erase as (q_orig_next & IN_SHIFT_ORIG & EMB_NEXT) with EMB_Q_REDUCE2 IN_SHIFT.
       exists q_orig_reduce2. eapply orig_semantic_action_conflict_intro with (act1 := Orig.Table.Shift q_orig_next) (act2 := Orig.Table.Reduce (erase_prod' pr2)).
       * exact (orig_semantic_action_shift q_orig_reduce2 t q_orig_next IN_SHIFT_ORIG).
       * exact (orig_semantic_action_reduce q_orig_reduce2 t (erase_prod' pr2) SEMANTIC_REDUCE_ORIG2).
       * intros EQ. discriminate.
-    + pose proof (pruned_shift_action_erase q q_orig2 t q_next1 EMB_Q2 IN_SHIFT) as (q_orig_next & IN_SHIFT_ORIG & EMB_NEXT).
+    + use pruned_shift_action_erase as (q_orig_next & IN_SHIFT_ORIG & EMB_NEXT) with EMB_Q2 IN_SHIFT.
       exists q_orig2. eapply orig_semantic_action_conflict_intro with (act1 := Orig.Table.Shift q_orig_next) (act2 := Orig.Table.Accept).
       * exact (orig_semantic_action_shift q_orig2 t q_orig_next IN_SHIFT_ORIG).
       * exact (orig_semantic_action_accept q_orig2 t IN_ACCEPT_ORIG2).
       * intros EQ. discriminate.
-  - pose proof (Pruned.Table.shift_action_sound q t (Pruned.Table.Reduce pr1) IN_SHIFT) as (q_mid & STEP & EQ). discriminate.
-  - pose proof (Pruned.Table.shift_action_sound q t Pruned.Table.Accept IN_SHIFT) as (q_mid & STEP & EQ). discriminate.
+  - use Pruned.Table.shift_action_sound as (q_mid & STEP & EQ) with IN_SHIFT. discriminate.
+  - use Pruned.Table.shift_action_sound as (q_mid & STEP & EQ) with IN_SHIFT. discriminate.
 Qed.
 
 Definition pruned_semantic_path_image_conflict_free : Prop := forall q, forall t, ~ pruned_action_conflict_semantic_path_image_spec q t.
@@ -18978,8 +14510,8 @@ Proof.
   { rewrite ACTIONS. simpl. left. reflexivity. }
   assert (IN2 : act2 ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. right. left. reflexivity. }
-  pose proof (pruned_action_semantic_image q t act1 IN1) as IMAGE1.
-  pose proof (pruned_action_semantic_image q t act2 IN2) as IMAGE2.
+  use pruned_action_semantic_image as IMAGE1 with IN1.
+  use pruned_action_semantic_image as IMAGE2 with IN2.
   econstructor; [exact STATE | exact ACTIONS | exact IMAGE1 | exact IMAGE2].
 Qed.
 
@@ -19004,8 +14536,8 @@ Proof.
   { rewrite ACTIONS. simpl. left. reflexivity. }
   assert (IN2 : act2 ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. right. left. reflexivity. }
-  pose proof (pruned_action_semantic_path_image q t act1 IN1) as PATH_IMAGE1.
-  pose proof (pruned_action_semantic_path_image q t act2 IN2) as PATH_IMAGE2.
+  use pruned_action_semantic_path_image as PATH_IMAGE1 with IN1.
+  use pruned_action_semantic_path_image as PATH_IMAGE2 with IN2.
   econstructor; [exact STATE | exact ACTIONS | exact PATH_IMAGE1 | exact PATH_IMAGE2].
 Qed.
 
@@ -19035,7 +14567,7 @@ Lemma pruned_reduce_edge_semantic_image lookahead q q'
   : pruned_reduce_edge_semantic_image_spec lookahead q q'.
 Proof.
   destruct EDGE as (pr & p & IN_REDUCE & PATH & STEP).
-  pose proof (pruned_reduce_LA_sem_sound_erase q lookahead pr IN_REDUCE) as (q_orig & EMB_Q & SEM).
+  use pruned_reduce_LA_sem_sound_erase as (q_orig & EMB_Q & SEM) with IN_REDUCE.
   econstructor.
   - exists pr. exists p. splits; [exact IN_REDUCE | exact PATH | exact STEP].
   - exact IN_REDUCE.
@@ -19065,12 +14597,12 @@ Lemma pruned_reduce_edge_semantic_path_image lookahead q q'
   : pruned_reduce_edge_semantic_path_image_spec lookahead q q'.
 Proof.
   destruct EDGE as (pr & p & IN_REDUCE & PATH & STEP).
-  pose proof (pruned_reduce_LA_sem_sound_path_erase q lookahead pr IN_REDUCE) as REDUCE_ERASE.
+  use pruned_reduce_LA_sem_sound_path_erase as REDUCE_ERASE with IN_REDUCE.
   destruct REDUCE_ERASE as [st it p_la A alpha z p_orig_la q_orig_reduce IN_REDUCE_N STATE IN_IT DONE EQ_PR PROD IN_D LHS PATH_ITEM_PRUNED FOLLOW_STEPS_PRUNED PATH_FOLLOW_PRUNED PATH_FOLLOW_ORIG PATH_ITEM_ORIG EMB_P_LA EMB_Q_REDUCE IN_REDUCE_ORIG SEMANTIC_REDUCE_ORIG].
-  pose proof (Pruned.Numbering.npath_source_state pr.(Pruned.GrammarSyntax.p_rhs) p q PATH) as (p_state & STATE_P).
-  pose proof (pruned_state_of_numbered_embedding p p_state STATE_P) as (p_orig & EMB_P).
-  pose proof (numbered_state_embedding_npath pr.(Pruned.GrammarSyntax.p_rhs) p q p_orig EMB_P PATH) as (q_orig_edge & PATH_ORIG_EDGE & EMB_Q_EDGE).
-  pose proof (numbered_state_embedding_dN p p_orig (inl pr.(Pruned.GrammarSyntax.p_lhs)) q' EMB_P STEP) as (q_orig_next & STEP_ORIG_EDGE & EMB_Q_NEXT).
+  use Pruned.Numbering.npath_source_state as (p_state & STATE_P) with PATH.
+  use pruned_state_of_numbered_embedding as (p_orig & EMB_P) with STATE_P.
+  use numbered_state_embedding_npath as (q_orig_edge & PATH_ORIG_EDGE & EMB_Q_EDGE) with EMB_P PATH.
+  use numbered_state_embedding_dN as (q_orig_next & STEP_ORIG_EDGE & EMB_Q_NEXT) with EMB_P STEP.
   econstructor.
   - exists pr. exists p. splits; [exact IN_REDUCE | exact PATH | exact STEP].
   - exact IN_REDUCE.
@@ -19175,7 +14707,7 @@ Proof.
     + eapply pruned_action_conflict_semantic_path_image_shift_to_orig; [exact CONFLICT | ]. eapply Pruned.Table.shift_action_complete. exact STEP.
     + eapply R.(orig_semantic_lalr_no_shift_path_resolver_conflict W) with (q := q) (t := t).
       econstructor; [exact CONFLICT | ].
-      intros q_next IN_SHIFT. pose proof (Pruned.Table.shift_action_sound q t (Pruned.Table.Shift q_next) IN_SHIFT) as (q_mid & STEP_SHIFT & EQ). congruence.
+      intros q_next IN_SHIFT. use Pruned.Table.shift_action_sound as (q_mid & STEP_SHIFT & EQ) with IN_SHIFT. congruence.
   - intros lookahead q q' EDGE. exact (orig_semantic_lalr_no_shift_path_resolver_rank_edge W R lookahead q q' EDGE).
 Qed.
 
@@ -19223,8 +14755,8 @@ Lemma pruned_semantic_merge_reduce_action_entries_complete (q : nat) (t : Pruned
   (IN_ACTION : Pruned.Table.Reduce pr ∈ Pruned.Table.reduce_actions q t)
   : {| pruned_semantic_merge_reduce_action_entry_state := q; pruned_semantic_merge_reduce_action_entry_lookahead := t; pruned_semantic_merge_reduce_action_entry_prod := pr |} ∈ pruned_semantic_merge_reduce_action_entries.
 Proof.
-  pose proof (Pruned.Table.reduce_actions_sound q t (Pruned.Table.Reduce pr) IN_ACTION) as (pr0 & IN_REDUCE & EQ). injection EQ as EQ_PR0. subst pr0.
-  pose proof (Pruned.Table.reduce_LA_sound q t pr IN_REDUCE) as SOUND.
+  use Pruned.Table.reduce_actions_sound as (pr0 & IN_REDUCE & EQ) with IN_ACTION. injection EQ as EQ_PR0. subst pr0.
+  use Pruned.Table.reduce_LA_sound as SOUND with IN_REDUCE.
   destruct SOUND as [st it IN_REDUCE_N STATE IN_IT DONE EQ_PR PROD IN_LA].
   unfold pruned_semantic_merge_reduce_action_entries. eapply list_bind_complete with (x := q).
   - rewrite in_seq. split.
@@ -19252,8 +14784,8 @@ Lemma pruned_semantic_merge_accept_action_entries_complete (q : nat) (t : Pruned
   (IN_ACCEPT : Pruned.Table.Accept ∈ Pruned.Table.accept_action q t)
   : {| pruned_semantic_merge_accept_action_entry_state := q; pruned_semantic_merge_accept_action_entry_lookahead := t |} ∈ pruned_semantic_merge_accept_action_entries.
 Proof.
-  pose proof (Pruned.Table.accept_action_sound q t Pruned.Table.Accept IN_ACCEPT) as (_ & qf & FINAL & EQ_Q & EQ_T). subst q. subst t.
-  pose proof (Pruned.Numbering.nq_f_sound qf FINAL) as (qf_state & FINAL_STATE & INDEX & STATE).
+  use Pruned.Table.accept_action_sound as (_ & qf & FINAL & EQ_Q & EQ_T) with IN_ACCEPT. subst q. subst t.
+  use Pruned.Numbering.nq_f_sound as (qf_state & FINAL_STATE & INDEX & STATE) with FINAL.
   unfold pruned_semantic_merge_accept_action_entries. eapply list_bind_complete with (x := qf).
   - rewrite in_seq. split.
     + lia.
@@ -19341,11 +14873,11 @@ Lemma pruned_semantic_merge_path_retargeting_reduce_action_normalize (O : pruned
   (IN_ACTION : Pruned.Table.Reduce pr ∈ Pruned.Table.reduce_actions q t)
   : Orig.Table.reduce_LA_sem_sound_spec (pruned_semantic_merge_path_image O q) t (erase_prod' pr).
 Proof.
-  pose proof (Pruned.Table.reduce_actions_sound q t (Pruned.Table.Reduce pr) IN_ACTION) as (pr0 & IN_REDUCE & EQ). injection EQ as EQ_PR0. subst pr0.
-  pose proof (Pruned.productive_certified_reduce_LA_sem_sound pruned_productive_certified q t pr IN_REDUCE) as SOUND.
+  use Pruned.Table.reduce_actions_sound as (pr0 & IN_REDUCE & EQ) with IN_ACTION. injection EQ as EQ_PR0. subst pr0.
+  use (Pruned.productive_certified_reduce_LA_sem_sound pruned_productive_certified) as SOUND with IN_REDUCE.
   destruct SOUND as [st it IN_REDUCE_N STATE IN_IT DONE EQ_PR PROD IN_LA].
-  pose proof (pruned_LA_sem_path_erase q it t IN_LA) as LA_ERASE.
-  pose proof (pruned_semantic_merge_path_image_embedding O q st STATE) as EMB_Q.
+  use pruned_LA_sem_path_erase as LA_ERASE with IN_LA.
+  use pruned_semantic_merge_path_image_embedding as EMB_Q with STATE.
   destruct EMB_Q as [q_pruned q_orig STATE_PRUNED STATE_ORIG INCL_ITEMS].
   rewrite STATE in STATE_PRUNED. inv STATE_PRUNED.
   econstructor.
@@ -19362,7 +14894,7 @@ Lemma pruned_semantic_merge_path_retargeting_accept_action_normalize (O : pruned
   (IN : Pruned.Table.Accept ∈ Pruned.Table.accept_action q t)
   : Orig.Table.Accept ∈ Orig.Table.accept_action (pruned_semantic_merge_path_image O q) t.
 Proof.
-  pose proof (Pruned.Table.accept_action_sound q t Pruned.Table.Accept IN) as (_ & FINAL_SPEC).
+  use Pruned.Table.accept_action_sound as (_ & FINAL_SPEC) with IN.
   destruct FINAL_SPEC as (qf & FINAL & Q & T). subst q. subst t.
   eapply Orig.Table.accept_action_complete. exact (pruned_semantic_merge_path_final_state O qf FINAL).
 Qed.
@@ -19371,7 +14903,7 @@ Lemma pruned_semantic_merge_path_retargeting_reduce_edge_normalize (O : pruned_s
   (EDGE : pruned_reduce_edge_semantic_path_image_spec lookahead q q')
   : orig_semantic_reduce_edge_spec lookahead (pruned_semantic_merge_path_image O q) (pruned_semantic_merge_path_image O q').
 Proof.
-  pose proof (pruned_semantic_merge_path_reduce_edge O lookahead q q' EDGE) as EDGE_PATH.
+  use pruned_semantic_merge_path_reduce_edge as EDGE_PATH with EDGE.
   destruct EDGE_PATH as [pr p p_orig IN_REDUCE PATH_PRUNED STEP_PRUNED PATH_ORIG STEP_ORIG].
   assert (IN_ACTION : Pruned.Table.Reduce pr ∈ Pruned.Table.reduce_actions q lookahead) by (eapply Pruned.Table.reduce_actions_complete; exact IN_REDUCE).
   econstructor.
@@ -19433,9 +14965,17 @@ Theorem pruned_semantic_merge_lr0_transition_retargeting_obligations_from_transi
 Proof.
   unfold pruned_lr0_transition_retargetingb in CHECK. rewrite andb_true_iff in CHECK. destruct CHECK as (HEAD_CHECK & STEP_CHECK). rewrite andb_true_iff in HEAD_CHECK. destruct HEAD_CHECK as (EMBED_CHECK & NQ0_CHECK).
   refine {| pruned_semantic_merge_transition_image := image |}.
-  - intros q st STATE. rewrite forallb_forall in EMBED_CHECK. pose proof (EMBED_CHECK {| pruned_numbered_state_entry_number := q; pruned_numbered_state_entry_state := st |} (pruned_numbered_state_entries_complete q st STATE)) as CHECK_Q. unfold pruned_lr0_transition_embeddingb in CHECK_Q. simpl in CHECK_Q. eapply numbered_state_embedding_candidateb_sound. exact CHECK_Q.
+  - intros q st STATE. rewrite forallb_forall in EMBED_CHECK.
+    assert (ENTRY_Q : {| pruned_numbered_state_entry_number := q; pruned_numbered_state_entry_state := st |} ∈ pruned_numbered_state_entries).
+    { eapply pruned_numbered_state_entries_complete. exact STATE. }
+    use (EMBED_CHECK {| pruned_numbered_state_entry_number := q; pruned_numbered_state_entry_state := st |}) as CHECK_Q with ENTRY_Q.
+    unfold pruned_lr0_transition_embeddingb in CHECK_Q. simpl in CHECK_Q. eapply numbered_state_embedding_candidateb_sound. exact CHECK_Q.
   - unfold pruned_lr0_transition_nq0b in NQ0_CHECK. rewrite eqb_eq in NQ0_CHECK. exact NQ0_CHECK.
-  - intros p X q STEP. rewrite forallb_forall in STEP_CHECK. pose proof (STEP_CHECK {| pruned_lr0_transition_entry_source := p; pruned_lr0_transition_entry_symbol := X; pruned_lr0_transition_entry_target := q |} (pruned_lr0_transition_entries_complete p X q STEP)) as CHECK_STEP. unfold pruned_lr0_transition_entryb in CHECK_STEP. simpl in CHECK_STEP. destruct (Orig.Numbering.dN (image p) (erase_aug_symbol X)) as [q_orig | ] eqn: STEP_ORIG; [ | discriminate]. rewrite eqb_eq in CHECK_STEP. rewrite CHECK_STEP. reflexivity.
+  - intros p X q STEP. rewrite forallb_forall in STEP_CHECK.
+    assert (ENTRY_STEP : {| pruned_lr0_transition_entry_source := p; pruned_lr0_transition_entry_symbol := X; pruned_lr0_transition_entry_target := q |} ∈ pruned_lr0_transition_entries).
+    { eapply pruned_lr0_transition_entries_complete. exact STEP. }
+    use (STEP_CHECK {| pruned_lr0_transition_entry_source := p; pruned_lr0_transition_entry_symbol := X; pruned_lr0_transition_entry_target := q |}) as CHECK_STEP with ENTRY_STEP.
+    unfold pruned_lr0_transition_entryb in CHECK_STEP. simpl in CHECK_STEP. destruct (Orig.Numbering.dN (image p) (erase_aug_symbol X)) as [q_orig | ] eqn: STEP_ORIG; [ | discriminate]. rewrite eqb_eq in CHECK_STEP. rewrite CHECK_STEP. reflexivity.
 Qed.
 
 Lemma pruned_semantic_merge_transition_npath_retarget (O : pruned_semantic_merge_lr0_transition_retargeting_obligations) alpha p q
@@ -19460,8 +15000,8 @@ Lemma pruned_semantic_merge_transition_read_domain_retarget (O : pruned_semantic
   (IN : (p, A) ∈ Pruned.Read.D)
   : (pruned_semantic_merge_transition_image O p, erase_aug_nt A) ∈ Orig.Read.D.
 Proof.
-  pose proof (Pruned.Read.read_domain_sound p A IN) as (r & STEP).
-  pose proof (pruned_semantic_merge_transition_dN O p (inl A) r STEP) as STEP_ORIG.
+  use Pruned.Read.read_domain_sound as (r & STEP) with IN.
+  use pruned_semantic_merge_transition_dN as STEP_ORIG with STEP.
   simpl in STEP_ORIG. eapply Orig.Read.read_domain_complete; [eapply Orig.Numbering.dN_source_lt; exact STEP_ORIG | exact STEP_ORIG].
 Qed.
 
@@ -19470,7 +15010,7 @@ Lemma pruned_semantic_merge_transition_Follow_sem_retarget (O : pruned_semantic_
   : Orig.Follow.Follow_sem (pruned_semantic_merge_transition_image O p, erase_aug_nt A) t.
 Proof.
   destruct FOLLOW_ERASE as [alpha z p_orig STEPS_PRUNED PATH_PRUNED PATH_ORIG EMB FOLLOW_ORIG].
-  pose proof (pruned_rm_steps_erase [@inl Pruned.GrammarSyntax.N' Pruned.GrammarSyntax.T' Pruned.GrammarSyntax.start_prime] (alpha ++ inl A :: inr t :: map inr z) STEPS_PRUNED) as STEPS_ORIG.
+  use pruned_rm_steps_erase as STEPS_ORIG with STEPS_PRUNED.
   repeat rewrite map_app in STEPS_ORIG. simpl in STEPS_ORIG. rewrite erase_aug_terminal_symbols in STEPS_ORIG.
   unfold Orig.Follow.Follow_sem. exists (map erase_aug_symbol alpha). exists z. split; [exact STEPS_ORIG | eapply pruned_semantic_merge_transition_npath_from_start_retarget; exact PATH_PRUNED].
 Qed.
@@ -19481,7 +15021,7 @@ Lemma pruned_semantic_merge_transition_LA_sem_retarget (O : pruned_semantic_merg
 Proof.
   destruct LA_ERASE as [p A alpha z p_orig q_orig IN_D LHS PATH_ITEM_PRUNED FOLLOW_STEPS_PRUNED PATH_FOLLOW_PRUNED PATH_FOLLOW_ORIG PATH_ITEM_ORIG EMB_P EMB_Q LA_ORIG].
   assert (FOLLOW_ERASE : pruned_Follow_sem_path_erase_spec p A t).
-  { pose proof (pruned_rm_steps_erase [@inl Pruned.GrammarSyntax.N' Pruned.GrammarSyntax.T' Pruned.GrammarSyntax.start_prime] (alpha ++ inl A :: inr t :: map inr z) FOLLOW_STEPS_PRUNED) as STEPS_ORIG.
+  { use pruned_rm_steps_erase as STEPS_ORIG with FOLLOW_STEPS_PRUNED.
     repeat rewrite map_app in STEPS_ORIG. simpl in STEPS_ORIG. rewrite erase_aug_terminal_symbols in STEPS_ORIG.
     assert (FOLLOW_ORIG : Orig.Follow.Follow_sem (p_orig, erase_aug_nt A) t).
     { unfold Orig.Follow.Follow_sem. exists (map erase_aug_symbol alpha). exists z. split; [exact STEPS_ORIG | exact PATH_FOLLOW_ORIG]. }
@@ -19499,7 +15039,7 @@ Lemma pruned_semantic_merge_transition_final_state (O : pruned_semantic_merge_lr
   : Orig.Numbering.nq_f = Some (pruned_semantic_merge_transition_image O qf).
 Proof.
   rewrite Pruned.Numbering.nq_f_accept_path_iff in FINAL.
-  pose proof (pruned_semantic_merge_transition_npath_from_start_retarget O Pruned.LR0.accept_word qf FINAL) as PATH_ORIG.
+  use pruned_semantic_merge_transition_npath_from_start_retarget as PATH_ORIG with FINAL.
   rewrite erase_accept_word in PATH_ORIG. rewrite Orig.Numbering.nq_f_accept_path_iff. exact PATH_ORIG.
 Qed.
 
@@ -19556,11 +15096,11 @@ Lemma pruned_semantic_merge_no_shift_action (P : pruned_semantic_merge_policy) q
 Proof.
   unfold Pruned.Table.actions in IN. rewrite L.in_app_iff in IN.
   destruct IN as [IN_SHIFT | IN_REST].
-  - pose proof (Pruned.Table.shift_action_sound q t act IN_SHIFT) as (q_next & STEP & EQ). subst act. exfalso. eapply NO_SHIFT. exact IN_SHIFT.
+  - use Pruned.Table.shift_action_sound as (q_next & STEP & EQ) with IN_SHIFT. subst act. exfalso. eapply NO_SHIFT. exact IN_SHIFT.
   - rewrite L.in_app_iff in IN_REST. destruct IN_REST as [IN_REDUCE | IN_ACCEPT].
-    + pose proof (Pruned.Table.reduce_actions_sound q t act IN_REDUCE) as (pr & IN_PR & EQ). subst act.
+    + use Pruned.Table.reduce_actions_sound as (pr & IN_PR & EQ) with IN_REDUCE. subst act.
       exists (Orig.Table.Reduce (erase_prod' pr)). econstructor. exact (pruned_semantic_merge_reduce_action P q t pr IN_REDUCE).
-    + pose proof (Pruned.Table.accept_action_sound q t act IN_ACCEPT) as (EQ & _). subst act.
+    + use Pruned.Table.accept_action_sound as (EQ & _) with IN_ACCEPT. subst act.
       exists Orig.Table.Accept. econstructor. exact (pruned_semantic_merge_accept_action P q t IN_ACCEPT).
 Qed.
 
@@ -19575,12 +15115,12 @@ Proof.
   { rewrite ACTIONS. simpl. left. reflexivity. }
   assert (IN2 : act2 ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. right. left. reflexivity. }
-  pose proof (Pruned.Table.actions_head_distinct q t st act1 act2 rest STATE ACTIONS) as DIFF.
+  use (Pruned.Table.actions_head_distinct q t st act1 act2 rest) as DIFF with STATE ACTIONS.
   destruct ACTION1 as [pr1 SEMANTIC_REDUCE_ORIG1 | IN_ACCEPT_ORIG1]; destruct ACTION2 as [pr2 SEMANTIC_REDUCE_ORIG2 | IN_ACCEPT_ORIG2]; intros EQ; try discriminate.
   - injection EQ as EQ_LHS EQ_RHS.
     assert (EQ_ERASE : erase_prod' pr1 = erase_prod' pr2).
     { destruct pr1 as [A1 rhs1], pr2 as [A2 rhs2]. unfold erase_prod' in *. simpl in *. f_equal; assumption. }
-    pose proof (erase_prod'_injective pr1 pr2 EQ_ERASE) as EQ_PR. subst pr2. eapply DIFF. reflexivity.
+    use erase_prod'_injective as EQ_PR with EQ_ERASE. subst pr2. eapply DIFF. reflexivity.
   - eapply DIFF. reflexivity.
 Qed.
 
@@ -19594,8 +15134,8 @@ Proof.
   { rewrite ACTIONS. simpl. left. reflexivity. }
   assert (IN2 : act2 ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. right. left. reflexivity. }
-  pose proof (pruned_semantic_merge_no_shift_action P q t act1 NO_SHIFT IN1) as (act_orig1 & ACTION1).
-  pose proof (pruned_semantic_merge_no_shift_action P q t act2 NO_SHIFT IN2) as (act_orig2 & ACTION2).
+  use pruned_semantic_merge_no_shift_action as (act_orig1 & ACTION1) with NO_SHIFT IN1.
+  use pruned_semantic_merge_no_shift_action as (act_orig2 & ACTION2) with NO_SHIFT IN2.
   eapply orig_semantic_action_conflict_intro with (act1 := act_orig1) (act2 := act_orig2).
   - destruct ACTION1 as [pr SEMANTIC_REDUCE_ORIG | IN_ACCEPT_ORIG].
     + exact (orig_semantic_action_reduce (pruned_semantic_merge_image P q) t (erase_prod' pr) SEMANTIC_REDUCE_ORIG).
@@ -19657,8 +15197,8 @@ Lemma pruned_lr0_state_image_read_domain_retarget (P : pruned_lr0_state_image_po
   (IN : (p, A) ∈ Pruned.Read.D)
   : (pruned_lr0_state_image P p, erase_aug_nt A) ∈ Orig.Read.D.
 Proof.
-  pose proof (Pruned.Read.read_domain_sound p A IN) as (r & STEP).
-  pose proof (pruned_lr0_state_image_dN P p (inl A) r STEP) as STEP_ORIG.
+  use Pruned.Read.read_domain_sound as (r & STEP) with IN.
+  use pruned_lr0_state_image_dN as STEP_ORIG with STEP.
   simpl in STEP_ORIG. eapply Orig.Read.read_domain_complete; [eapply Orig.Numbering.dN_source_lt; exact STEP_ORIG | exact STEP_ORIG].
 Qed.
 
@@ -19667,7 +15207,7 @@ Lemma pruned_lr0_state_image_Follow_sem_retarget (P : pruned_lr0_state_image_pol
   : Orig.Follow.Follow_sem (pruned_lr0_state_image P p, erase_aug_nt A) t.
 Proof.
   destruct FOLLOW_ERASE as [alpha z p_orig STEPS_PRUNED PATH_PRUNED PATH_ORIG EMB FOLLOW_ORIG].
-  pose proof (pruned_rm_steps_erase [@inl Pruned.GrammarSyntax.N' Pruned.GrammarSyntax.T' Pruned.GrammarSyntax.start_prime] (alpha ++ inl A :: inr t :: map inr z) STEPS_PRUNED) as STEPS_ORIG.
+  use pruned_rm_steps_erase as STEPS_ORIG with STEPS_PRUNED.
   repeat rewrite map_app in STEPS_ORIG. simpl in STEPS_ORIG. rewrite erase_aug_terminal_symbols in STEPS_ORIG.
   unfold Orig.Follow.Follow_sem. exists (map erase_aug_symbol alpha). exists z. split; [exact STEPS_ORIG | eapply pruned_lr0_state_image_npath_from_start_retarget; exact PATH_PRUNED].
 Qed.
@@ -19686,7 +15226,7 @@ Lemma pruned_lr0_state_image_LA_path_retarget (P : pruned_lr0_state_image_policy
 Proof.
   destruct LA_ERASE as [p A alpha z p_orig q_orig IN_D LHS PATH_ITEM_PRUNED FOLLOW_STEPS_PRUNED PATH_FOLLOW_PRUNED PATH_FOLLOW_ORIG PATH_ITEM_ORIG EMB_P EMB_Q LA_ORIG].
   assert (FOLLOW_ERASE : pruned_Follow_sem_path_erase_spec p A t).
-  { pose proof (pruned_rm_steps_erase [@inl Pruned.GrammarSyntax.N' Pruned.GrammarSyntax.T' Pruned.GrammarSyntax.start_prime] (alpha ++ inl A :: inr t :: map inr z) FOLLOW_STEPS_PRUNED) as STEPS_ORIG.
+  { use pruned_rm_steps_erase as STEPS_ORIG with FOLLOW_STEPS_PRUNED.
     repeat rewrite map_app in STEPS_ORIG. simpl in STEPS_ORIG. rewrite erase_aug_terminal_symbols in STEPS_ORIG.
     assert (FOLLOW_ORIG : Orig.Follow.Follow_sem (p_orig, erase_aug_nt A) t).
     { unfold Orig.Follow.Follow_sem. exists (map erase_aug_symbol alpha). exists z. split; [exact STEPS_ORIG | exact PATH_FOLLOW_ORIG]. }
@@ -19703,7 +15243,7 @@ Lemma pruned_lr0_state_image_LA_sem_retarget (P : pruned_lr0_state_image_policy)
   (LA_ERASE : pruned_LA_sem_path_erase_spec q it t)
   : Orig.Lookahead.LA_sem (pruned_lr0_state_image P q) (erase_item it) t.
 Proof.
-  pose proof (pruned_lr0_state_image_LA_path_retarget P q it t LA_ERASE) as LA_PATH.
+  use pruned_lr0_state_image_LA_path_retarget as LA_PATH with LA_ERASE.
   destruct LA_PATH as [p A IN_D LHS PATH_ITEM_ORIG FOLLOW_ORIG].
   unfold Orig.Lookahead.LA_sem. exists (pruned_lr0_state_image P p). exists (erase_aug_nt A). splits.
   - exact IN_D.
@@ -19716,11 +15256,11 @@ Lemma pruned_lr0_state_image_reduce_action_normalize (P : pruned_lr0_state_image
   (IN_ACTION : Pruned.Table.Reduce pr ∈ Pruned.Table.reduce_actions q t)
   : Orig.Table.reduce_LA_sem_sound_spec (pruned_lr0_state_image P q) t (erase_prod' pr).
 Proof.
-  pose proof (Pruned.Table.reduce_actions_sound q t (Pruned.Table.Reduce pr) IN_ACTION) as (pr0 & IN_REDUCE & EQ). injection EQ as EQ_PR0. subst pr0.
-  pose proof (Pruned.productive_certified_reduce_LA_sem_sound pruned_productive_certified q t pr IN_REDUCE) as SOUND.
+  use Pruned.Table.reduce_actions_sound as (pr0 & IN_REDUCE & EQ) with IN_ACTION. injection EQ as EQ_PR0. subst pr0.
+  use (Pruned.productive_certified_reduce_LA_sem_sound pruned_productive_certified) as SOUND with IN_REDUCE.
   destruct SOUND as [st it IN_REDUCE_N STATE IN_IT DONE EQ_PR PROD IN_LA].
-  pose proof (pruned_LA_sem_path_erase q it t IN_LA) as LA_ERASE.
-  pose proof (pruned_lr0_state_image_embedding P q st STATE) as EMB_Q.
+  use pruned_LA_sem_path_erase as LA_ERASE with IN_LA.
+  use pruned_lr0_state_image_embedding as EMB_Q with STATE.
   destruct EMB_Q as [q_pruned q_orig STATE_PRUNED STATE_ORIG INCL_ITEMS].
   rewrite STATE in STATE_PRUNED. inv STATE_PRUNED.
   econstructor.
@@ -19738,7 +15278,7 @@ Lemma pruned_lr0_state_image_final_state_normalize (P : pruned_lr0_state_image_p
   : Orig.Numbering.nq_f = Some (pruned_lr0_state_image P qf).
 Proof.
   rewrite Pruned.Numbering.nq_f_accept_path_iff in FINAL.
-  pose proof (pruned_lr0_state_image_npath_from_start_retarget P Pruned.LR0.accept_word qf FINAL) as PATH_ORIG.
+  use pruned_lr0_state_image_npath_from_start_retarget as PATH_ORIG with FINAL.
   rewrite erase_accept_word in PATH_ORIG. rewrite Orig.Numbering.nq_f_accept_path_iff. exact PATH_ORIG.
 Qed.
 
@@ -19746,7 +15286,7 @@ Lemma pruned_lr0_state_image_accept_action_normalize (P : pruned_lr0_state_image
   (IN : Pruned.Table.Accept ∈ Pruned.Table.accept_action q t)
   : Orig.Table.Accept ∈ Orig.Table.accept_action (pruned_lr0_state_image P q) t.
 Proof.
-  pose proof (Pruned.Table.accept_action_sound q t Pruned.Table.Accept IN) as (_ & FINAL_SPEC).
+  use Pruned.Table.accept_action_sound as (_ & FINAL_SPEC) with IN.
   destruct FINAL_SPEC as (qf & FINAL & Q & T). subst q. subst t.
   eapply Orig.Table.accept_action_complete. exact (pruned_lr0_state_image_final_state_normalize P qf FINAL).
 Qed.
@@ -19768,8 +15308,8 @@ Lemma pruned_lr0_state_image_shift_action_semantic (P : pruned_lr0_state_image_p
   (IN : Pruned.Table.Shift q_next ∈ Pruned.Table.shift_action q t)
   : exists q_orig_next, pruned_lr0_state_image_action_semantic_spec P q t (Pruned.Table.Shift q_next) (Orig.Table.Shift q_orig_next).
 Proof.
-  pose proof (pruned_lr0_state_image_embedding P q st STATE) as EMB_Q.
-  pose proof (pruned_shift_action_erase q (pruned_lr0_state_image P q) t q_next EMB_Q IN) as (q_orig_next & IN_ORIG & EMB_NEXT).
+  use pruned_lr0_state_image_embedding as EMB_Q with STATE.
+  use pruned_shift_action_erase as (q_orig_next & IN_ORIG & EMB_NEXT) with EMB_Q IN.
   exists q_orig_next. econstructor; [exact IN_ORIG | exact EMB_NEXT].
 Qed.
 
@@ -19780,13 +15320,13 @@ Lemma pruned_lr0_state_image_action_semantic (P : pruned_lr0_state_image_policy)
 Proof.
   unfold Pruned.Table.actions in IN. rewrite L.in_app_iff in IN.
   destruct IN as [IN_SHIFT | IN_REST].
-  - pose proof (Pruned.Table.shift_action_sound q t act IN_SHIFT) as (q_next & STEP & EQ). subst act.
-    pose proof (pruned_lr0_state_image_shift_action_semantic P q t q_next st STATE IN_SHIFT) as (q_orig_next & SEMANTIC).
+  - use Pruned.Table.shift_action_sound as (q_next & STEP & EQ) with IN_SHIFT. subst act.
+    use pruned_lr0_state_image_shift_action_semantic as (q_orig_next & SEMANTIC) with STATE IN_SHIFT.
     exists (Orig.Table.Shift q_orig_next). exact SEMANTIC.
   - rewrite L.in_app_iff in IN_REST. destruct IN_REST as [IN_REDUCE | IN_ACCEPT].
-    + pose proof (Pruned.Table.reduce_actions_sound q t act IN_REDUCE) as (pr & IN_PR & EQ). subst act.
+    + use Pruned.Table.reduce_actions_sound as (pr & IN_PR & EQ) with IN_REDUCE. subst act.
       exists (Orig.Table.Reduce (erase_prod' pr)). econstructor. exact (pruned_lr0_state_image_reduce_action_normalize P q t pr IN_REDUCE).
-    + pose proof (Pruned.Table.accept_action_sound q t act IN_ACCEPT) as (EQ & _). subst act.
+    + use Pruned.Table.accept_action_sound as (EQ & _) with IN_ACCEPT. subst act.
       exists Orig.Table.Accept. econstructor. exact (pruned_lr0_state_image_accept_action_normalize P q t IN_ACCEPT).
 Qed.
 
@@ -19801,13 +15341,13 @@ Proof.
   { rewrite ACTIONS. simpl. left. reflexivity. }
   assert (IN2 : act2 ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. right. left. reflexivity. }
-  pose proof (Pruned.Table.actions_head_distinct q t st act1 act2 rest STATE ACTIONS) as DIFF.
+  use (Pruned.Table.actions_head_distinct q t st act1 act2 rest) as DIFF with STATE ACTIONS.
   destruct ACTION1 as [q_next1 q_orig_next1 IN_SHIFT_ORIG1 EMB_NEXT1 | pr1 SEMANTIC_REDUCE_ORIG1 | IN_ACCEPT_ORIG1]; destruct ACTION2 as [q_next2 q_orig_next2 IN_SHIFT_ORIG2 EMB_NEXT2 | pr2 SEMANTIC_REDUCE_ORIG2 | IN_ACCEPT_ORIG2]; intros EQ; try discriminate.
-  - pose proof (Pruned.Table.shift_actions_in_actions_unique q t q_next1 q_next2 IN1 IN2) as EQ_NEXT. subst q_next2. eapply DIFF. reflexivity.
+  - use Pruned.Table.shift_actions_in_actions_unique as EQ_NEXT with IN1 IN2. subst q_next2. eapply DIFF. reflexivity.
   - injection EQ as EQ_LHS EQ_RHS.
     assert (EQ_ERASE : erase_prod' pr1 = erase_prod' pr2).
     { destruct pr1 as [A1 rhs1], pr2 as [A2 rhs2]. unfold erase_prod' in *. simpl in *. f_equal; assumption. }
-    pose proof (erase_prod'_injective pr1 pr2 EQ_ERASE) as EQ_PR. subst pr2. eapply DIFF. reflexivity.
+    use erase_prod'_injective as EQ_PR with EQ_ERASE. subst pr2. eapply DIFF. reflexivity.
   - eapply DIFF. reflexivity.
 Qed.
 
@@ -19820,8 +15360,8 @@ Proof.
   { rewrite ACTIONS. simpl. left. reflexivity. }
   assert (IN2 : act2 ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. right. left. reflexivity. }
-  pose proof (pruned_lr0_state_image_action_semantic P q t st act1 STATE IN1) as (act_orig1 & ACTION1).
-  pose proof (pruned_lr0_state_image_action_semantic P q t st act2 STATE IN2) as (act_orig2 & ACTION2).
+  use pruned_lr0_state_image_action_semantic as (act_orig1 & ACTION1) with STATE IN1.
+  use pruned_lr0_state_image_action_semantic as (act_orig2 & ACTION2) with STATE IN2.
   eapply orig_semantic_action_conflict_intro with (act1 := act_orig1) (act2 := act_orig2).
   - destruct ACTION1 as [q_next q_orig_next IN_SHIFT_ORIG EMB_NEXT | pr SEMANTIC_REDUCE_ORIG | IN_ACCEPT_ORIG].
     + exact (orig_semantic_action_shift (pruned_lr0_state_image P q) t q_orig_next IN_SHIFT_ORIG).
@@ -19913,8 +15453,8 @@ Lemma pruned_lr0_path_image_spec_exists q st
   (STATE : Pruned.Numbering.state_of q = Some st)
   : exists q_orig, pruned_lr0_path_image_spec q q_orig /\ numbered_state_embedding_spec q q_orig.
 Proof.
-  pose proof (Pruned.Numbering.state_of_reachable_npath q st STATE) as (alpha & PATH_PRUNED).
-  pose proof (pruned_npath_erase_from_start alpha q PATH_PRUNED) as (q_orig & PATH_ORIG & EMB).
+  use Pruned.Numbering.state_of_reachable_npath as (alpha & PATH_PRUNED) with STATE.
+  use pruned_npath_erase_from_start as (q_orig & PATH_ORIG & EMB) with PATH_PRUNED.
   exists q_orig. split.
   - econstructor; [exact PATH_PRUNED | exact PATH_ORIG].
   - exact EMB.
@@ -19961,8 +15501,8 @@ Lemma pruned_lr0_path_image_candidateb_complete_from_state q st
   (STATE : Pruned.Numbering.state_of q = Some st)
   : exists q_orig, pruned_lr0_path_image_candidateb q q_orig = true /\ numbered_state_embedding_spec q q_orig.
 Proof.
-  pose proof (Pruned.Numbering.state_of_reachable_npath_bounded q st STATE) as (alpha & PATH_PRUNED & BOUND).
-  pose proof (pruned_npath_erase_from_start alpha q PATH_PRUNED) as (q_orig & PATH_ORIG & EMB).
+  use Pruned.Numbering.state_of_reachable_npath_bounded as (alpha & PATH_PRUNED & BOUND) with STATE.
+  use pruned_npath_erase_from_start as (q_orig & PATH_ORIG & EMB) with PATH_PRUNED.
   exists q_orig. split.
   - eapply pruned_lr0_path_image_candidateb_complete; [exact BOUND | exact PATH_PRUNED | exact PATH_ORIG].
   - exact EMB.
@@ -19995,7 +15535,7 @@ Proof.
   - discriminate.
   - destruct (pruned_lr0_path_image_candidateb q candidate) eqn: CHECK.
     + inv FIND. split; [left; reflexivity | exact CHECK].
-    + pose proof (IH FIND) as (IN & CHECK_FOUND). split; [right; exact IN | exact CHECK_FOUND].
+    + use IH as (IN & CHECK_FOUND) with FIND. split; [right; exact IN | exact CHECK_FOUND].
 Qed.
 
 Lemma first_pruned_lr0_path_image_from_complete q candidates q_orig
@@ -20017,7 +15557,7 @@ Lemma first_pruned_lr0_path_image_sound q q_orig
   : pruned_lr0_path_image_spec q q_orig.
 Proof.
   unfold first_pruned_lr0_path_image in FIND.
-  pose proof (first_pruned_lr0_path_image_from_sound q (seq 0 Orig.Numbering.num_states) q_orig FIND) as (_ & CHECK).
+  use first_pruned_lr0_path_image_from_sound as (_ & CHECK) with FIND.
   eapply pruned_lr0_path_image_candidateb_sound. exact CHECK.
 Qed.
 
@@ -20029,7 +15569,7 @@ Proof.
   assert (IN : q_orig ∈ seq 0 Orig.Numbering.num_states).
   { rewrite in_seq. split; [lia | exact LT]. }
   unfold first_pruned_lr0_path_image.
-  pose proof (first_pruned_lr0_path_image_from_complete q (seq 0 Orig.Numbering.num_states) q_orig IN CANDIDATE) as (q_found & FIND & CHECK_FOUND).
+  use first_pruned_lr0_path_image_from_complete as (q_found & FIND & CHECK_FOUND) with IN CANDIDATE.
   exists q_found. split; [exact FIND | ].
   eapply pruned_lr0_path_image_candidateb_sound. exact CHECK_FOUND.
 Qed.
@@ -20038,10 +15578,10 @@ Lemma pruned_lr0_path_search_image_correct q st
   (STATE : Pruned.Numbering.state_of q = Some st)
   : pruned_lr0_path_image_spec q (pruned_lr0_path_search_image q).
 Proof.
-  pose proof (pruned_lr0_path_image_candidateb_complete_from_state q st STATE) as (q_orig & CHECK & EMB).
+  use pruned_lr0_path_image_candidateb_complete_from_state as (q_orig & CHECK & EMB) with STATE.
   destruct EMB as [st_pruned st_orig STATE_PRUNED STATE_ORIG INCL_ITEMS].
-  pose proof (Orig.Numbering.state_of_some_lt q_orig st_orig STATE_ORIG) as LT.
-  pose proof (first_pruned_lr0_path_image_complete q q_orig CHECK LT) as (q_found & FIND & SPEC_FOUND).
+  use Orig.Numbering.state_of_some_lt as LT with STATE_ORIG.
+  use first_pruned_lr0_path_image_complete as (q_found & FIND & SPEC_FOUND) with CHECK LT.
   unfold pruned_lr0_path_search_image. rewrite FIND. exact SPEC_FOUND.
 Qed.
 
@@ -20076,7 +15616,7 @@ Proof.
   intros q q_orig1 q_orig2 SPEC1 SPEC2.
   destruct SPEC1 as [alpha PATH_PRUNED1 PATH_ORIG1].
   destruct SPEC2 as [beta PATH_PRUNED2 PATH_ORIG2].
-  pose proof (pruned_lr0_path_erased_word_merge M q alpha beta PATH_PRUNED1 PATH_PRUNED2) as ERASE_EQ.
+  use (pruned_lr0_path_erased_word_merge M) as ERASE_EQ with PATH_PRUNED1 PATH_PRUNED2.
   exact (pruned_lr0_path_image_same_erased_word_unique q q_orig1 q_orig2 alpha beta PATH_PRUNED1 PATH_ORIG1 PATH_PRUNED2 PATH_ORIG2 ERASE_EQ).
 Qed.
 
@@ -20095,8 +15635,8 @@ Proof.
   - intros q st STATE. exact (pruned_lr0_path_merge_image_correct M q st STATE).
   - intros q q_orig SPEC.
     destruct SPEC as [alpha PATH_PRUNED PATH_ORIG].
-    pose proof (Pruned.Numbering.npath_target_state alpha Pruned.Numbering.nq0 q PATH_PRUNED) as (st & STATE).
-    pose proof (pruned_lr0_path_merge_image_correct M q st STATE) as SPEC_IMAGE.
+    use Pruned.Numbering.npath_target_state as (st & STATE) with PATH_PRUNED.
+    use (pruned_lr0_path_merge_image_correct M) as SPEC_IMAGE with STATE.
     assert (SPEC_ORIG : pruned_lr0_path_image_spec q q_orig).
     { econstructor; [exact PATH_PRUNED | exact PATH_ORIG]. }
     exact (pruned_lr0_path_merge_unique M q (pruned_lr0_path_merge_image M q) q_orig SPEC_IMAGE SPEC_ORIG).
@@ -20106,12 +15646,13 @@ Lemma numbered_state_embedding_from_lr0_path_image_policy (P : pruned_lr0_path_i
   (STATE : Pruned.Numbering.state_of q = Some st)
   : numbered_state_embedding_spec q (pruned_lr0_path_image P q).
 Proof.
-  pose proof (pruned_lr0_path_image_correct P q st STATE) as IMAGE.
+  use (pruned_lr0_path_image_correct P) as IMAGE with STATE.
   destruct IMAGE as [alpha PATH_PRUNED PATH_ORIG_IMAGE].
-  pose proof (numbered_state_embedding_npath alpha Pruned.Numbering.nq0 q Orig.Numbering.nq0 numbered_state_embedding_nq0 PATH_PRUNED) as (q_orig & PATH_ORIG & EMB).
+  assert (EMB_NQ0 : numbered_state_embedding_spec Pruned.Numbering.nq0 Orig.Numbering.nq0) by exact numbered_state_embedding_nq0.
+  use (numbered_state_embedding_npath alpha Pruned.Numbering.nq0 q Orig.Numbering.nq0) as (q_orig & PATH_ORIG & EMB) with EMB_NQ0 PATH_PRUNED.
   assert (IMAGE_ORIG : pruned_lr0_path_image_spec q q_orig).
   { econstructor; [exact PATH_PRUNED | exact PATH_ORIG]. }
-  pose proof (pruned_lr0_path_image_unique P q q_orig IMAGE_ORIG) as EQ.
+  use (pruned_lr0_path_image_unique P) as EQ with IMAGE_ORIG.
   rewrite EQ. exact EMB.
 Qed.
 
@@ -20124,20 +15665,20 @@ Proof.
     { econstructor; econstructor; [exact Pruned.Numbering.nq0_state | exact Orig.Numbering.nq0_state]. }
     exact (pruned_lr0_path_image_unique P Pruned.Numbering.nq0 Orig.Numbering.nq0 IMAGE_Q0).
   - intros p X q STEP.
-    pose proof (Pruned.Numbering.dN_some_source_state p X q STEP) as (st & STATE_P).
-    pose proof (pruned_lr0_path_image_correct P p st STATE_P) as IMAGE_P.
+    use Pruned.Numbering.dN_some_source_state as (st & STATE_P) with STEP.
+    use (pruned_lr0_path_image_correct P) as IMAGE_P with STATE_P.
     destruct IMAGE_P as [alpha PATH_P PATH_ORIG_P].
-    pose proof (numbered_state_embedding_from_lr0_path_image_policy P p st STATE_P) as EMB_P.
-    pose proof (numbered_state_embedding_dN p (pruned_lr0_path_image P p) X q EMB_P STEP) as (q_orig_next & STEP_ORIG & EMB_Q).
-    pose proof (Pruned.Numbering.npath_singleton p X q STEP) as PATH_STEP.
-    pose proof (Pruned.Numbering.npath_app alpha [X] Pruned.Numbering.nq0 p q PATH_P PATH_STEP) as PATH_Q.
-    pose proof (Orig.Numbering.npath_singleton (pruned_lr0_path_image P p) (erase_aug_symbol X) q_orig_next STEP_ORIG) as PATH_ORIG_STEP.
-    pose proof (Orig.Numbering.npath_app (map erase_aug_symbol alpha) [erase_aug_symbol X] Orig.Numbering.nq0 (pruned_lr0_path_image P p) q_orig_next PATH_ORIG_P PATH_ORIG_STEP) as PATH_ORIG_Q_SHORT.
+    use numbered_state_embedding_from_lr0_path_image_policy as EMB_P with STATE_P.
+    use numbered_state_embedding_dN as (q_orig_next & STEP_ORIG & EMB_Q) with EMB_P STEP.
+    use Pruned.Numbering.npath_singleton as PATH_STEP with STEP.
+    use Pruned.Numbering.npath_app as PATH_Q with PATH_P PATH_STEP.
+    use Orig.Numbering.npath_singleton as PATH_ORIG_STEP with STEP_ORIG.
+    use Orig.Numbering.npath_app as PATH_ORIG_Q_SHORT with PATH_ORIG_P PATH_ORIG_STEP.
     assert (PATH_ORIG_Q : Orig.Numbering.npath (map erase_aug_symbol (alpha ++ [X])) Orig.Numbering.nq0 q_orig_next).
     { rewrite map_app. simpl. exact PATH_ORIG_Q_SHORT. }
     assert (IMAGE_Q : pruned_lr0_path_image_spec q q_orig_next).
     { econstructor; [exact PATH_Q | exact PATH_ORIG_Q]. }
-    pose proof (pruned_lr0_path_image_unique P q q_orig_next IMAGE_Q) as EQ_Q.
+    use (pruned_lr0_path_image_unique P) as EQ_Q with IMAGE_Q.
     rewrite EQ_Q. exact STEP_ORIG.
 Qed.
 
@@ -20298,7 +15839,7 @@ Proof.
   refine {| pruned_canonical_final_state_normalize := _ |}.
   intros qf FINAL.
   unfold canonical_pruned_state_image. rewrite FINAL.
-  pose proof (pruned_nq_f_erase qf FINAL) as (q_orig & _ & FINAL_ORIG).
+  use pruned_nq_f_erase as (q_orig & _ & FINAL_ORIG) with FINAL.
   rewrite FINAL_ORIG.
   assert (EQ_FINAL : eqb qf qf = true).
   { rewrite eqb_eq. reflexivity. }
@@ -20309,7 +15850,7 @@ Lemma pruned_canonical_accept_action_normalize_from_final_state (O : pruned_cano
   (IN : Pruned.Table.Accept ∈ Pruned.Table.accept_action q t)
   : Orig.Table.Accept ∈ Orig.Table.accept_action (canonical_pruned_state_image q) t.
 Proof.
-  pose proof (Pruned.Table.accept_action_sound q t Pruned.Table.Accept IN) as (_ & FINAL_SPEC).
+  use Pruned.Table.accept_action_sound as (_ & FINAL_SPEC) with IN.
   destruct FINAL_SPEC as (qf & FINAL & Q & T). subst q. subst t.
   eapply Orig.Table.accept_action_complete. exact (pruned_canonical_final_state_normalize O qf FINAL).
 Qed.
@@ -20345,7 +15886,7 @@ Theorem pruned_canonical_LA_sem_retargeting_obligations_from_path (O : pruned_ca
 Proof.
   refine {| pruned_canonical_LA_sem_retarget := _ |}.
   intros q it t LA_ERASE.
-  pose proof (pruned_canonical_LA_path_retarget O q it t LA_ERASE) as LA_PATH.
+  use (pruned_canonical_LA_path_retarget O) as LA_PATH with LA_ERASE.
   destruct LA_PATH as [p A IN_D LHS PATH_ITEM_ORIG FOLLOW_ORIG].
   unfold Orig.Lookahead.LA_sem. exists (canonical_pruned_state_image p). exists (erase_aug_nt A). splits.
   - exact IN_D.
@@ -20359,12 +15900,12 @@ Theorem pruned_canonical_action_reduce_normalization_obligations_from_LA_retarge
 Proof.
   refine {| pruned_canonical_reduce_only_action_normalize := _ |}.
   intros q t pr IN_ACTION.
-  pose proof (Pruned.Table.reduce_actions_sound q t (Pruned.Table.Reduce pr) IN_ACTION) as (pr0 & IN_REDUCE & EQ).
+  use Pruned.Table.reduce_actions_sound as (pr0 & IN_REDUCE & EQ) with IN_ACTION.
   injection EQ as EQ_PR0. subst pr0.
-  pose proof (Pruned.productive_certified_reduce_LA_sem_sound pruned_productive_certified q t pr IN_REDUCE) as SOUND.
+  use (Pruned.productive_certified_reduce_LA_sem_sound pruned_productive_certified) as SOUND with IN_REDUCE.
   destruct SOUND as [st it IN_REDUCE_N STATE IN_IT DONE EQ_PR PROD IN_LA].
-  pose proof (pruned_LA_sem_path_erase q it t IN_LA) as LA_ERASE.
-  pose proof (canonical_pruned_state_image_embedding q st STATE) as EMB_Q.
+  use pruned_LA_sem_path_erase as LA_ERASE with IN_LA.
+  use canonical_pruned_state_image_embedding as EMB_Q with STATE.
   destruct EMB_Q as [q_pruned q_orig STATE_PRUNED STATE_ORIG INCL_ITEMS].
   rewrite STATE in STATE_PRUNED. inv STATE_PRUNED.
   econstructor.
@@ -20397,8 +15938,8 @@ Lemma pruned_shift_action_canonical_semantic q t q_next st
   (IN : Pruned.Table.Shift q_next ∈ Pruned.Table.shift_action q t)
   : exists q_orig_next, pruned_action_canonical_semantic_spec q t (Pruned.Table.Shift q_next) (Orig.Table.Shift q_orig_next).
 Proof.
-  pose proof (canonical_pruned_state_image_embedding q st STATE) as EMB_Q.
-  pose proof (pruned_shift_action_erase q (canonical_pruned_state_image q) t q_next EMB_Q IN) as (q_orig_next & IN_ORIG & EMB_NEXT).
+  use canonical_pruned_state_image_embedding as EMB_Q with STATE.
+  use pruned_shift_action_erase as (q_orig_next & IN_ORIG & EMB_NEXT) with EMB_Q IN.
   exists q_orig_next. econstructor; [exact IN_ORIG | exact EMB_NEXT].
 Qed.
 
@@ -20409,13 +15950,13 @@ Lemma pruned_action_canonical_semantic (O : pruned_canonical_action_normalizatio
 Proof.
   unfold Pruned.Table.actions in IN. rewrite L.in_app_iff in IN.
   destruct IN as [IN_SHIFT | IN_REST].
-  - pose proof (Pruned.Table.shift_action_sound q t act IN_SHIFT) as (q_next & STEP & EQ). subst act.
-    pose proof (pruned_shift_action_canonical_semantic q t q_next st STATE IN_SHIFT) as (q_orig_next & CANONICAL).
+  - use Pruned.Table.shift_action_sound as (q_next & STEP & EQ) with IN_SHIFT. subst act.
+    use pruned_shift_action_canonical_semantic as (q_orig_next & CANONICAL) with STATE IN_SHIFT.
     exists (Orig.Table.Shift q_orig_next). exact CANONICAL.
   - rewrite L.in_app_iff in IN_REST. destruct IN_REST as [IN_REDUCE | IN_ACCEPT].
-    + pose proof (Pruned.Table.reduce_actions_sound q t act IN_REDUCE) as (pr & IN_PR & EQ). subst act.
+    + use Pruned.Table.reduce_actions_sound as (pr & IN_PR & EQ) with IN_REDUCE. subst act.
       exists (Orig.Table.Reduce (erase_prod' pr)). econstructor. exact (pruned_canonical_reduce_action_normalize O q t pr IN_REDUCE).
-    + pose proof (Pruned.Table.accept_action_sound q t act IN_ACCEPT) as (EQ & _). subst act.
+    + use Pruned.Table.accept_action_sound as (EQ & _) with IN_ACCEPT. subst act.
       exists Orig.Table.Accept. econstructor. exact (pruned_canonical_accept_action_normalize O q t IN_ACCEPT).
 Qed.
 
@@ -20428,8 +15969,8 @@ Proof.
   { rewrite ACTIONS. simpl. left. reflexivity. }
   assert (IN2 : act2 ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. right. left. reflexivity. }
-  pose proof (pruned_action_canonical_semantic O q t st act1 STATE IN1) as (act_orig1 & ACTION1).
-  pose proof (pruned_action_canonical_semantic O q t st act2 STATE IN2) as (act_orig2 & ACTION2).
+  use (pruned_action_canonical_semantic O) as (act_orig1 & ACTION1) with STATE IN1.
+  use (pruned_action_canonical_semantic O) as (act_orig2 & ACTION2) with STATE IN2.
   eapply orig_semantic_action_conflict_intro with (act1 := act_orig1) (act2 := act_orig2).
   - destruct ACTION1 as [q_next q_orig_next IN_SHIFT_ORIG EMB_NEXT | pr SEMANTIC_REDUCE_ORIG | IN_ACCEPT_ORIG].
     + exact (orig_semantic_action_shift (canonical_pruned_state_image q) t q_orig_next IN_SHIFT_ORIG).
@@ -20453,13 +15994,13 @@ Proof.
   { rewrite ACTIONS. simpl. left. reflexivity. }
   assert (IN2 : act2 ∈ Pruned.Table.actions q t).
   { rewrite ACTIONS. simpl. right. left. reflexivity. }
-  pose proof (Pruned.Table.actions_head_distinct q t st act1 act2 rest STATE ACTIONS) as DIFF.
+  use (Pruned.Table.actions_head_distinct q t st act1 act2 rest) as DIFF with STATE ACTIONS.
   destruct ACTION1 as [q_next1 q_orig_next1 IN_SHIFT_ORIG1 EMB_NEXT1 | pr1 SEMANTIC_REDUCE_ORIG1 | IN_ACCEPT_ORIG1]; destruct ACTION2 as [q_next2 q_orig_next2 IN_SHIFT_ORIG2 EMB_NEXT2 | pr2 SEMANTIC_REDUCE_ORIG2 | IN_ACCEPT_ORIG2]; intros EQ; try discriminate.
-  - pose proof (Pruned.Table.shift_actions_in_actions_unique q t q_next1 q_next2 IN1 IN2) as EQ_NEXT. subst q_next2. eapply DIFF. reflexivity.
+  - use Pruned.Table.shift_actions_in_actions_unique as EQ_NEXT with IN1 IN2. subst q_next2. eapply DIFF. reflexivity.
   - injection EQ as EQ_LHS EQ_RHS.
     assert (EQ_ERASE : erase_prod' pr1 = erase_prod' pr2).
     { destruct pr1 as [A1 rhs1], pr2 as [A2 rhs2]. unfold erase_prod' in *. simpl in *. f_equal; assumption. }
-    pose proof (erase_prod'_injective pr1 pr2 EQ_ERASE) as EQ_PR. subst pr2. eapply DIFF. reflexivity.
+    use erase_prod'_injective as EQ_PR with EQ_ERASE. subst pr2. eapply DIFF. reflexivity.
   - eapply DIFF. reflexivity.
 Qed.
 
@@ -20543,10 +16084,10 @@ Lemma pruned_canonical_lr0_transition_retargeting_obligations_from_successor_nor
 Proof.
   refine {| pruned_canonical_lr0_nq0_retarget := canonical_pruned_state_image_nq0; pruned_canonical_lr0_dN_retarget := _ |}.
   intros p X q STEP.
-  pose proof (Pruned.Numbering.dN_some_source_state p X q STEP) as (st & STATE).
-  pose proof (canonical_pruned_state_image_embedding p st STATE) as EMB_P.
-  pose proof (numbered_state_embedding_dN p (canonical_pruned_state_image p) X q EMB_P STEP) as (q_orig & STEP_ORIG & EMB_Q).
-  pose proof (pruned_canonical_lr0_successor_normalize O p X q q_orig STEP STEP_ORIG EMB_Q) as TARGET.
+  use Pruned.Numbering.dN_some_source_state as (st & STATE) with STEP.
+  use canonical_pruned_state_image_embedding as EMB_P with STATE.
+  use numbered_state_embedding_dN as (q_orig & STEP_ORIG & EMB_Q) with EMB_P STEP.
+  use (pruned_canonical_lr0_successor_normalize O) as TARGET with STEP STEP_ORIG EMB_Q.
   rewrite TARGET. exact STEP_ORIG.
 Qed.
 
@@ -20609,8 +16150,8 @@ Lemma pruned_canonical_read_domain_retarget_from_transition
   (IN : (p, A) ∈ Pruned.Read.D)
   : (canonical_pruned_state_image p, erase_aug_nt A) ∈ Orig.Read.D.
 Proof.
-  pose proof (Pruned.Read.read_domain_sound p A IN) as (r & STEP).
-  pose proof (pruned_canonical_lr0_dN_retarget O p (inl A) r STEP) as STEP_ORIG.
+  use Pruned.Read.read_domain_sound as (r & STEP) with IN.
+  use (pruned_canonical_lr0_dN_retarget O) as STEP_ORIG with STEP.
   simpl in STEP_ORIG. eapply Orig.Read.read_domain_complete; [eapply Orig.Numbering.dN_source_lt; exact STEP_ORIG | exact STEP_ORIG].
 Qed.
 
@@ -20620,7 +16161,7 @@ Lemma pruned_canonical_Follow_sem_retarget_from_transition
   : Orig.Follow.Follow_sem (canonical_pruned_state_image p, erase_aug_nt A) t.
 Proof.
   destruct FOLLOW_ERASE as [alpha z p_orig STEPS_PRUNED PATH_PRUNED PATH_ORIG EMB FOLLOW_ORIG].
-  pose proof (pruned_rm_steps_erase [@inl Pruned.GrammarSyntax.N' Pruned.GrammarSyntax.T' Pruned.GrammarSyntax.start_prime] (alpha ++ inl A :: inr t :: map inr z) STEPS_PRUNED) as STEPS_ORIG.
+  use pruned_rm_steps_erase as STEPS_ORIG with STEPS_PRUNED.
   repeat rewrite map_app in STEPS_ORIG. simpl in STEPS_ORIG. rewrite erase_aug_terminal_symbols in STEPS_ORIG.
   unfold Orig.Follow.Follow_sem. exists (map erase_aug_symbol alpha). exists z. split.
   - exact STEPS_ORIG.
@@ -20635,7 +16176,7 @@ Proof.
   intros q it t LA_ERASE.
   destruct LA_ERASE as [p A alpha z p_orig q_orig IN_D LHS PATH_ITEM_PRUNED FOLLOW_STEPS_PRUNED PATH_FOLLOW_PRUNED PATH_FOLLOW_ORIG PATH_ITEM_ORIG EMB_P EMB_Q LA_ORIG].
   assert (FOLLOW_ERASE : pruned_Follow_sem_path_erase_spec p A t).
-  { pose proof (pruned_rm_steps_erase [@inl Pruned.GrammarSyntax.N' Pruned.GrammarSyntax.T' Pruned.GrammarSyntax.start_prime] (alpha ++ inl A :: inr t :: map inr z) FOLLOW_STEPS_PRUNED) as STEPS_ORIG.
+  { use pruned_rm_steps_erase as STEPS_ORIG with FOLLOW_STEPS_PRUNED.
     repeat rewrite map_app in STEPS_ORIG. simpl in STEPS_ORIG. rewrite erase_aug_terminal_symbols in STEPS_ORIG.
     assert (FOLLOW_ORIG : Orig.Follow.Follow_sem (p_orig, erase_aug_nt A) t).
     { unfold Orig.Follow.Follow_sem. exists (map erase_aug_symbol alpha). exists z. split; [exact STEPS_ORIG | exact PATH_FOLLOW_ORIG]. }
@@ -20687,7 +16228,7 @@ Proof.
   - intros q it t LA_ERASE. exact (pruned_canonical_LA_sem_retarget (pruned_canonical_LA_sem_retargeting_obligations_from_path (pruned_canonical_LA_path_reduce_path_LA_retargeting O)) q it t LA_ERASE).
   - intros qf FINAL. exact (pruned_canonical_final_state_normalize pruned_canonical_final_state_obligations_from_final_aware_image qf FINAL).
   - intros lookahead q q' EDGE.
-    pose proof (pruned_canonical_reduce_edge_path_normalize (pruned_canonical_LA_path_reduce_path_edge_retargeting O) lookahead q q' EDGE) as EDGE_PATH.
+    use (pruned_canonical_reduce_edge_path_normalize (pruned_canonical_LA_path_reduce_path_edge_retargeting O)) as EDGE_PATH with EDGE.
     destruct EDGE_PATH as [pr p p_orig IN_REDUCE PATH_PRUNED STEP_PRUNED PATH_ORIG STEP_ORIG].
     econstructor; [exact IN_REDUCE | exact PATH_PRUNED | exact STEP_PRUNED | exact PATH_ORIG | exact STEP_ORIG].
 Qed.
@@ -20753,10 +16294,10 @@ Theorem pruned_canonical_reduce_normalization_obligations_from_path
 Proof.
   refine {| pruned_canonical_reduce_action_normalization := pruned_canonical_reduce_path_action_normalization O; pruned_canonical_reduce_only_edge_normalize := _ |}.
   intros lookahead q q' EDGE.
-  pose proof (pruned_canonical_reduce_edge_path_normalize (pruned_canonical_reduce_path_edge_normalization O) lookahead q q' EDGE) as EDGE_PATH.
+  use (pruned_canonical_reduce_edge_path_normalize (pruned_canonical_reduce_path_edge_normalization O)) as EDGE_PATH with EDGE.
   destruct EDGE_PATH as [pr p p_orig IN_REDUCE PATH_PRUNED STEP_PRUNED PATH_ORIG STEP_ORIG].
   assert (IN_ACTION : Pruned.Table.Reduce pr ∈ Pruned.Table.reduce_actions q lookahead) by (eapply Pruned.Table.reduce_actions_complete; exact IN_REDUCE).
-  pose proof (pruned_canonical_reduce_only_action_normalize (pruned_canonical_reduce_path_action_normalization O) q lookahead pr IN_ACTION) as SEMANTIC_REDUCE.
+  use (pruned_canonical_reduce_only_action_normalize (pruned_canonical_reduce_path_action_normalization O)) as SEMANTIC_REDUCE with IN_ACTION.
   econstructor; [exact SEMANTIC_REDUCE | exact PATH_ORIG | exact STEP_ORIG].
 Qed.
 
@@ -20986,11 +16527,11 @@ Theorem semantic_lalr_transport_witness_from_orig_semantic_lalr (W : orig_semant
 Proof.
   refine {| semantic_lalr_transport_rank := orig_semantic_lalr_resolver_rank W R |}.
   - intros q t CONFLICT.
-    pose proof (R.(orig_semantic_lalr_resolver_conflict W) q t CONFLICT) as (q_orig & ORIG_CONFLICT).
+    use (R.(orig_semantic_lalr_resolver_conflict W)) as (q_orig & ORIG_CONFLICT) with CONFLICT.
     eapply W.(orig_semantic_lalr_conflict_free) with (q := q_orig) (t := t).
     exact ORIG_CONFLICT.
   - intros lookahead q q' EDGE.
-    pose proof (R.(orig_semantic_lalr_resolver_rank_edge W) lookahead q q' EDGE) as (q_orig & q_orig' & ORIG_EDGE & RANK_Q & RANK_Q').
+    use (R.(orig_semantic_lalr_resolver_rank_edge W)) as (q_orig & q_orig' & ORIG_EDGE & RANK_Q & RANK_Q') with EDGE.
     rewrite RANK_Q. rewrite RANK_Q'.
     eapply W.(orig_semantic_lalr_rank_cert) with (lookahead := lookahead) (q := q_orig) (q' := q_orig').
     exact ORIG_EDGE.
@@ -21002,11 +16543,11 @@ Theorem semantic_lalr_path_transport_witness_from_orig_semantic_lalr_path_image 
 Proof.
   refine {| semantic_lalr_path_transport_rank := orig_semantic_lalr_path_resolver_rank W R |}.
   - intros q t CONFLICT.
-    pose proof (R.(orig_semantic_lalr_path_resolver_conflict W) q t CONFLICT) as (q_orig & ORIG_CONFLICT).
+    use (R.(orig_semantic_lalr_path_resolver_conflict W)) as (q_orig & ORIG_CONFLICT) with CONFLICT.
     eapply W.(orig_semantic_lalr_conflict_free) with (q := q_orig) (t := t).
     exact ORIG_CONFLICT.
   - intros lookahead q q' EDGE.
-    pose proof (R.(orig_semantic_lalr_path_resolver_rank_edge W) lookahead q q' EDGE) as (q_orig & q_orig' & ORIG_EDGE & RANK_Q & RANK_Q').
+    use (R.(orig_semantic_lalr_path_resolver_rank_edge W)) as (q_orig & q_orig' & ORIG_EDGE & RANK_Q & RANK_Q') with EDGE.
     rewrite RANK_Q. rewrite RANK_Q'.
     eapply W.(orig_semantic_lalr_rank_cert) with (lookahead := lookahead) (q := q_orig) (q' := q_orig').
     exact ORIG_EDGE.
@@ -21248,7 +16789,7 @@ Proof.
   { eapply pruned_conflict_free_from_semantic_image. exact (semantic_lalr_transport_conflict_free W). }
   assert (CERT : Pruned.Table.parser_termination_cert (Pruned.Table.parser_termination_certificate_rank (semantic_lalr_transport_certificate W))).
   { unfold semantic_lalr_transport_certificate. simpl. eapply pruned_parser_termination_cert_from_semantic_image_rank. exact (semantic_lalr_transport_rank_cert W). }
-  pose proof (Pruned.Table.build_certified_table_complete_from_rank (semantic_lalr_transport_certificate W) FREE CERT) as (ctbl & BUILD & _ & _).
+  use (Pruned.Table.build_certified_table_complete_from_rank (semantic_lalr_transport_certificate W)) as (ctbl & BUILD & _ & _) with FREE CERT.
   exists ctbl. exact BUILD.
 Qed.
 
@@ -21435,7 +16976,7 @@ Proof.
   - inv LIVE_XS. exact LIVE_YS.
   - destruct (live_aug_symbol_of X) as [X' | ] eqn: LIVE_X; [ | discriminate].
     destruct (live_aug_word_of xs) as [xs'' | ] eqn: LIVE_REST; [ | discriminate].
-    inv LIVE_XS. simpl. rewrite LIVE_X. pose proof (IH xs'' eq_refl) as LIVE_APP. rewrite LIVE_APP. reflexivity.
+    inv LIVE_XS. simpl. rewrite LIVE_X. use! IH as LIVE_APP with *. rewrite LIVE_APP. reflexivity.
 Qed.
 
 Lemma live_aug_word_of_app_inv xs ys xys
@@ -21446,7 +16987,7 @@ Proof.
   - exists []. exists xys. splits; [reflexivity | reflexivity | exact LIVE].
   - destruct (live_aug_symbol_of X) as [X' | ] eqn: LIVE_X; [ | discriminate].
     destruct (live_aug_word_of (xs ++ ys)) as [rest' | ] eqn: LIVE_REST; [ | discriminate].
-    inv LIVE. pose proof (IH ys rest' LIVE_REST) as (xs' & ys' & REST & LIVE_XS & LIVE_YS).
+    inv LIVE. use IH as (xs' & ys' & REST & LIVE_XS & LIVE_YS) with LIVE_REST.
     exists (X' :: xs'). exists ys'. splits.
     + simpl. rewrite REST. reflexivity.
     + simpl. rewrite LIVE_X. rewrite LIVE_XS. reflexivity.
@@ -21457,7 +16998,7 @@ Lemma live_aug_word_of_source_decompose alpha A beta source'
   (LIVE : live_aug_word_of (alpha ++ @inl Orig.GrammarSyntax.N' Orig.GrammarSyntax.T' (Orig.GrammarSyntax.lift_N A) :: beta) = Some source')
   : exists alpha', exists A', exists beta', source' = alpha' ++ @inl Pruned.GrammarSyntax.N' Pruned.GrammarSyntax.T' (Pruned.GrammarSyntax.lift_N A') :: beta' /\ live_aug_word_of alpha = Some alpha' /\ LiveNT.live_of_dec A = Some A' /\ live_aug_word_of beta = Some beta'.
 Proof.
-  pose proof (live_aug_word_of_app_inv alpha (@inl Orig.GrammarSyntax.N' Orig.GrammarSyntax.T' (Orig.GrammarSyntax.lift_N A) :: beta) source' LIVE) as (alpha' & tail' & SOURCE & LIVE_ALPHA & LIVE_TAIL).
+  use (live_aug_word_of_app_inv alpha (@inl Orig.GrammarSyntax.N' Orig.GrammarSyntax.T' (Orig.GrammarSyntax.lift_N A) :: beta) source') as (alpha' & tail' & SOURCE & LIVE_ALPHA & LIVE_TAIL) with LIVE.
   simpl in LIVE_TAIL. destruct (LiveNT.live_of_dec A) as [A' | ] eqn: LIVE_A; [ | discriminate].
   destruct (live_aug_word_of beta) as [beta' | ] eqn: LIVE_BETA; [ | discriminate].
   inv LIVE_TAIL. exists alpha'. exists A'. exists beta'. splits.
@@ -21492,10 +17033,10 @@ Lemma orig_rhs_genb_of_terminal_tail alpha beta rhs w
   : gen_rhsb rhs = true.
 Proof.
   rewrite gen_rhsb_correct.
-  pose proof (Orig.GrammarSyntax.grammar_steps_plain_steps _ _ TAIL) as PLAIN.
+  use Orig.GrammarSyntax.grammar_steps_plain_steps as PLAIN with TAIL.
   replace (Orig.GrammarSyntax.terminal_lift w) with (map (@inr Orig.GrammarSyntax.N' Orig.GrammarSyntax.T') (map Orig.GrammarSyntax.lift_T w)) in PLAIN by (unfold Orig.GrammarSyntax.terminal_lift; rewrite map_map; reflexivity).
-  pose proof (Orig.GrammarSyntax.plain_steps_app_inv_terminal alpha (map Orig.GrammarSyntax.lift_symbol rhs ++ beta) (map Orig.GrammarSyntax.lift_T w) PLAIN) as (ts_alpha & ts_rest & TS & PLAIN_ALPHA & PLAIN_REST).
-  pose proof (Orig.GrammarSyntax.plain_steps_app_inv_terminal (map Orig.GrammarSyntax.lift_symbol rhs) beta ts_rest PLAIN_REST) as (ts_rhs & ts_beta & TS_REST & PLAIN_RHS & PLAIN_BETA).
+  use (Orig.GrammarSyntax.plain_steps_app_inv_terminal alpha (map Orig.GrammarSyntax.lift_symbol rhs ++ beta) (map Orig.GrammarSyntax.lift_T w)) as (ts_alpha & ts_rest & TS & PLAIN_ALPHA & PLAIN_REST) with PLAIN.
+  use (Orig.GrammarSyntax.plain_steps_app_inv_terminal (map Orig.GrammarSyntax.lift_symbol rhs) beta ts_rest) as (ts_rhs & ts_beta & TS_REST & PLAIN_RHS & PLAIN_BETA) with PLAIN_REST.
   eapply Orig.GrammarSyntax.rm_steps_terminal_GenStr.
   eapply Orig.GrammarSyntax.plain_steps_terminal_rm_steps.
   exact PLAIN_RHS.
@@ -21508,9 +17049,9 @@ Lemma orig_grammar_step_pruned_by_terminal_tail xs ys w xs'
   : exists ys', live_aug_word_of ys = Some ys' /\ Pruned.GrammarSyntax.grammar_step xs' ys'.
 Proof.
   destruct STEP as [A rhs alpha beta PROD].
-  pose proof (live_aug_word_of_source_decompose alpha A beta xs' LIVE_XS) as (alpha' & A' & beta' & SOURCE & LIVE_ALPHA & LIVE_A & LIVE_BETA).
-  pose proof (orig_rhs_genb_of_terminal_tail alpha beta rhs w TAIL) as RHS_GEN.
-  pose proof (live_rhs_of_complete rhs RHS_GEN) as (rhs' & LIVE_RHS & ERASE_RHS).
+  use (live_aug_word_of_source_decompose alpha A beta xs') as (alpha' & A' & beta' & SOURCE & LIVE_ALPHA & LIVE_A & LIVE_BETA) with LIVE_XS.
+  use (orig_rhs_genb_of_terminal_tail alpha beta rhs w) as RHS_GEN with TAIL.
+  use (live_rhs_of_complete rhs) as (rhs' & LIVE_RHS & ERASE_RHS) with RHS_GEN.
   exists (alpha' ++ map Pruned.GrammarSyntax.lift_symbol rhs' ++ beta'). split.
   - eapply live_aug_word_of_app_complete; [exact LIVE_ALPHA | ]. eapply live_aug_word_of_app_complete; [eapply live_aug_word_of_lift_rhs; exact LIVE_RHS | exact LIVE_BETA].
   - rewrite SOURCE. econstructor. eapply pruned_productions_complete_exact; [exact PROD | exact LIVE_A | exact LIVE_RHS].
@@ -21521,7 +17062,7 @@ Lemma orig_grammar_steps_pruned_to_terminal xs w xs'
   (LIVE_XS : live_aug_word_of xs = Some xs')
   : Pruned.GrammarSyntax.grammar_steps xs' (Pruned.GrammarSyntax.terminal_lift w).
 Proof.
-  pose proof (Operators_Properties.clos_rt_rt1n _ _ _ _ STEPS) as STEPS1N.
+  use Operators_Properties.clos_rt_rt1n as STEPS1N with STEPS.
   remember (Orig.GrammarSyntax.terminal_lift w) as final eqn: FINAL.
   change (clos_refl_trans_1n (list Orig.GrammarSyntax.V') Orig.GrammarSyntax.grammar_step xs final) in STEPS1N.
   revert w FINAL xs' LIVE_XS.
@@ -21529,7 +17070,7 @@ Proof.
   - rewrite FINAL in LIVE_XS. rewrite live_aug_terminal_lift in LIVE_XS. inv LIVE_XS. constructor 2.
   - assert (TAIL : Orig.GrammarSyntax.grammar_steps mid (Orig.GrammarSyntax.terminal_lift w)).
     { rewrite <- FINAL. eapply Operators_Properties.clos_rt1n_rt. exact REST. }
-    pose proof (orig_grammar_step_pruned_by_terminal_tail source mid w xs' STEP TAIL LIVE_XS) as (mid' & LIVE_MID & STEP_PRUNED).
+    use (orig_grammar_step_pruned_by_terminal_tail source mid w xs') as (mid' & LIVE_MID & STEP_PRUNED) with STEP TAIL LIVE_XS.
     eapply rt_trans.
     + constructor 1. exact STEP_PRUNED.
     + eapply IH.
@@ -21588,7 +17129,7 @@ Variant productive_semantic_lalr_bridge_spec (W : semantic_lalr_transport_witnes
 Theorem productive_semantic_lalr_bridge_from_transport W
   : productive_semantic_lalr_bridge_spec W.
 Proof.
-  pose proof (pruned_build_certified_table_from_semantic_lalr_transport W) as (ctbl & BUILD).
+  use! (pruned_build_certified_table_from_semantic_lalr_transport W) as (ctbl & BUILD) with *.
   econstructor.
   - exact BUILD.
   - eapply pruned_conflict_free_from_semantic_image. exact (semantic_lalr_transport_conflict_free W).
