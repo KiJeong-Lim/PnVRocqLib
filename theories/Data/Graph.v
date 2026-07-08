@@ -711,6 +711,7 @@ Module GraphAPI.
 
 #[universes(template), projections(primitive)]
 Class FiniteGraph `{V : Type} : Type :=
+  mkFiniteGraph
   { E : ensemble (V * V)
   ; G := {| GRAPH.vertices := V; GRAPH.edges := E |}
   ; V_dec : hasEqDec V
@@ -720,8 +721,8 @@ Class FiniteGraph `{V : Type} : Type :=
     : exists extras : ensemble V, enum_vertices =~= E.union { v : V | (exists v_in, (v_in, v) \in E) \/ (exists v_out, (v, v_out) \in E) } extras
   } as GRAPH.
 
-#[global] Arguments E {V} (GRAPH).
-#[global] Arguments enum_vertices_contains_all {V} (GRAPH) : simpl never.
+#[global] Arguments E {V} GRAPH.
+#[global] Arguments enum_vertices_contains_all {V} GRAPH : simpl never.
 
 #[local] Existing Instance G.
 #[global] Existing Instance V_dec.
@@ -833,7 +834,57 @@ Proof.
   intros [v v']; done.
 Qed.
 
+#[universes(template), projections(primitive)]
+Class LabeledFiniteGraph `{L : Type} : Type :=
+  mkLabeledFiniteGraph
+  { GRAPH : FiniteGraph (V := V)
+  ; enum_labels : alist (V * V) L
+  ; edges_Irreflexive_flags : bool
+  ; edges_Symmetric_flags : bool
+  ; label_Symmetric_flags : bool
+  ; enum_labels_NoDup
+    : L.NoDup (map fst enum_labels.(kvlist))
+  ; enum_labels_contains_all
+    : map fst enum_labels.(kvlist) =~= GRAPH.(E)
+  ; edges_Irreflexive
+    : if edges_Irreflexive_flags then (forall v : V, ~ (v, v) \in GRAPH.(E)) else True
+  ; edges_Symmetric
+    : if edges_Symmetric_flags then (forall v : V, forall v' : V, (v, v') \in GRAPH.(E) -> (v', v) \in GRAPH.(E)) else True
+  ; label_Symmetric
+    : if label_Symmetric_flags then (forall v : V, forall v' : V, forall l : L, L.In ((v, v'), l) enum_labels.(kvlist) -> L.In ((v', v), l) enum_labels.(kvlist)) else True
+  } as lG.
+
 End FiniteGraph_CONSTRUCTION.
+
+#[global] Arguments GRAPH {V} {L} lG /.
+#[global] Existing Instance GRAPH.
+
+Lemma edges_Irreflexive_flags_true `(lG : LabeledFiniteGraph)
+  (edges_Irreflexive_flags_true : lG.(edges_Irreflexive_flags) = true)
+  : forall v, ~ (v, v) \in E lG.(GRAPH).
+Proof.
+  pose proof lG.(edges_Irreflexive) as HH.
+  rewrite edges_Irreflexive_flags_true in HH.
+  exact HH.
+Qed.
+
+Lemma edges_Symmetric_flags_true `(lG : LabeledFiniteGraph)
+  (edges_Symmetric_flags_true : lG.(edges_Symmetric_flags) = true)
+  : forall v, forall v', (v, v') \in E lG.(GRAPH) -> (v', v) \in E lG.(GRAPH).
+Proof.
+  pose proof lG.(edges_Symmetric) as HH.
+  rewrite edges_Symmetric_flags_true in HH.
+  exact HH.
+Qed.
+
+Lemma label_Symmetric_flags_true `(lG : LabeledFiniteGraph)
+  (label_Symmetric_flags_true : lG.(label_Symmetric_flags) = true)
+  : forall v, forall v', forall l, L.In ((v, v'), l) enum_labels.(kvlist) -> L.In ((v', v), l) enum_labels.(kvlist).
+Proof.
+  pose proof lG.(label_Symmetric) as HH.
+  rewrite label_Symmetric_flags_true in HH.
+  exact HH.
+Qed.
 
 Section EXPORT.
 
