@@ -699,7 +699,7 @@ Class FiniteGraph `{V : Type} : Type :=
   ; G := {| GRAPH.vertices := V; GRAPH.edges := E |}
   ; V_dec : hasEqDec V
   ; E_dec (v : V) (v' : V) : B.Decision ((v, v') \in E) 
-  ; enum_vertices : list G.(GRAPH.vertices)
+  ; enum_vertices : list V
   ; enum_vertices_all : enum_vertices =~= E.full
   } as GRAPH.
 
