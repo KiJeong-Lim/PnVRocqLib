@@ -1877,9 +1877,7 @@ Lemma numbered_accept_states_sound (n : nat) (tag : Token.t)
   (ACCEPT : (n, tag) ∈ numbered_accept_states)
   : exists q, (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist) /\ n = state_number q.
 Proof.
-  unfold numbered_accept_states in ACCEPT.
-  use (in_list_bind_elim _ _ _ ACCEPT) as ([q tag'] & ACCEPT' & IN).
-  done.
+  use! in_list_bind_elim as ([q tag'] & ACCEPT' & IN) with ACCEPT. done.
 Qed.
 
 Lemma numbered_delta (q : Q) (s : Input.t)
@@ -1887,7 +1885,7 @@ Lemma numbered_delta (q : Q) (s : Input.t)
   (IN : q ∈ M.(TaggedDFA.states))
   : delta number_states (state_number q) s = state_number (delta M q s).
 Proof.
-  revert q IN. induction s as [ | c s IH]; intros q IN; simpl; auto.
+  revert q IN; induction s as [ | c s IH]; ii; simpl; auto.
   unfold numbered_transition. rewrite numbered_state_denote_state_number; auto.
   eapply IH. destruct OKAY as [_ _ TRANS_OKAY]. eapply TRANS_OKAY; auto.
 Qed.
