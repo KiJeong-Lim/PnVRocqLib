@@ -3290,6 +3290,29 @@ Proof.
   rewrite GraphAPI.labels_of_edge_In. eapply lr0_labeled_edges_correct.
 Qed.
 
+Theorem state_successors_lgraph_correct q q'
+  : q' ∈ state_successors q <-> (exists X, X ∈ GraphAPI.labels_of_edge (lr0_labeled_edges [q]) (q, q')).
+Proof.
+  split.
+  - intros IN.
+    unfold state_successors in IN.
+    pose proof (list_bind_sound _ _ _ IN) as (X & IN_X & IN_Q).
+    destruct (nonempty (goto q X)) eqn: NONEMPTY; simpl in IN_Q; [ | contradiction].
+    destruct IN_Q as [EQ | []]. subst q'.
+    exists X. rewrite lr0_lgraph_labels_correct.
+    splits; [left; reflexivity | exact IN_X | ].
+    unfold delta. rewrite NONEMPTY. reflexivity.
+  - intros (X & LABEL).
+    rewrite lr0_lgraph_labels_correct in LABEL.
+    destruct LABEL as (IN_Q & IN_X & DELTA).
+    destruct IN_Q as [EQ | []]. subst.
+    unfold state_successors.
+    eapply list_bind_complete with (x := X); [exact IN_X | ].
+    unfold delta in DELTA.
+    destruct (nonempty (goto q X)) eqn: NONEMPTY; inv DELTA.
+    simpl. left. reflexivity.
+Qed.
+
 Lemma q0_items_valid it
   (IN : it ∈ q0)
   : valid_item it.
@@ -3301,11 +3324,10 @@ Lemma state_successors_sound q q'
   (IN : q' ∈ state_successors q)
   : exists X, X ∈ all_symbols /\ delta q X = Some q'.
 Proof.
-  unfold state_successors in IN. pose proof (list_bind_sound _ _ _ IN) as (X & IN_X & IN_Q).
-  destruct (nonempty (goto q X)) eqn: NONEMPTY; simpl in IN_Q; [ | contradiction].
-  destruct IN_Q as [EQ | []]. subst q'.
-  exists X. split; [exact IN_X | ].
-  unfold delta. rewrite NONEMPTY. reflexivity.
+  pose proof (proj1 (state_successors_lgraph_correct q q') IN) as (X & LABEL).
+  rewrite lr0_lgraph_labels_correct in LABEL.
+  destruct LABEL as (_ & IN_X & DELTA).
+  exists X. split; assumption.
 Qed.
 
 Lemma state_successors_complete q X q'
@@ -3313,9 +3335,9 @@ Lemma state_successors_complete q X q'
   (DELTA : delta q X = Some q')
   : q' ∈ state_successors q.
 Proof.
-  unfold state_successors. eapply list_bind_complete with (x := X); [exact IN_X | ].
-  unfold delta in DELTA. destruct (nonempty (goto q X)) eqn: NONEMPTY; inv DELTA.
-  simpl. left. reflexivity.
+  rewrite state_successors_lgraph_correct.
+  exists X. rewrite lr0_lgraph_labels_correct.
+  splits; [left; reflexivity | exact IN_X | exact DELTA].
 Qed.
 
 Theorem state_successors_correct q q'

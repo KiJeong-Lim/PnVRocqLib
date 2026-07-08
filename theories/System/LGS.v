@@ -682,41 +682,31 @@ Proof.
 Qed.
 
 Lemma in_eps_labeled_edges_some_absurd (edge : nat * nat) (c : ascii) (edges : list (nat * nat))
-  (IN : (edge, Some c) ∈ eps_labeled_edges edges)
-  : False.
+  : ~ (edge, Some c) ∈ eps_labeled_edges edges.
 Proof.
-  unfold eps_labeled_edges in IN. rewrite L.in_map_iff in IN.
+  intros IN. unfold eps_labeled_edges in IN. rewrite L.in_map_iff in IN.
   destruct IN as (edge' & EQ & _). inv EQ.
 Qed.
 
-Lemma in_char_labeled_edges_iff
-  (q : nat) (q' : nat) (c : ascii) (edges : list char_edge)
-  : ((q, q'), Some c) ∈ char_labeled_edges edges <->
-    {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ edges.
+Lemma in_char_labeled_edges_iff (q : nat) (q' : nat) (c : ascii) (edges : list char_edge)
+  : ((q, q'), Some c) ∈ char_labeled_edges edges <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ edges.
 Proof.
   unfold char_labeled_edges. rewrite L.in_map_iff. split.
   - intros (edge & EQ & IN). destruct edge as [src label dst]. simpl in EQ.
-    inv EQ. exact IN.
-  - intros IN. exists {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |}.
-    split; [reflexivity | exact IN].
+    now inv EQ.
+  - intros IN. exists {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |}; simpl.
+    now split.
 Qed.
 
 Lemma in_char_labeled_edges_none_absurd (edge : nat * nat) (edges : list char_edge)
-  (IN : (edge, None) ∈ char_labeled_edges edges)
-  : False.
+  : ~ (edge, None) ∈ char_labeled_edges edges.
 Proof.
-  unfold char_labeled_edges in IN. rewrite L.in_map_iff in IN.
+  intros IN. unfold char_labeled_edges in IN. rewrite L.in_map_iff in IN.
   destruct IN as (edge' & EQ & _). destruct edge' as [src label dst]. simpl in EQ. inv EQ.
 Qed.
 
-Lemma enfa_labeled_edges_eps_label_iff
-  (eps_edges : list (nat * nat))
-  (char_edges : list char_edge)
-  (q : nat) (q' : nat)
-  : None ∈
-      GraphAPI.labels_of_edge (enfa_labeled_edges eps_edges char_edges)
-        (q, q') <->
-    (q, q') ∈ eps_edges.
+Lemma enfa_labeled_edges_eps_label_iff (eps_edges : list (nat * nat)) (char_edges : list char_edge) (q : nat) (q' : nat)
+  : None ∈ GraphAPI.labels_of_edge (enfa_labeled_edges eps_edges char_edges) (q, q') <-> (q, q') ∈ eps_edges.
 Proof.
   rewrite GraphAPI.labels_of_edge_In. unfold enfa_labeled_edges.
   rewrite L.in_app_iff. split.
@@ -726,15 +716,8 @@ Proof.
   - intros IN. left. now rewrite in_eps_labeled_edges_iff.
 Qed.
 
-Lemma enfa_labeled_edges_char_label_iff
-  (eps_edges : list (nat * nat))
-  (char_edges : list char_edge)
-  (q : nat) (q' : nat) (c : ascii)
-  : Some c ∈
-      GraphAPI.labels_of_edge (enfa_labeled_edges eps_edges char_edges)
-        (q, q') <->
-    {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |}
-      ∈ char_edges.
+Lemma enfa_labeled_edges_char_label_iff (eps_edges : list (nat * nat)) (char_edges : list char_edge) (q : nat) (q' : nat) (c : ascii)
+  : Some c ∈ GraphAPI.labels_of_edge (enfa_labeled_edges eps_edges char_edges) (q, q') <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ char_edges.
 Proof.
   rewrite GraphAPI.labels_of_edge_In. unfold enfa_labeled_edges.
   rewrite L.in_app_iff. split.
@@ -744,24 +727,14 @@ Proof.
   - intros IN. right. now rewrite in_char_labeled_edges_iff.
 Qed.
 
-Lemma in_eps_step_from_lgraph_iff
-  (q : nat) (q' : nat)
-  (eps_edges : list (nat * nat))
-  (char_edges : list char_edge)
-  : q' ∈ eps_step_from_edges eps_edges q <->
-    None ∈ GraphAPI.labels_of_edge
-      (enfa_labeled_edges eps_edges char_edges) (q, q').
+Lemma in_eps_step_from_lgraph_iff (q : nat) (q' : nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge)
+  : q' ∈ eps_step_from_edges eps_edges q <-> None ∈ GraphAPI.labels_of_edge (enfa_labeled_edges eps_edges char_edges) (q, q').
 Proof.
   rewrite in_eps_step_from_edges_iff. symmetry. eapply enfa_labeled_edges_eps_label_iff.
 Qed.
 
-Lemma in_char_step_from_lgraph_iff
-  (q : nat) (q' : nat) (c : ascii)
-  (eps_edges : list (nat * nat))
-  (char_edges : list char_edge)
-  : q' ∈ char_step_from_edges char_edges q c <->
-    Some c ∈ GraphAPI.labels_of_edge
-      (enfa_labeled_edges eps_edges char_edges) (q, q').
+Lemma in_char_step_from_lgraph_iff (q : nat) (q' : nat) (c : ascii) (eps_edges : list (nat * nat)) (char_edges : list char_edge)
+  : q' ∈ char_step_from_edges char_edges q c <-> Some c ∈ GraphAPI.labels_of_edge (enfa_labeled_edges eps_edges char_edges) (q, q').
 Proof.
   rewrite in_char_step_from_edges_iff. symmetry. eapply enfa_labeled_edges_char_label_iff.
 Qed.
@@ -829,10 +802,13 @@ Proof.
   exists rules, qmax, frags. split.
   - econs; eauto.
   - ii; econs; ii.
-    + rewrite in_eps_step_from_edges_iff. eapply q0_eps_qi_intro; eauto.
+    + rewrite (in_eps_step_from_lgraph_iff 0 frag.(frag_start) (fragment_eps_edges frags) (fragment_char_edges frags)).
+      rewrite enfa_labeled_edges_eps_label_iff. eapply q0_eps_qi_intro; eauto.
     + eapply qf_accept_intro; eauto.
-    + rewrite in_eps_step_from_edges_iff. eapply qi_eps_qf_intro; eauto.
-    + rewrite in_char_step_from_edges_iff. eapply qi_char_qf_intro; eauto.
+    + rewrite (in_eps_step_from_lgraph_iff q q' (fragment_eps_edges frags) (fragment_char_edges frags)).
+      rewrite enfa_labeled_edges_eps_label_iff. eapply qi_eps_qf_intro; eauto.
+    + rewrite (in_char_step_from_lgraph_iff edge.(char_edge_src) edge.(char_edge_dst) edge.(char_edge_label) (fragment_eps_edges frags) (fragment_char_edges frags)).
+      rewrite enfa_labeled_edges_char_label_iff. eapply qi_char_qf_intro; eauto.
 Qed.
 
 Definition fragments_delta_star (frags : list (Rule.t * fragment)) : nat -> Input.t -> ensemble nat :=
