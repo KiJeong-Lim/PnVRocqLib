@@ -1526,8 +1526,7 @@ Proof.
     econs 2; auto. rewrite drop_edge_label_key_In. ss!.
 Qed.
 
-Lemma drop_vertex_label_NoDup `{V_hasEqDec : hasEqDec V}
-  (v_old : V) (labels : list ((V * V) * L))
+Lemma drop_vertex_label_NoDup `{V_hasEqDec : hasEqDec V} (v_old : V) (labels : list ((V * V) * L))
   (NO_DUP : NoDup (map fst labels))
   : NoDup (map fst (L.filter (drop_vertex_label v_old) labels)).
 Proof.
@@ -1539,6 +1538,7 @@ Qed.
 
 #[refine]
 Definition insertVertex (v_new : V) (lG : @LabeledFiniteGraph V L) : @LabeledFiniteGraph V L :=
+  let V_hasEqDec : hasEqDec V := lG.(GRAPH).(V_dec) in
   {|
     GRAPH := GraphAPI.insertVertex v_new lG.(GRAPH);
     enum_labels := lG.(enum_labels);
@@ -1556,7 +1556,7 @@ Defined.
 
 #[refine]
 Definition removeVertex (v_old : V) (lG : @LabeledFiniteGraph V L) : @LabeledFiniteGraph V L :=
-  let V_hasEqDec := lG.(GRAPH).(V_dec) in
+  let V_hasEqDec : hasEqDec V := lG.(GRAPH).(V_dec) in
   {|
     GRAPH := GraphAPI.removeVertex v_old lG.(GRAPH);
     enum_labels := {| kvlist := L.filter (drop_vertex_label v_old) lG.(enum_labels).(kvlist) |};
@@ -1568,9 +1568,9 @@ Proof.
   - cbn. eapply drop_vertex_label_NoDup. exact lG.(enum_labels_NoDup).
   - rewrite list_corresponds_to_finite_ensemble_iff. intros [v v'].
     cbn. rewrite drop_vertex_label_key_In.
-    pose proof lG.(enum_labels_contains_all) as LABELS.
-    rewrite list_corresponds_to_finite_ensemble_iff in LABELS.
-    rewrite LABELS. ss!.
+    pose proof lG.(enum_labels_contains_all) as HH.
+    rewrite list_corresponds_to_finite_ensemble_iff in HH.
+    rewrite HH. ss!.
   - pose proof lG.(edges_Irreflexive) as HH.
     destruct lG.(edges_Irreflexive_flag); ss!.
   - pose proof lG.(edges_Symmetric) as HH.
@@ -1578,11 +1578,11 @@ Proof.
   - pose proof lG.(label_Symmetric) as HH.
     destruct lG.(label_Symmetric_flag); ss!.
     rewrite drop_vertex_label_In in *. simpl in *. ss!.
-Qed.
+Defined.
 
 #[refine]
 Definition insertEdge (v_in : V) (v_out : V) (label : L) (lG : @LabeledFiniteGraph V L) : @LabeledFiniteGraph V L :=
-  let V_hasEqDec := lG.(GRAPH).(V_dec) in
+  let V_hasEqDec : hasEqDec V := lG.(GRAPH).(V_dec) in
   {|
     GRAPH := GraphAPI.insertEdge v_in v_out lG.(GRAPH);
     enum_labels := {| kvlist := ((v_in, v_out), label) :: L.filter (drop_edge_label (v_in, v_out)) lG.(enum_labels).(kvlist) |};
@@ -1596,9 +1596,9 @@ Proof.
     + eapply drop_edge_label_NoDup. exact lG.(enum_labels_NoDup).
   - rewrite list_corresponds_to_finite_ensemble_iff. intros [v v'].
     cbn. rewrite drop_edge_label_key_In.
-    pose proof lG.(enum_labels_contains_all) as LABELS.
-    rewrite list_corresponds_to_finite_ensemble_iff in LABELS.
-    rewrite LABELS.
+    pose proof lG.(enum_labels_contains_all) as HH.
+    rewrite list_corresponds_to_finite_ensemble_iff in HH.
+    rewrite HH.
     pose proof (B.decide ((v_in, v_out) = (v, v'))) as [YES | NO]; ss!.
   - exact I.
   - exact I.
@@ -1607,7 +1607,7 @@ Defined.
 
 #[refine]
 Definition removeEdge (v_in : V) (v_out : V) (lG : @LabeledFiniteGraph V L) : @LabeledFiniteGraph V L :=
-  let V_hasEqDec := lG.(GRAPH).(V_dec) in
+  let V_hasEqDec : hasEqDec V := lG.(GRAPH).(V_dec) in
   {|
     GRAPH := GraphAPI.removeEdge v_in v_out lG.(GRAPH);
     enum_labels := {| kvlist := L.filter (drop_edge_label (v_in, v_out)) lG.(enum_labels).(kvlist) |};
@@ -1619,9 +1619,9 @@ Proof.
   - cbn. eapply drop_edge_label_NoDup. exact lG.(enum_labels_NoDup).
   - rewrite list_corresponds_to_finite_ensemble_iff. intros [v v'].
     cbn. rewrite drop_edge_label_key_In.
-    pose proof lG.(enum_labels_contains_all) as LABELS.
-    rewrite list_corresponds_to_finite_ensemble_iff in LABELS.
-    rewrite LABELS.
+    pose proof lG.(enum_labels_contains_all) as HH.
+    rewrite list_corresponds_to_finite_ensemble_iff in HH.
+    rewrite HH.
     pose proof (B.decide ((v_in, v_out) = (v, v'))) as [YES | NO]; ss!.
   - pose proof lG.(edges_Irreflexive) as HH.
     destruct lG.(edges_Irreflexive_flag); ss!.
