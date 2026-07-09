@@ -1502,7 +1502,7 @@ Lemma drop_edge_label_key_In `{V_hasEqDec : hasEqDec V} (edge : V * V) (edge' : 
 Proof.
   rewrite !L.in_map_iff. split.
   - intros ([edge'' label] & EQ & IN). ss.
-  - intros (NE & [[edge'' label] [EQ IN]]). exists (edge'', label). ss.
+  - intros (NE & [edge'' label] & [EQ IN]). exists (edge'', label). ss.
 Qed.
 
 Lemma drop_vertex_label_key_In `{V_hasEqDec : hasEqDec V} (v_old : V) (edge : V * V) (labels : list ((V * V) * L))
@@ -1510,7 +1510,7 @@ Lemma drop_vertex_label_key_In `{V_hasEqDec : hasEqDec V} (v_old : V) (edge : V 
 Proof.
   rewrite !L.in_map_iff. split.
   - intros ([edge' label] & EQ & IN). ss.
-  - intros (NE1 & NE2 & [[edge' label] [EQ IN]]). exists (edge, label). ss.
+  - intros (NE1 & NE2 & [edge' label] & [EQ IN]). exists (edge, label). ss.
 Qed.
 
 #[local] Hint Rewrite @drop_edge_label_key_In : simplication_hints.
