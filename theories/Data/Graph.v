@@ -839,19 +839,10 @@ Class LabeledFiniteGraph `{L : Type} : Type :=
   mkLabeledFiniteGraph
   { GRAPH : FiniteGraph (V := V)
   ; enum_labels : alist (V * V) L
-  ; edges_Irreflexive_flag : bool
-  ; edges_Symmetric_flag : bool
-  ; label_Symmetric_flag : bool
   ; enum_labels_NoDup
     : L.NoDup (map fst enum_labels.(kvlist))
   ; enum_labels_contains_all
     : map fst enum_labels.(kvlist) =~= GRAPH.(E)
-  ; edges_Irreflexive
-    : if edges_Irreflexive_flag then (forall v : V, ~ (v, v) \in GRAPH.(E)) else True
-  ; edges_Symmetric
-    : if edges_Symmetric_flag then (forall v : V, forall v' : V, (v, v') \in GRAPH.(E) -> (v', v) \in GRAPH.(E)) else True
-  ; label_Symmetric
-    : if label_Symmetric_flag then (forall v : V, forall v' : V, forall l : L, L.In ((v, v'), l) enum_labels.(kvlist) -> L.In ((v', v), l) enum_labels.(kvlist)) else True
   } as lG.
 
 End FiniteGraph_CONSTRUCTION.
@@ -1242,31 +1233,34 @@ Section LabeledFiniteGraph.
 
 #[local] Infix "∈" := L.In.
 
+Definition edges_Irreflexive `(lG : LabeledFiniteGraph) : Prop :=
+  forall v, ~ (v, v) \in lG.(GRAPH).(E).
+
+Definition edges_Symmetric `(lG : LabeledFiniteGraph) : Prop :=
+  forall v, forall v', (v, v') \in lG.(GRAPH).(E) -> (v', v) \in lG.(GRAPH).(E).
+
+Definition label_Symmetric `(lG : LabeledFiniteGraph) : Prop :=
+  forall v, forall v', forall l, ((v, v'), l) ∈ lG.(enum_labels).(kvlist) -> ((v', v), l) ∈ lG.(enum_labels).(kvlist).
+
 Lemma edges_Irreflexive_flag_true_elim `(lG : LabeledFiniteGraph)
-  (edges_Irreflexive_flag_true : lG.(edges_Irreflexive_flag) = true)
-  : forall v, ~ (v, v) \in E lG.(GRAPH).
+  (edges_Irreflexive_true : edges_Irreflexive lG)
+  : forall v, ~ (v, v) \in lG.(GRAPH).(E).
 Proof.
-  pose proof lG.(edges_Irreflexive) as HH.
-  rewrite edges_Irreflexive_flag_true in HH.
-  now firstorder.
+  firstorder.
 Qed.
 
 Lemma edges_Symmetric_flag_true_elim `(lG : LabeledFiniteGraph)
-  (edges_Symmetric_flag_true : lG.(edges_Symmetric_flag) = true)
-  : forall v, forall v', (v, v') \in E lG.(GRAPH) <-> (v', v) \in E lG.(GRAPH).
+  (edges_Symmetric_true : edges_Symmetric lG)
+  : forall v, forall v', (v, v') \in lG.(GRAPH).(E) <-> (v', v) \in lG.(GRAPH).(E).
 Proof.
-  pose proof lG.(edges_Symmetric) as HH.
-  rewrite edges_Symmetric_flag_true in HH.
-  now firstorder.
+  firstorder.
 Qed.
 
 Lemma label_Symmetric_flag_true_elim `(lG : LabeledFiniteGraph)
-  (label_Symmetric_flag_true : lG.(label_Symmetric_flag) = true)
-  : forall v, forall v', forall l, ((v, v'), l) ∈ enum_labels.(kvlist) <-> ((v', v), l) ∈ enum_labels.(kvlist).
+  (label_Symmetric_true : label_Symmetric lG)
+  : forall v, forall v', forall l, ((v, v'), l) ∈ lG.(enum_labels).(kvlist) <-> ((v', v), l) ∈ lG.(enum_labels).(kvlist).
 Proof.
-  pose proof lG.(label_Symmetric) as HH.
-  rewrite label_Symmetric_flag_true in HH.
-  now firstorder.
+  firstorder.
 Qed.
 
 Context {V : Type} {L : Type} `{V_hasEqDec : hasEqDec V}.
@@ -1433,17 +1427,11 @@ Definition buildLabeledFiniteGraph : @LabeledFiniteGraph V (list L) :=
   {|
     GRAPH := buildFiniteGraph;
     enum_labels := {| kvlist := map (fun edge => (edge, labels_of_edge edges edge)) (labeled_edge_keys edges) |};
-    edges_Irreflexive_flag := false;
-    edges_Symmetric_flag := false;
-    label_Symmetric_flag := false;
   |}.
 Proof.
   - cbn. rewrite labeled_edge_enum_keys. eapply labeled_edge_keys_NoDup.
   - rewrite list_corresponds_to_finite_ensemble_iff. intros edge.
     cbn. rewrite labeled_edge_enum_keys. eapply labeled_edge_keys_In.
-  - exact I.
-  - exact I.
-  - exact I.
 Defined.
 
 End BUILD.
@@ -1540,16 +1528,10 @@ Definition insertVertex (v_new : V) (lG : @LabeledFiniteGraph V L) : @LabeledFin
   {|
     GRAPH := GraphAPI.insertVertex v_new lG.(GRAPH);
     enum_labels := lG.(enum_labels);
-    edges_Irreflexive_flag := lG.(edges_Irreflexive_flag);
-    edges_Symmetric_flag := lG.(edges_Symmetric_flag);
-    label_Symmetric_flag := lG.(label_Symmetric_flag);
   |}.
 Proof.
   - exact lG.(enum_labels_NoDup).
   - exact lG.(enum_labels_contains_all).
-  - exact lG.(edges_Irreflexive).
-  - exact lG.(edges_Symmetric).
-  - exact lG.(label_Symmetric).
 Defined.
 
 #[refine]
@@ -1558,9 +1540,6 @@ Definition removeVertex (v_old : V) (lG : @LabeledFiniteGraph V L) : @LabeledFin
   {|
     GRAPH := GraphAPI.removeVertex v_old lG.(GRAPH);
     enum_labels := {| kvlist := L.filter (drop_vertex_label v_old) lG.(enum_labels).(kvlist) |};
-    edges_Irreflexive_flag := lG.(edges_Irreflexive_flag);
-    edges_Symmetric_flag := lG.(edges_Symmetric_flag);
-    label_Symmetric_flag := lG.(label_Symmetric_flag);
   |}.
 Proof.
   - cbn. eapply drop_vertex_label_NoDup. exact lG.(enum_labels_NoDup).
@@ -1569,13 +1548,6 @@ Proof.
     pose proof lG.(enum_labels_contains_all) as HH.
     rewrite list_corresponds_to_finite_ensemble_iff in HH.
     rewrite HH. ss!.
-  - pose proof lG.(edges_Irreflexive) as HH.
-    destruct lG.(edges_Irreflexive_flag); ss!.
-  - pose proof lG.(edges_Symmetric) as HH.
-    destruct lG.(edges_Symmetric_flag); ss!.
-  - pose proof lG.(label_Symmetric) as HH.
-    destruct lG.(label_Symmetric_flag); ss!.
-    rewrite drop_vertex_label_In in *. simpl in *. ss!.
 Defined.
 
 #[refine]
@@ -1584,9 +1556,6 @@ Definition insertEdge (v_in : V) (v_out : V) (label : L) (lG : @LabeledFiniteGra
   {|
     GRAPH := GraphAPI.insertEdge v_in v_out lG.(GRAPH);
     enum_labels := {| kvlist := ((v_in, v_out), label) :: L.filter (drop_edge_label (v_in, v_out)) lG.(enum_labels).(kvlist) |};
-    edges_Irreflexive_flag := false;
-    edges_Symmetric_flag := false;
-    label_Symmetric_flag := false;
   |}.
 Proof.
   - cbn. econs.
@@ -1598,9 +1567,6 @@ Proof.
     rewrite list_corresponds_to_finite_ensemble_iff in HH.
     rewrite HH.
     pose proof (B.decide ((v_in, v_out) = (v, v'))) as [YES | NO]; ss!.
-  - exact I.
-  - exact I.
-  - exact I.
 Defined.
 
 #[refine]
@@ -1609,9 +1575,6 @@ Definition removeEdge (v_in : V) (v_out : V) (lG : @LabeledFiniteGraph V L) : @L
   {|
     GRAPH := GraphAPI.removeEdge v_in v_out lG.(GRAPH);
     enum_labels := {| kvlist := L.filter (drop_edge_label (v_in, v_out)) lG.(enum_labels).(kvlist) |};
-    edges_Irreflexive_flag := lG.(edges_Irreflexive_flag);
-    edges_Symmetric_flag := false;
-    label_Symmetric_flag := false;
   |}.
 Proof.
   - cbn. eapply drop_edge_label_NoDup. exact lG.(enum_labels_NoDup).
@@ -1621,10 +1584,6 @@ Proof.
     rewrite list_corresponds_to_finite_ensemble_iff in HH.
     rewrite HH.
     pose proof (B.decide ((v_in, v_out) = (v, v'))) as [YES | NO]; ss!.
-  - pose proof lG.(edges_Irreflexive) as HH.
-    destruct lG.(edges_Irreflexive_flag); ss!.
-  - exact I.
-  - exact I.
 Defined.
 
 End OPERATIONS.
