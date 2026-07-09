@@ -839,19 +839,19 @@ Class LabeledFiniteGraph `{L : Type} : Type :=
   mkLabeledFiniteGraph
   { GRAPH : FiniteGraph (V := V)
   ; enum_labels : alist (V * V) L
-  ; edges_Irreflexive_flags : bool
-  ; edges_Symmetric_flags : bool
-  ; label_Symmetric_flags : bool
+  ; edges_Irreflexive_flag : bool
+  ; edges_Symmetric_flag : bool
+  ; label_Symmetric_flag : bool
   ; enum_labels_NoDup
     : L.NoDup (map fst enum_labels.(kvlist))
   ; enum_labels_contains_all
     : map fst enum_labels.(kvlist) =~= GRAPH.(E)
   ; edges_Irreflexive
-    : if edges_Irreflexive_flags then (forall v : V, ~ (v, v) \in GRAPH.(E)) else True
+    : if edges_Irreflexive_flag then (forall v : V, ~ (v, v) \in GRAPH.(E)) else True
   ; edges_Symmetric
-    : if edges_Symmetric_flags then (forall v : V, forall v' : V, (v, v') \in GRAPH.(E) -> (v', v) \in GRAPH.(E)) else True
+    : if edges_Symmetric_flag then (forall v : V, forall v' : V, (v, v') \in GRAPH.(E) -> (v', v) \in GRAPH.(E)) else True
   ; label_Symmetric
-    : if label_Symmetric_flags then (forall v : V, forall v' : V, forall l : L, L.In ((v, v'), l) enum_labels.(kvlist) -> L.In ((v', v), l) enum_labels.(kvlist)) else True
+    : if label_Symmetric_flag then (forall v : V, forall v' : V, forall l : L, L.In ((v, v'), l) enum_labels.(kvlist) -> L.In ((v', v), l) enum_labels.(kvlist)) else True
   } as lG.
 
 End FiniteGraph_CONSTRUCTION.
@@ -859,36 +859,36 @@ End FiniteGraph_CONSTRUCTION.
 #[global] Arguments GRAPH {V} {L} lG /.
 #[global] Existing Instance GRAPH.
 
-Lemma edges_Irreflexive_flags_true `(lG : LabeledFiniteGraph)
-  (edges_Irreflexive_flags_true : lG.(edges_Irreflexive_flags) = true)
-  : forall v, ~ (v, v) \in E lG.(GRAPH).
-Proof.
-  pose proof lG.(edges_Irreflexive) as HH.
-  rewrite edges_Irreflexive_flags_true in HH.
-  exact HH.
-Qed.
-
-Lemma edges_Symmetric_flags_true `(lG : LabeledFiniteGraph)
-  (edges_Symmetric_flags_true : lG.(edges_Symmetric_flags) = true)
-  : forall v, forall v', (v, v') \in E lG.(GRAPH) -> (v', v) \in E lG.(GRAPH).
-Proof.
-  pose proof lG.(edges_Symmetric) as HH.
-  rewrite edges_Symmetric_flags_true in HH.
-  exact HH.
-Qed.
-
-Lemma label_Symmetric_flags_true `(lG : LabeledFiniteGraph)
-  (label_Symmetric_flags_true : lG.(label_Symmetric_flags) = true)
-  : forall v, forall v', forall l, L.In ((v, v'), l) enum_labels.(kvlist) -> L.In ((v', v), l) enum_labels.(kvlist).
-Proof.
-  pose proof lG.(label_Symmetric) as HH.
-  rewrite label_Symmetric_flags_true in HH.
-  exact HH.
-Qed.
-
 Section LabeledFiniteGraph.
 
 #[local] Infix "∈" := L.In.
+
+Lemma edges_Irreflexive_flag_true_elim `(lG : LabeledFiniteGraph)
+  (edges_Irreflexive_flag_true : lG.(edges_Irreflexive_flag) = true)
+  : forall v, ~ (v, v) \in E lG.(GRAPH).
+Proof.
+  pose proof lG.(edges_Irreflexive) as HH.
+  rewrite edges_Irreflexive_flag_true in HH.
+  exact HH.
+Qed.
+
+Lemma edges_Symmetric_flag_true_elim `(lG : LabeledFiniteGraph)
+  (edges_Symmetric_flag_true : lG.(edges_Symmetric_flag) = true)
+  : forall v, forall v', (v, v') \in E lG.(GRAPH) <-> (v', v) \in E lG.(GRAPH).
+Proof.
+  pose proof lG.(edges_Symmetric) as HH.
+  rewrite edges_Symmetric_flag_true in HH.
+  now firstorder.
+Qed.
+
+Lemma label_Symmetric_flag_true_elim `(lG : LabeledFiniteGraph)
+  (label_Symmetric_flag_true : lG.(label_Symmetric_flag) = true)
+  : forall v, forall v', forall l, ((v, v'), l) ∈ enum_labels.(kvlist) <-> ((v', v), l) ∈ enum_labels.(kvlist).
+Proof.
+  pose proof lG.(label_Symmetric) as HH.
+  rewrite label_Symmetric_flag_true in HH.
+  now firstorder.
+Qed.
 
 Context {V : Type} {L : Type} `{V_hasEqDec : hasEqDec V}.
 
@@ -1061,9 +1061,9 @@ Definition buildLabeledFiniteGraph (edges : list (V * V * L)) : @LabeledFiniteGr
   {|
     GRAPH := buildFiniteGraph edges;
     enum_labels := {| kvlist := map (fun edge => (edge, labels_of_edge edges edge)) (labeled_edge_keys edges) |};
-    edges_Irreflexive_flags := false;
-    edges_Symmetric_flags := false;
-    label_Symmetric_flags := false;
+    edges_Irreflexive_flag := false;
+    edges_Symmetric_flag := false;
+    label_Symmetric_flag := false;
   |}.
 Proof.
   - cbn. rewrite labeled_edge_enum_keys. eapply labeled_edge_keys_NoDup.
