@@ -1522,8 +1522,7 @@ Lemma drop_edge_label_NoDup `{V_hasEqDec : hasEqDec V} (edge : V * V) (labels : 
 Proof.
   induction labels as [ | [edge' label] labels IH]; simpl in *.
   - econs 1.
-  - inversion NO_DUP; subst. des_ifs; simpl in *; auto.
-    econs 2; auto. rewrite drop_edge_label_key_In. ss!.
+  - inv NO_DUP. des_ifs; simpl in *; auto. econs 2; auto. ss.
 Qed.
 
 Lemma drop_vertex_label_NoDup `{V_hasEqDec : hasEqDec V} (v_old : V) (labels : list ((V * V) * L))
@@ -1532,8 +1531,7 @@ Lemma drop_vertex_label_NoDup `{V_hasEqDec : hasEqDec V} (v_old : V) (labels : l
 Proof.
   induction labels as [ | [[v v'] label] labels IH]; simpl in *.
   - econs 1.
-  - inv NO_DUP. des_ifs; simpl; auto.
-    econs 2; auto. rewrite drop_vertex_label_key_In. ss!.
+  - inv NO_DUP. des_ifs; simpl in *; auto. econs 2; auto. ss.
 Qed.
 
 #[refine]
