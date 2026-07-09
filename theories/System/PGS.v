@@ -2560,8 +2560,11 @@ Definition lr0_labeled_successors (q : state) : list ((state * state) * V') :=
 Definition lr0_labeled_edges (qs : list state) : list ((state * state) * V') :=
   qs >>= lr0_labeled_successors.
 
+Definition lr0_lgraph_from (qs : list state) : @GraphAPI.LabeledFiniteGraph state (list V') :=
+  GraphAPI.buildLabeledFiniteGraphWithVertices qs (lr0_labeled_edges qs).
+
 Definition state_successors (q : state) : list state :=
-  GraphAPI.successors (lr0_labeled_edges [q]) q.
+  all_symbols >>= fun X => GraphAPI.successors_by_label_of_lgraph (lr0_lgraph_from [q]) X q.
 
 Definition states_step (qs : list state) : list state :=
   L.nodup state_hasEqDec (qs ++ (qs >>= state_successors)).
@@ -2681,9 +2684,6 @@ Proof.
   exists parent. exists gamma. split; [exact IN_PARENT | exact RIGHT].
 Qed.
 
-Definition lr0_lgraph_from (qs : list state) : @GraphAPI.LabeledFiniteGraph state (list V') :=
-  GraphAPI.buildLabeledFiniteGraphWithVertices qs (lr0_labeled_edges qs).
-
 Definition lr0_lgraph : @GraphAPI.LabeledFiniteGraph state (list V') :=
   lr0_lgraph_from Q.
 
@@ -2757,12 +2757,6 @@ Proof.
   - intros (IN_Q & IN_X & DELTA). eapply lr0_labeled_edges_complete; eauto.
 Qed.
 
-Theorem lr0_lgraph_labels_correct qs q q' X
-  : X ∈ GraphAPI.labels_of_edge (lr0_labeled_edges qs) (q, q') <-> (q ∈ qs /\ X ∈ all_symbols /\ delta q X = Some q').
-Proof.
-  rewrite GraphAPI.labels_of_edge_In. eapply lr0_labeled_edges_correct.
-Qed.
-
 Theorem lr0_lgraph_has_label_correct qs q q' X
   : GraphAPI.has_label (lr0_lgraph_from qs) (q, q') X <-> (q ∈ qs /\ X ∈ all_symbols /\ delta q X = Some q').
 Proof.
@@ -2785,12 +2779,14 @@ Qed.
 Theorem state_successors_lgraph_correct q q'
   : q' ∈ state_successors q <-> (exists X, GraphAPI.has_label (lr0_lgraph_from [q]) (q, q') X).
 Proof.
-  unfold state_successors. rewrite GraphAPI.successors_labels_of_edge.
+  unfold state_successors. rewrite L.in_flat_map.
   split.
-  - intros (X & LABEL). exists X. rewrite lr0_lgraph_has_label_correct.
-    rewrite lr0_lgraph_labels_correct in LABEL. exact LABEL.
-  - intros (X & LABEL). exists X. rewrite lr0_lgraph_labels_correct.
-    rewrite lr0_lgraph_has_label_correct in LABEL. exact LABEL.
+  - intros (X & _ & STEP). exists X.
+    now rewrite GraphAPI.successors_by_label_of_lgraph_has_label in STEP.
+  - intros (X & LABEL). rewrite lr0_lgraph_has_label_correct in LABEL.
+    destruct LABEL as (_ & IN_X & DELTA). exists X. split; [exact IN_X | ].
+    rewrite GraphAPI.successors_by_label_of_lgraph_has_label.
+    rewrite lr0_lgraph_has_label_correct. splits; [left; reflexivity | exact IN_X | exact DELTA].
 Qed.
 
 Lemma q0_items_valid it

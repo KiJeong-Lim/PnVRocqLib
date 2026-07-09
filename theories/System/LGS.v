@@ -386,14 +386,14 @@ Record t : Type :=
 
 #[global] Existing Instance state_hasEqDec.
 
-Definition eps_step (M : TaggedENFA.t) (q : M.(TaggedENFA.state)) : fin_ensemble M.(TaggedENFA.state) :=
-  GraphAPI.successors_by_label M.(TaggedENFA.labeled_edges) None q.
-
-Definition char_step (M : TaggedENFA.t) (q : M.(TaggedENFA.state)) (c : ascii) : fin_ensemble M.(TaggedENFA.state) :=
-  GraphAPI.successors_by_label M.(TaggedENFA.labeled_edges) (Some c) q.
-
 Definition lgraph (M : TaggedENFA.t) : @GraphAPI.LabeledFiniteGraph M.(TaggedENFA.state) (list enfa_edge_label) :=
   GraphAPI.buildLabeledFiniteGraphWithVertices M.(TaggedENFA.states) M.(TaggedENFA.labeled_edges).
+
+Definition eps_step (M : TaggedENFA.t) (q : M.(TaggedENFA.state)) : fin_ensemble M.(TaggedENFA.state) :=
+  GraphAPI.successors_by_label_of_lgraph (lgraph M) None q.
+
+Definition char_step (M : TaggedENFA.t) (q : M.(TaggedENFA.state)) (c : ascii) : fin_ensemble M.(TaggedENFA.state) :=
+  GraphAPI.successors_by_label_of_lgraph (lgraph M) (Some c) q.
 
 Lemma lgraph_state_vertex (M : TaggedENFA.t) (q : M.(TaggedENFA.state))
   (IN : q ∈ M.(TaggedENFA.states))
@@ -627,29 +627,14 @@ Defined.
 Definition eps_labeled_edges (edges : list (nat * nat)) : list (nat * nat * enfa_edge_label) :=
   GraphAPI.const_labeled_edges None edges.
 
-Definition char_labeled_edge (edge : char_edge) : (nat * nat) * enfa_edge_label :=
+Definition char_labeled_edge (edge : char_edge) : nat * nat * enfa_edge_label :=
   ((edge.(char_edge_src), edge.(char_edge_dst)), Some edge.(char_edge_label)).
 
-Definition char_labeled_edges (edges : list char_edge) : list ((nat * nat) * enfa_edge_label) :=
+Definition char_labeled_edges (edges : list char_edge) : list (nat * nat * enfa_edge_label) :=
   map char_labeled_edge edges.
 
-Definition enfa_labeled_edges (eps_edges : list (nat * nat)) (char_edges : list char_edge) : list ((nat * nat) * enfa_edge_label) :=
+Definition enfa_labeled_edges (eps_edges : list (nat * nat)) (char_edges : list char_edge) : list (nat * nat * enfa_edge_label) :=
   eps_labeled_edges eps_edges ++ char_labeled_edges char_edges.
-
-Definition eps_step_from_edges (edges : list (nat * nat)) (q : nat) : list nat :=
-  GraphAPI.successors_by_label (eps_labeled_edges edges) None q.
-
-Definition char_step_from_edges (edges : list char_edge) (q : nat) (c : ascii) : list nat :=
-  GraphAPI.successors_by_label (char_labeled_edges edges) (Some c) q.
-
-Definition enfa_eps_step (edges : list ((nat * nat) * enfa_edge_label)) (q : nat) : list nat :=
-  GraphAPI.successors_by_label edges None q.
-
-Definition enfa_char_step (edges : list ((nat * nat) * enfa_edge_label)) (q : nat) (c : ascii) : list nat :=
-  GraphAPI.successors_by_label edges (Some c) q.
-
-Definition enfa_delta_star (edges : list ((nat * nat) * enfa_edge_label)) : nat -> Input.t -> ensemble nat :=
-  delta_star (enfa_eps_step edges) (enfa_char_step edges).
 
 Definition enfa_lgraph_from (vertices : list nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge) : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label) :=
   GraphAPI.buildLabeledFiniteGraphWithVertices vertices (enfa_labeled_edges eps_edges char_edges).
@@ -662,6 +647,15 @@ Definition fragment_lgraph (frag : fragment) : @GraphAPI.LabeledFiniteGraph nat 
 
 Definition fragments_lgraph (frags : list (Rule.t * fragment)) : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label) :=
   enfa_lgraph_from (fragments_vertices frags) (fragment_eps_edges frags) (fragment_char_edges frags).
+
+Definition enfa_eps_step (lG : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label)) (q : nat) : list nat :=
+  GraphAPI.successors_by_label_of_lgraph lG None q.
+
+Definition enfa_char_step (lG : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label)) (q : nat) (c : ascii) : list nat :=
+  GraphAPI.successors_by_label_of_lgraph lG (Some c) q.
+
+Definition enfa_delta_star (lG : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label)) : nat -> Input.t -> ensemble nat :=
+  delta_star (enfa_eps_step lG) (enfa_char_step lG).
 
 Definition fragments2TaggedENFA (qmax : nat) (frags : list (Rule.t * fragment)) : TaggedENFA.t :=
   let edges := enfa_labeled_edges (fragment_eps_edges frags) (fragment_char_edges frags) in
@@ -708,58 +702,26 @@ Proof.
   destruct IN as (edge' & EQ & _). destruct edge' as [src label dst]. simpl in EQ. inv EQ.
 Qed.
 
-Lemma in_eps_step_from_edges_iff (q : nat) (q' : nat) (edges : list (nat * nat))
-  : q' ∈ eps_step_from_edges edges q <-> (q, q') ∈ edges.
+Lemma enfa_lgraph_eps_label_iff (vertices : list nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge) (q : nat) (q' : nat)
+  : GraphAPI.has_label (enfa_lgraph_from vertices eps_edges char_edges) (q, q') None <-> (q, q') ∈ eps_edges.
 Proof.
-  unfold eps_step_from_edges. rewrite GraphAPI.successors_by_label_labels_of_edge.
-  rewrite GraphAPI.labels_of_edge_In. eapply in_eps_labeled_edges_iff.
-Qed.
-
-#[local] Hint Rewrite in_eps_step_from_edges_iff : simplication_hints.
-
-Lemma in_char_step_from_edges_iff (q : nat) (q' : nat) (c : ascii) (edges : list char_edge)
-  : q' ∈ char_step_from_edges edges q c <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ edges.
-Proof.
-  unfold char_step_from_edges. rewrite GraphAPI.successors_by_label_labels_of_edge.
-  rewrite GraphAPI.labels_of_edge_In. eapply in_char_labeled_edges_iff.
-Qed.
-
-#[local] Hint Rewrite in_char_step_from_edges_iff : simplication_hints.
-
-Lemma enfa_labeled_edges_eps_label_iff (eps_edges : list (nat * nat)) (char_edges : list char_edge) (q : nat) (q' : nat)
-  : None ∈ GraphAPI.labels_of_edge (enfa_labeled_edges eps_edges char_edges) (q, q') <-> (q, q') ∈ eps_edges.
-Proof.
-  rewrite GraphAPI.labels_of_edge_In. unfold enfa_labeled_edges.
-  rewrite L.in_app_iff. split.
+  unfold enfa_lgraph_from. rewrite GraphAPI.buildLabeledFiniteGraphWithVertices_has_label.
+  unfold enfa_labeled_edges. rewrite L.in_app_iff. split.
   - intros [IN | IN].
     + now rewrite in_eps_labeled_edges_iff in IN.
     + exfalso. eapply in_char_labeled_edges_none_absurd. exact IN.
   - intros IN. left. now rewrite in_eps_labeled_edges_iff.
 Qed.
 
-Lemma enfa_labeled_edges_char_label_iff (eps_edges : list (nat * nat)) (char_edges : list char_edge) (q : nat) (q' : nat) (c : ascii)
-  : Some c ∈ GraphAPI.labels_of_edge (enfa_labeled_edges eps_edges char_edges) (q, q') <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ char_edges.
-Proof.
-  rewrite GraphAPI.labels_of_edge_In. unfold enfa_labeled_edges.
-  rewrite L.in_app_iff. split.
-  - intros [IN | IN].
-    + exfalso. eapply in_eps_labeled_edges_some_absurd. exact IN.
-    + now rewrite in_char_labeled_edges_iff in IN.
-  - intros IN. right. now rewrite in_char_labeled_edges_iff.
-Qed.
-
-Lemma enfa_lgraph_eps_label_iff (vertices : list nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge) (q : nat) (q' : nat)
-  : GraphAPI.has_label (enfa_lgraph_from vertices eps_edges char_edges) (q, q') None <-> (q, q') ∈ eps_edges.
-Proof.
-  unfold enfa_lgraph_from. rewrite GraphAPI.buildLabeledFiniteGraphWithVertices_has_label.
-  rewrite <- GraphAPI.labels_of_edge_In. eapply enfa_labeled_edges_eps_label_iff.
-Qed.
-
 Lemma enfa_lgraph_char_label_iff (vertices : list nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge) (q : nat) (q' : nat) (c : ascii)
   : GraphAPI.has_label (enfa_lgraph_from vertices eps_edges char_edges) (q, q') (Some c) <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ char_edges.
 Proof.
   unfold enfa_lgraph_from. rewrite GraphAPI.buildLabeledFiniteGraphWithVertices_has_label.
-  rewrite <- GraphAPI.labels_of_edge_In. eapply enfa_labeled_edges_char_label_iff.
+  unfold enfa_labeled_edges. rewrite L.in_app_iff. split.
+  - intros [IN | IN].
+    + exfalso. eapply in_eps_labeled_edges_some_absurd. exact IN.
+    + now rewrite in_char_labeled_edges_iff in IN.
+  - intros IN. right. now rewrite in_char_labeled_edges_iff.
 Qed.
 
 Lemma fragment_lgraph_start_vertex (frag : fragment)
@@ -813,30 +775,42 @@ Proof.
   unfold fragments_lgraph. eapply enfa_lgraph_char_label_iff.
 Qed.
 
-Lemma in_enfa_eps_step_iff (q : nat) (q' : nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge)
-  : q' ∈ enfa_eps_step (enfa_labeled_edges eps_edges char_edges) q <-> (q, q') ∈ eps_edges.
+Lemma in_enfa_eps_step_iff (vertices : list nat) (q : nat) (q' : nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge)
+  : q' ∈ enfa_eps_step (enfa_lgraph_from vertices eps_edges char_edges) q <-> (q, q') ∈ eps_edges.
 Proof.
-  unfold enfa_eps_step. rewrite GraphAPI.successors_by_label_labels_of_edge.
-  eapply enfa_labeled_edges_eps_label_iff.
+  unfold enfa_eps_step. rewrite GraphAPI.successors_by_label_of_lgraph_has_label.
+  eapply enfa_lgraph_eps_label_iff.
 Qed.
 
-Lemma in_enfa_char_step_iff (q : nat) (q' : nat) (c : ascii) (eps_edges : list (nat * nat)) (char_edges : list char_edge)
-  : q' ∈ enfa_char_step (enfa_labeled_edges eps_edges char_edges) q c <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ char_edges.
+Lemma in_enfa_char_step_iff (vertices : list nat) (q : nat) (q' : nat) (c : ascii) (eps_edges : list (nat * nat)) (char_edges : list char_edge)
+  : q' ∈ enfa_char_step (enfa_lgraph_from vertices eps_edges char_edges) q c <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ char_edges.
 Proof.
-  unfold enfa_char_step. rewrite GraphAPI.successors_by_label_labels_of_edge.
-  eapply enfa_labeled_edges_char_label_iff.
+  unfold enfa_char_step. rewrite GraphAPI.successors_by_label_of_lgraph_has_label.
+  eapply enfa_lgraph_char_label_iff.
 Qed.
 
-Lemma in_eps_step_from_lgraph_iff (q : nat) (q' : nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge)
-  : q' ∈ eps_step_from_edges eps_edges q <-> None ∈ GraphAPI.labels_of_edge (enfa_labeled_edges eps_edges char_edges) (q, q').
+Lemma fragments_lgraph_eps_step_iff (frags : list (Rule.t * fragment)) (q : nat) (q' : nat)
+  : q' ∈ enfa_eps_step (fragments_lgraph frags) q <-> (q, q') ∈ fragment_eps_edges frags.
 Proof.
-  rewrite in_eps_step_from_edges_iff. symmetry. eapply enfa_labeled_edges_eps_label_iff.
+  unfold fragments_lgraph. eapply in_enfa_eps_step_iff.
 Qed.
 
-Lemma in_char_step_from_lgraph_iff (q : nat) (q' : nat) (c : ascii) (eps_edges : list (nat * nat)) (char_edges : list char_edge)
-  : q' ∈ char_step_from_edges char_edges q c <-> Some c ∈ GraphAPI.labels_of_edge (enfa_labeled_edges eps_edges char_edges) (q, q').
+Lemma fragments_lgraph_char_step_iff (frags : list (Rule.t * fragment)) (q : nat) (q' : nat) (c : ascii)
+  : q' ∈ enfa_char_step (fragments_lgraph frags) q c <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ fragment_char_edges frags.
 Proof.
-  rewrite in_char_step_from_edges_iff. symmetry. eapply enfa_labeled_edges_char_label_iff.
+  unfold fragments_lgraph. eapply in_enfa_char_step_iff.
+Qed.
+
+Lemma fragment_lgraph_eps_step_iff (frag : fragment) (q : nat) (q' : nat)
+  : q' ∈ enfa_eps_step (fragment_lgraph frag) q <-> (q, q') ∈ frag.(frag_eps_edges).
+Proof.
+  unfold fragment_lgraph. eapply in_enfa_eps_step_iff.
+Qed.
+
+Lemma fragment_lgraph_char_step_iff (frag : fragment) (q : nat) (q' : nat) (c : ascii)
+  : q' ∈ enfa_char_step (fragment_lgraph frag) q c <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ frag.(frag_char_edges).
+Proof.
+  unfold fragment_lgraph. eapply in_enfa_char_step_iff.
 Qed.
 
 Lemma q0_eps_qi_intro (frags : list (Rule.t * fragment)) (rule : Rule.t) (frag : fragment)
@@ -909,10 +883,10 @@ Proof.
 Qed.
 
 Definition fragments_delta_star (frags : list (Rule.t * fragment)) : nat -> Input.t -> ensemble nat :=
-  enfa_delta_star (enfa_labeled_edges (fragment_eps_edges frags) (fragment_char_edges frags)).
+  enfa_delta_star (fragments_lgraph frags).
 
 Definition fragment_delta_star (frag : fragment) : nat -> Input.t -> ensemble nat :=
-  enfa_delta_star (enfa_labeled_edges frag.(frag_eps_edges) frag.(frag_char_edges)).
+  enfa_delta_star (fragment_lgraph frag).
 
 Lemma TaggedENFA_FRAGMENTS_delta_star_step frags rule frag
   (FRAGMENTS : TaggedENFA_FRAGMENTS frags rule frag)
@@ -921,15 +895,15 @@ Proof.
   destruct FRAGMENTS as [_ _ EPS CHAR]; unnw; split.
   - intros q q' IN.
     pose proof (EPS q q' IN) as STEP.
-    rewrite fragments_lgraph_eps_label_iff in STEP.
     eapply delta_star_eps with (q1 := q').
-    + rewrite in_enfa_eps_step_iff. exact STEP.
+    + unfold fragments_delta_star, enfa_delta_star, enfa_eps_step.
+      rewrite GraphAPI.successors_by_label_of_lgraph_has_label. exact STEP.
     + constructor.
   - intros edge IN.
     pose proof (CHAR edge IN) as STEP.
-    rewrite fragments_lgraph_char_label_iff in STEP.
     eapply delta_star_char with (q1 := edge.(char_edge_dst)).
-    + rewrite in_enfa_char_step_iff. exact STEP.
+    + unfold fragments_delta_star, enfa_delta_star, enfa_char_step.
+      rewrite GraphAPI.successors_by_label_of_lgraph_has_label. exact STEP.
     + constructor.
 Qed.
 
@@ -1152,9 +1126,11 @@ Proof.
   - change s with ([] ++ s). eapply delta_star_app with (q2 := frag.(frag_start)).
     + eapply delta_star_eps with (q1 := frag.(frag_start)).
       * rewrite fragments_lgraph_eps_label_iff in START.
-        simpl. unfold TaggedENFA.eps_step. simpl.
-        rewrite GraphAPI.successors_by_label_labels_of_edge.
-        rewrite enfa_labeled_edges_eps_label_iff. exact START.
+        simpl. unfold TaggedENFA.eps_step, TaggedENFA.lgraph. simpl.
+        rewrite GraphAPI.successors_by_label_of_lgraph_has_label.
+        rewrite GraphAPI.buildLabeledFiniteGraphWithVertices_has_label.
+        unfold enfa_labeled_edges. rewrite L.in_app_iff. left.
+        now rewrite in_eps_labeled_edges_iff.
       * constructor.
     + eapply regex2fragment_complete; done.
   - exact ACCEPT.
@@ -1309,9 +1285,13 @@ Proof.
     use (BOUND rule frag) as (qi_rule & qf & REGEX & [_ ACCEPT_EQ _ _ _] & LE_START & LT_END) with IN_FRAG. subst qf.
     rewrite in_seq. lia.
   - intros q q' IN_STATES STEP.
-    unfold TaggedENFA.eps_step in STEP. simpl in STEP.
-    rewrite GraphAPI.successors_by_label_labels_of_edge in STEP.
-    rewrite enfa_labeled_edges_eps_label_iff in STEP. rename STEP into IN_EDGE.
+    unfold TaggedENFA.eps_step, TaggedENFA.lgraph in STEP. simpl in STEP.
+    rewrite GraphAPI.successors_by_label_of_lgraph_has_label in STEP.
+    rewrite GraphAPI.buildLabeledFiniteGraphWithVertices_has_label in STEP.
+    unfold enfa_labeled_edges in STEP. rewrite L.in_app_iff in STEP.
+    destruct STEP as [IN_EDGE | IN_EDGE].
+    2: { exfalso. eapply in_char_labeled_edges_none_absurd. exact IN_EDGE. }
+    rewrite in_eps_labeled_edges_iff in IN_EDGE.
     pose proof (Nat.eq_dec q 0) as [EQ | NE].
     + subst q.
       use fragment_eps_edges_start_sound as (rule & frag & qi_rule & qf & IN_FRAG & REGEX & START_EQ) with FRAGS QI_POS IN_EDGE. subst q'.
@@ -1323,9 +1303,13 @@ Proof.
       use EPS as RANGE' with IN_EDGE'.
       rewrite in_seq. lia.
   - intros q q' c IN_STATES STEP.
-    unfold TaggedENFA.char_step in STEP. simpl in STEP.
-    rewrite GraphAPI.successors_by_label_labels_of_edge in STEP.
-    rewrite enfa_labeled_edges_char_label_iff in STEP.
+    unfold TaggedENFA.char_step, TaggedENFA.lgraph in STEP. simpl in STEP.
+    rewrite GraphAPI.successors_by_label_of_lgraph_has_label in STEP.
+    rewrite GraphAPI.buildLabeledFiniteGraphWithVertices_has_label in STEP.
+    unfold enfa_labeled_edges in STEP. rewrite L.in_app_iff in STEP.
+    destruct STEP as [STEP | STEP].
+    { exfalso. eapply in_eps_labeled_edges_some_absurd. exact STEP. }
+    rewrite in_char_labeled_edges_iff in STEP.
     use fragment_char_edges_owner as (rule & frag & qi_rule & qf & IN_FRAG & REGEX & [_ _ _ _ CHAR] & LE_START & LT_END & RANGE & IN_EDGE') with FRAGS STEP; simpl in *.
     use CHAR as RANGE' with IN_EDGE'; simpl in *.
     rewrite in_seq. lia.
@@ -1388,13 +1372,13 @@ Lemma delta_star_fragment_range qi rules qmax frags rule frag qi_rule qf q q' s
 Proof.
   revert qi rules rule frag qi_rule qf FRAGS IN_FRAG REGEX qi_POS RANGE; induction DELTA; ii.
   - exact RANGE.
-  - rewrite in_enfa_eps_step_iff in STEP. rename STEP into IN_EDGE.
+  - rewrite fragments_lgraph_eps_step_iff in STEP. rename STEP into IN_EDGE.
     assert (claim1 : q ≠ 0) by now pose proof (rules2fragments_start_ge _ _ _ _ _ _ _ _ FRAGS IN_FRAG REGEX); lia.
     use fragment_eps_edges_isolate as IN_FRAG_EDGE with FRAGS IN_FRAG REGEX claim1 RANGE IN_EDGE.
     use regex2fragment_bounds as [_ _ _ EPS _] with REGEX.
     pose proof (EPS _ _ IN_FRAG_EDGE). simpl in *.
     eapply IHDELTA; eauto. lia.
-  - rewrite in_enfa_char_step_iff in STEP.
+  - rewrite fragments_lgraph_char_step_iff in STEP.
     hexploit fragment_char_edges_isolate; eauto; simpl; [lia | i].
     use regex2fragment_bounds as [_ _ _ _ CHAR] with REGEX.
     pose proof (CHAR _ H); simpl in *.
@@ -1412,20 +1396,20 @@ Lemma delta_star_global_to_fragment qi rules qmax frags rule frag qi_rule qf q q
 Proof.
   revert qi rules rule frag qi_rule qf FRAGS IN_FRAG REGEX qi_POS RANGE; induction DELTA; ii.
   - econs.
-  - rewrite in_enfa_eps_step_iff in STEP. rename STEP into IN_EDGE.
+  - rewrite fragments_lgraph_eps_step_iff in STEP. rename STEP into IN_EDGE.
     assert (SRC_NONZERO : q ≠ 0) by now pose proof (rules2fragments_start_ge _ _ _ _ _ _ _ _ FRAGS IN_FRAG REGEX); lia.
     use fragment_eps_edges_isolate as IN_FRAG_EDGE with FRAGS IN_FRAG REGEX SRC_NONZERO RANGE IN_EDGE.
     use regex2fragment_bounds as [_ _ _ EPS _] with REGEX.
     pose proof (EPS _ _ IN_FRAG_EDGE). 
     simpl in *. eapply delta_star_eps.
-    + rewrite in_enfa_eps_step_iff. exact IN_FRAG_EDGE.
+    + rewrite fragment_lgraph_eps_step_iff. exact IN_FRAG_EDGE.
     + eapply IHDELTA; eauto. lia.
-  - rewrite in_enfa_char_step_iff in STEP.
+  - rewrite fragments_lgraph_char_step_iff in STEP.
     hexploit fragment_char_edges_isolate; eauto; simpl; [lia | i].
     use regex2fragment_bounds as [_ _ _ _ CHAR] with REGEX.
     pose proof (CHAR _ H); simpl in *.
     eapply delta_star_char with (q1 := q1).
-    + rewrite in_enfa_char_step_iff. exact H.
+    + rewrite fragment_lgraph_char_step_iff. exact H.
     + eapply IHDELTA; eauto. lia.
 Qed.
 
@@ -1453,12 +1437,12 @@ Proof.
   pose proof (delta_star_elim _ _ q q' s DELTA) as [NIL | [EPS | CHAR]]; [left | right; left | right; right].
   - exact NIL.
   - destruct EPS as (q1 & STEP & REST).
-    rewrite in_enfa_eps_step_iff in STEP. rename STEP into IN_EDGE.
+    rewrite fragments_lgraph_eps_step_iff in STEP. rename STEP into IN_EDGE.
     assert (SRC_NONZERO : q ≠ 0) by now pose proof (rules2fragments_start_ge _ _ _ _ _ _ _ _ FRAGS IN_FRAG REGEX); lia.
     use fragment_eps_edges_isolate as IN_FRAG_EDGE with FRAGS IN_FRAG REGEX SRC_NONZERO RANGE IN_EDGE.
     exists q1; eauto.
   - destruct CHAR as (c & s' & q1 & EQ & STEP & REST).
-    rewrite in_enfa_char_step_iff in STEP.
+    rewrite fragments_lgraph_char_step_iff in STEP.
     hexploit fragment_char_edges_isolate; eauto; simpl; [lia | i].
     exists {| char_edge_src := q; char_edge_label := c; char_edge_dst := q1 |}, s'. done.
 Qed.
@@ -1470,10 +1454,10 @@ Proof.
   pose proof (delta_star_elim _ _ q q' s DELTA) as [NIL | [EPS | CHAR]]; [left | right; left | right; right].
   - exact NIL.
   - destruct EPS as (q1 & STEP & REST).
-    rewrite in_enfa_eps_step_iff in STEP.
+    rewrite fragment_lgraph_eps_step_iff in STEP.
     exists q1; eauto.
   - destruct CHAR as (c & s' & q1 & EQ & STEP & REST).
-    rewrite in_enfa_char_step_iff in STEP. done.
+    rewrite fragment_lgraph_char_step_iff in STEP. done.
 Qed.
 
 Lemma fragment_delta_star_elim_with_src frag q q' s
@@ -1483,10 +1467,10 @@ Proof.
   pose proof (delta_star_elim _ _ q q' s DELTA) as [NIL | [EPS | CHAR]]; [left | right; left | right; right].
   - exact NIL.
   - destruct EPS as (q1 & STEP & REST).
-    rewrite in_enfa_eps_step_iff in STEP.
+    rewrite fragment_lgraph_eps_step_iff in STEP.
     exists q1; eauto.
   - destruct CHAR as (c & s' & q1 & EQ & STEP & REST).
-    rewrite in_enfa_char_step_iff in STEP. done.
+    rewrite fragment_lgraph_char_step_iff in STEP. done.
 Qed.
 
 Lemma regex2fragment_Union_delta_star_start qi qf frag e1 e2 s
@@ -1535,7 +1519,7 @@ Proof.
   use regex2fragment_bounds as [_ _ LT2 EPS2 CHAR2] with REGEX2.
   revert RANGE ACCEPT. induction DELTA; ii.
   - simpl in *. lia.
-  - rewrite in_enfa_eps_step_iff in STEP. rename STEP into IN_EDGE. simpl in IN_EDGE.
+  - rewrite fragment_lgraph_eps_step_iff in STEP. rename STEP into IN_EDGE. simpl in IN_EDGE.
     destruct IN_EDGE as [EQ | [EQ | [EQ | [EQ | IN_EDGE]]]].
     + inv EQ. lia.
     + inv EQ. lia.
@@ -1545,9 +1529,9 @@ Proof.
       * use EPS1 as [[SRC_LO SRC_HI] [DST_LO DST_HI]] with IN_EDGE; simpl in SRC_LO, SRC_HI, DST_LO, DST_HI.
         assert (RANGE_STEP : qi + 1 <= q1 <= qf1) by lia.
         use IHDELTA as (s1 & s2 & EQ & DELTA1 & DELTA2) with RANGE_STEP ACCEPT.
-        exists s1, s2. splits; eauto. eapply delta_star_eps; eauto. rewrite in_enfa_eps_step_iff; eauto.
+        exists s1, s2. splits; eauto. eapply delta_star_eps; eauto. rewrite fragment_lgraph_eps_step_iff; eauto.
       * use EPS2 as [[SRC_LO SRC_HI] _] with IN_EDGE. simpl in *. lia.
-  - rewrite in_enfa_char_step_iff in STEP. simpl in STEP.
+  - rewrite fragment_lgraph_char_step_iff in STEP. simpl in STEP.
     rewrite in_app_iff in STEP. destruct STEP as [IN_EDGE | IN_EDGE].
     + hexploit CHAR1; eauto. intros [[SRC_LO SRC_HI] [DST_LO DST_HI]]. simpl in *.
       assert (RANGE_STEP : qi + 1 <= q1 <= qf1) by lia.
@@ -1555,7 +1539,7 @@ Proof.
       exists (c :: s1), s2. split.
       * rewrite EQ. reflexivity.
       * split; eauto. eapply delta_star_char with (q1 := q1); eauto.
-        rewrite in_enfa_char_step_iff. exact IN_EDGE.
+        rewrite fragment_lgraph_char_step_iff. exact IN_EDGE.
     + hexploit CHAR2; eauto. intros [[SRC_LO SRC_HI] _]. simpl in *. lia.
 Qed.
 
@@ -1574,7 +1558,7 @@ Proof.
   use regex2fragment_bounds as [_ _ LT2 EPS2 CHAR2] with REGEX2.
   revert RANGE ACCEPT. induction DELTA; ii.
   - simpl in *. lia.
-  - rewrite in_enfa_eps_step_iff in STEP. rename STEP into IN_EDGE. simpl in IN_EDGE.
+  - rewrite fragment_lgraph_eps_step_iff in STEP. rename STEP into IN_EDGE. simpl in IN_EDGE.
     destruct IN_EDGE as [EQ | [EQ | [EQ | [EQ | IN_EDGE]]]].
     + inv EQ. lia.
     + inv EQ. lia.
@@ -1585,8 +1569,8 @@ Proof.
       * use EPS2 as [[SRC_LO SRC_HI] [DST_LO DST_HI]] with IN_EDGE; simpl in SRC_LO, SRC_HI, DST_LO, DST_HI.
         assert (RANGE_STEP : qf1 + 1 <= q1 <= qf2) by lia.
         use IHDELTA as (s1 & s2 & EQ & DELTA1 & DELTA2) with RANGE_STEP ACCEPT.
-        exists s1, s2. splits; eauto. eapply delta_star_eps; eauto. rewrite in_enfa_eps_step_iff; eauto.
-  - rewrite in_enfa_char_step_iff in STEP. simpl in STEP.
+        exists s1, s2. splits; eauto. eapply delta_star_eps; eauto. rewrite fragment_lgraph_eps_step_iff; eauto.
+  - rewrite fragment_lgraph_char_step_iff in STEP. simpl in STEP.
     rewrite in_app_iff in STEP. destruct STEP as [IN_EDGE | IN_EDGE].
     + hexploit CHAR1; eauto. intros [[SRC_LO SRC_HI] _]. simpl in *. lia.
     + hexploit CHAR2; eauto. intros [[SRC_LO SRC_HI] [DST_LO DST_HI]]. simpl in *.
@@ -1595,7 +1579,7 @@ Proof.
       exists (c :: s1), s2. split.
       * rewrite EQ. reflexivity.
       * split; eauto. eapply delta_star_char with (q1 := q1); eauto.
-        rewrite in_enfa_char_step_iff. exact IN_EDGE.
+        rewrite fragment_lgraph_char_step_iff. exact IN_EDGE.
 Qed.
 
 Lemma regex2fragment_Append_delta_star_start qi qf frag e1 e2 s
@@ -1639,7 +1623,7 @@ Proof.
   use regex2fragment_bounds as [_ _ LT2 EPS2 CHAR2] with REGEX2.
   revert RANGE ACCEPT. induction DELTA; ii.
   - simpl in *. lia.
-  - rewrite in_enfa_eps_step_iff in STEP. rename STEP into IN_EDGE. simpl in IN_EDGE.
+  - rewrite fragment_lgraph_eps_step_iff in STEP. rename STEP into IN_EDGE. simpl in IN_EDGE.
     destruct IN_EDGE as [EQ | [EQ | [EQ | IN_EDGE]]].
     + inv EQ. lia.
     + inv EQ. exists [], s. splits; [reflexivity | constructor | exact REST].
@@ -1648,9 +1632,9 @@ Proof.
       * use EPS1 as [[SRC_LO SRC_HI] [DST_LO DST_HI]] with IN_EDGE; simpl in SRC_LO, SRC_HI, DST_LO, DST_HI.
         assert (RANGE_STEP : qi + 1 <= q1 <= qf1) by lia.
         use IHDELTA as (s1 & s2 & EQ & DELTA1 & DELTA2) with RANGE_STEP ACCEPT.
-        exists s1, s2. splits; eauto. eapply delta_star_eps; eauto. rewrite in_enfa_eps_step_iff; eauto.
+        exists s1, s2. splits; eauto. eapply delta_star_eps; eauto. rewrite fragment_lgraph_eps_step_iff; eauto.
       * use EPS2 as [[SRC_LO SRC_HI] _] with IN_EDGE. simpl in *. lia.
-  - rewrite in_enfa_char_step_iff in STEP. simpl in STEP.
+  - rewrite fragment_lgraph_char_step_iff in STEP. simpl in STEP.
     rewrite in_app_iff in STEP. destruct STEP as [IN_EDGE | IN_EDGE].
     + hexploit CHAR1; eauto. intros [[SRC_LO SRC_HI] [DST_LO DST_HI]]. simpl in *.
       assert (RANGE_STEP : qi + 1 <= q1 <= qf1) by lia.
@@ -1658,7 +1642,7 @@ Proof.
       exists (c :: s1), s2. split.
       * rewrite EQ. reflexivity.
       * split; eauto. eapply delta_star_char with (q1 := q1); eauto.
-        rewrite in_enfa_char_step_iff. exact IN_EDGE.
+        rewrite fragment_lgraph_char_step_iff. exact IN_EDGE.
     + hexploit CHAR2; eauto. intros [[SRC_LO SRC_HI] _]. simpl in *. lia.
 Qed.
 
@@ -1677,7 +1661,7 @@ Proof.
   use regex2fragment_bounds as [_ _ LT2 EPS2 CHAR2] with REGEX2.
   revert RANGE ACCEPT. induction DELTA; ii.
   - simpl in *. lia.
-  - rewrite in_enfa_eps_step_iff in STEP. rename STEP into IN_EDGE. simpl in IN_EDGE.
+  - rewrite fragment_lgraph_eps_step_iff in STEP. rename STEP into IN_EDGE. simpl in IN_EDGE.
     destruct IN_EDGE as [EQ | [EQ | [EQ | IN_EDGE]]].
     + inv EQ. lia.
     + inv EQ. lia.
@@ -1687,8 +1671,8 @@ Proof.
       * use EPS2 as [[SRC_LO SRC_HI] [DST_LO DST_HI]] with IN_EDGE; simpl in SRC_LO, SRC_HI, DST_LO, DST_HI.
         assert (RANGE_STEP : qf1 + 1 <= q1 <= qf2) by lia.
         use IHDELTA as (s1 & s2 & EQ & DELTA1 & DELTA2) with RANGE_STEP ACCEPT.
-        exists s1, s2. splits; eauto. eapply delta_star_eps; eauto. rewrite in_enfa_eps_step_iff; eauto.
-  - rewrite in_enfa_char_step_iff in STEP. simpl in STEP.
+        exists s1, s2. splits; eauto. eapply delta_star_eps; eauto. rewrite fragment_lgraph_eps_step_iff; eauto.
+  - rewrite fragment_lgraph_char_step_iff in STEP. simpl in STEP.
     rewrite in_app_iff in STEP. destruct STEP as [IN_EDGE | IN_EDGE].
     + hexploit CHAR1; eauto. intros [[SRC_LO SRC_HI] _]. simpl in *. lia.
     + hexploit CHAR2; eauto. intros [[SRC_LO SRC_HI] [DST_LO DST_HI]]. simpl in *.
@@ -1697,7 +1681,7 @@ Proof.
       exists (c :: s1), s2. split.
       * rewrite EQ. reflexivity.
       * split; eauto. eapply delta_star_char with (q1 := q1); eauto.
-        rewrite in_enfa_char_step_iff. exact IN_EDGE.
+        rewrite fragment_lgraph_char_step_iff. exact IN_EDGE.
 Qed.
 
 Lemma regex2fragment_Star_delta_star_start qi qf frag e s
@@ -1727,12 +1711,12 @@ Lemma regex2fragment_accept_delta_star_stuck e qi qf frag q' s
   : s = [] /\ q' = qf.
 Proof.
   eapply delta_star_stuck; eauto.
-  - intros q IN. rewrite in_enfa_eps_step_iff in IN.
+  - intros q IN. rewrite fragment_lgraph_eps_step_iff in IN.
     rename IN into IN_EDGE.
     use regex2fragment_edge_src_lt as [EPS _] with REGEX.
     use EPS as ? with IN_EDGE.
     lia.
-  - intros c q IN. rewrite in_enfa_char_step_iff in IN.
+  - intros c q IN. rewrite fragment_lgraph_char_step_iff in IN.
     use regex2fragment_edge_src_lt as [_ CHAR] with REGEX.
     use CHAR as RANGE with IN. simpl in RANGE. lia.
 Qed.
@@ -1746,7 +1730,7 @@ Proof.
   use regex2fragment_edge_dst_gt as [EPS_DST CHAR_DST] with H0.
   revert RANGE ACCEPT. induction DELTA; ii.
   - simpl in *. lia.
-  - rewrite in_enfa_eps_step_iff in STEP. rename STEP into IN_EDGE. simpl in IN_EDGE.
+  - rewrite fragment_lgraph_eps_step_iff in STEP. rename STEP into IN_EDGE. simpl in IN_EDGE.
     destruct IN_EDGE as [EQ | [EQ | [EQ | IN_EDGE]]].
     + inv EQ. lia.
     + inv EQ.
@@ -1769,8 +1753,8 @@ Proof.
       pose proof (IHDELTA RANGE_STEP ACCEPT) as [[EQ EQ'] | (s1 & s2 & EQ & DELTA1 & STAR)].
       * subst s q1. use EPS_DST as ? with IN_EDGE. lia.
       * right. exists s1, s2. repeat split; eauto.
-        eapply delta_star_eps; eauto. rewrite in_enfa_eps_step_iff. exact IN_EDGE.
-  - rewrite in_enfa_char_step_iff in STEP. simpl in STEP.
+        eapply delta_star_eps; eauto. rewrite fragment_lgraph_eps_step_iff. exact IN_EDGE.
+  - rewrite fragment_lgraph_char_step_iff in STEP. simpl in STEP.
     hexploit CHAR1; eauto. intros [[SRC_LO SRC_HI] [DST_LO DST_HI]]. simpl in *.
     assert (RANGE_STEP : qi + 1 <= q1 <= qf1) by lia.
     hexploit IHDELTA; eauto. intros [[EQ EQ'] | (s1 & s2 & EQ & DELTA1 & STAR)].
@@ -1778,7 +1762,7 @@ Proof.
     + right. exists (c :: s1), s2. split.
       * rewrite EQ. reflexivity.
       * split; eauto. eapply delta_star_char with (q1 := q1); eauto.
-        rewrite in_enfa_char_step_iff. exact STEP.
+        rewrite fragment_lgraph_char_step_iff. exact STEP.
 Qed.
 
 Lemma regex2fragment_sound_Null qi qf frag s
@@ -1903,7 +1887,7 @@ Proof.
     pose proof (rules2fragments_start_ge _ _ _ _ _ _ _ _ FRAGS IN_FRAG REGEX).
     lia.
   - destruct EPS as (q1 & STEP & REST). s!.
-    rewrite in_enfa_eps_step_iff in STEP.
+    rewrite fragments_lgraph_eps_step_iff in STEP.
     use fragment_eps_edges_start_sound as (rule' & frag' & qi_rule' & qf' & IN_FRAG' & REGEX' & START_EDGE) with FRAGS qi_POS STEP. subst q1.
     use regex2fragment_bounds as [START' ACCEPT' LT' _ _] with REGEX'.
     assert (RANGE : qi_rule <= frag.(frag_accept) <= qf) by lia.
@@ -1912,7 +1896,7 @@ Proof.
     pose proof (rules2fragments_ranges_disjoint _ _ _ _ _ _ _ _ _ _ _ _ _ FRAGS IN_FRAG IN_FRAG' REGEX REGEX' RANGE RANGE') as EQ.
     inv EQ. eapply delta_star_global_to_fragment; eauto. lia.
   - destruct CHAR as (c & s' & q1 & EQ & STEP & REST). s!.
-    rewrite in_enfa_char_step_iff in STEP.
+    rewrite fragments_lgraph_char_step_iff in STEP.
     hexploit fragment_char_edges_owner; eauto.
     intros (rule' & frag' & qi_rule' & qf' & IN_FRAG' & REGEX' & BOUNDS' & LE_START & LT_END & RANGE' & IN_EDGE').
     simpl in *. lia.

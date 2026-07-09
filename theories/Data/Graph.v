@@ -1245,6 +1245,11 @@ Definition label_Symmetric `(lG : LabeledFiniteGraph) : Prop :=
 Definition has_label {V : Type} {L : Type} (lG : @LabeledFiniteGraph V (list L)) (edge : V * V) (label : L) : Prop :=
   exists labels, (edge, labels) ∈ lG.(enum_labels).(kvlist) /\ label ∈ labels.
 
+Definition successors_by_label_of_lgraph {V : Type} {L : Type} `{L_hasEqDec : hasEqDec L} (lG : @LabeledFiniteGraph V (list L)) : L -> V -> list V :=
+  let V_hasEqDec : hasEqDec V := lG.(GRAPH).(V_dec) in
+  fun label : L => fun src : V =>
+  L.flat_map (fun '(edge, labels) => if B.decide (fst edge = src) then if L.in_dec L_hasEqDec label labels then [snd edge] else [] else []) lG.(enum_labels).(kvlist).
+
 Lemma edges_Irreflexive_flag_true_elim `(lG : LabeledFiniteGraph)
   (edges_Irreflexive_true : edges_Irreflexive lG)
   : forall v, ~ (v, v) \in lG.(GRAPH).(E).
@@ -1275,6 +1280,22 @@ Proof.
   rewrite list_corresponds_to_finite_ensemble_iff in HH.
   rewrite <- HH. rewrite L.in_map_iff.
   exists (edge, labels). done.
+Qed.
+
+Lemma successors_by_label_of_lgraph_has_label {V : Type} {L : Type} `{L_hasEqDec : hasEqDec L} (lG : @LabeledFiniteGraph V (list L)) (src : V) (dst : V) (label : L)
+  : dst ∈ successors_by_label_of_lgraph lG label src <-> has_label lG (src, dst) label.
+Proof.
+  unfold successors_by_label_of_lgraph, has_label. simpl.
+  rewrite L.in_flat_map. split.
+  - intros ([[src' dst'] labels] & LABELS & IN_DST); simpl in *.
+    destruct (B.decide (src' = src)) as [EQ_SRC | NE_SRC]; [subst src' | contradiction].
+    destruct (L.in_dec L_hasEqDec label labels) as [IN_LABEL | NOT_IN_LABEL]; [ | contradiction].
+    simpl in IN_DST. destruct IN_DST as [EQ_DST | []]. subst dst'.
+    exists labels. done.
+  - intros (labels & LABELS & IN_LABEL).
+    exists ((src, dst), labels). split; [exact LABELS | ].
+    simpl. destruct (B.decide (src = src)) as [_ | NE_SRC]; [ | contradiction].
+    destruct (L.in_dec L_hasEqDec label labels) as [_ | NOT_IN_LABEL]; [simpl; left; reflexivity | contradiction].
 Qed.
 
 Context {V : Type} {L : Type} `{V_hasEqDec : hasEqDec V}.
@@ -1420,6 +1441,8 @@ Qed.
 #[local] Hint Resolve in_labeled_edge_vertices_src : core.
 #[local] Hint Resolve in_labeled_edge_vertices_dst : core.
 
+Section BUILD.
+
 #[refine]
 Definition buildFiniteGraphWithVertices (vertices : list V) (edges : list (V * V * L)) : @FiniteGraph V :=
   {|
@@ -1464,8 +1487,6 @@ Proof.
       exists (edge, label). done.
     + now rewrite labels_of_edge_In.
 Qed.
-
-Section BUILD.
 
 Variable edges : list (V * V * L).
 
