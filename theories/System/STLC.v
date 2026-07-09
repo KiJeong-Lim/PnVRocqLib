@@ -1088,8 +1088,8 @@ Qed.
 
 Fixpoint raw_sn_lam (M : trm L) (M_SN : raw_sn M) {struct M_SN} : forall x, forall ty, raw_sn (Lam_trm x ty M).
 Proof.
-  destruct M_SN as [M_SN]. econs. intros N BETA.
-  inversion BETA; subst. eapply raw_sn_lam. eapply M_SN. exact BETA0.
+  destruct M_SN as [M_SN_inv]. econs. intros N BETA.
+  inversion BETA; subst. eapply raw_sn_lam. eapply M_SN_inv. exact BETA0.
 Defined.
 
 Lemma raw_sn_app_untyped_neutral M N
