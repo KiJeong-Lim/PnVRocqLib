@@ -393,7 +393,14 @@ Definition char_step (M : TaggedENFA.t) (q : M.(TaggedENFA.state)) (c : ascii) :
   GraphAPI.successors_by_label M.(TaggedENFA.labeled_edges) (Some c) q.
 
 Definition lgraph (M : TaggedENFA.t) : @GraphAPI.LabeledFiniteGraph M.(TaggedENFA.state) (list enfa_edge_label) :=
-  GraphAPI.buildLabeledFiniteGraph M.(TaggedENFA.labeled_edges).
+  GraphAPI.buildLabeledFiniteGraphWithVertices M.(TaggedENFA.states) M.(TaggedENFA.labeled_edges).
+
+Lemma lgraph_state_vertex (M : TaggedENFA.t) (q : M.(TaggedENFA.state))
+  (IN : q ∈ M.(TaggedENFA.states))
+  : q ∈ (lgraph M).(GraphAPI.GRAPH).(GraphAPI.enum_vertices).
+Proof.
+  unfold lgraph. eapply GraphAPI.buildLabeledFiniteGraphWithVertices_vertex. exact IN.
+Qed.
 
 Variant okay (M : TaggedENFA.t) : Prop :=
   | okay_intro
@@ -604,6 +611,12 @@ Fixpoint fragment_char_edges (frags : list (Rule.t * fragment)) {struct frags} :
   | (_, frag) :: frags' => frag.(frag_char_edges) ++ fragment_char_edges frags'
   end.
 
+Definition fragment_vertices (frag : fragment) : list nat :=
+  [frag.(frag_start); frag.(frag_accept)].
+
+Definition fragments_vertices (frags : list (Rule.t * fragment)) : list nat :=
+  0 :: L.flat_map (fun '(_, frag) => fragment_vertices frag) frags.
+
 #[global]
 Instance enfa_edge_label_hasEqDec
   : hasEqDec enfa_edge_label.
@@ -638,14 +651,17 @@ Definition enfa_char_step (edges : list ((nat * nat) * enfa_edge_label)) (q : na
 Definition enfa_delta_star (edges : list ((nat * nat) * enfa_edge_label)) : nat -> Input.t -> ensemble nat :=
   delta_star (enfa_eps_step edges) (enfa_char_step edges).
 
+Definition enfa_lgraph_from (vertices : list nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge) : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label) :=
+  GraphAPI.buildLabeledFiniteGraphWithVertices vertices (enfa_labeled_edges eps_edges char_edges).
+
 Definition enfa_lgraph (eps_edges : list (nat * nat)) (char_edges : list char_edge) : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label) :=
-  GraphAPI.buildLabeledFiniteGraph (enfa_labeled_edges eps_edges char_edges).
+  enfa_lgraph_from [] eps_edges char_edges.
 
 Definition fragment_lgraph (frag : fragment) : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label) :=
-  enfa_lgraph frag.(frag_eps_edges) frag.(frag_char_edges).
+  enfa_lgraph_from (fragment_vertices frag) frag.(frag_eps_edges) frag.(frag_char_edges).
 
 Definition fragments_lgraph (frags : list (Rule.t * fragment)) : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label) :=
-  enfa_lgraph (fragment_eps_edges frags) (fragment_char_edges frags).
+  enfa_lgraph_from (fragments_vertices frags) (fragment_eps_edges frags) (fragment_char_edges frags).
 
 Definition fragments2TaggedENFA (qmax : nat) (frags : list (Rule.t * fragment)) : TaggedENFA.t :=
   let edges := enfa_labeled_edges (fragment_eps_edges frags) (fragment_char_edges frags) in
@@ -732,6 +748,71 @@ Proof.
   - intros IN. right. now rewrite in_char_labeled_edges_iff.
 Qed.
 
+Lemma enfa_lgraph_eps_label_iff (vertices : list nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge) (q : nat) (q' : nat)
+  : GraphAPI.has_label (enfa_lgraph_from vertices eps_edges char_edges) (q, q') None <-> (q, q') ∈ eps_edges.
+Proof.
+  unfold enfa_lgraph_from. rewrite GraphAPI.buildLabeledFiniteGraphWithVertices_has_label.
+  rewrite <- GraphAPI.labels_of_edge_In. eapply enfa_labeled_edges_eps_label_iff.
+Qed.
+
+Lemma enfa_lgraph_char_label_iff (vertices : list nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge) (q : nat) (q' : nat) (c : ascii)
+  : GraphAPI.has_label (enfa_lgraph_from vertices eps_edges char_edges) (q, q') (Some c) <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ char_edges.
+Proof.
+  unfold enfa_lgraph_from. rewrite GraphAPI.buildLabeledFiniteGraphWithVertices_has_label.
+  rewrite <- GraphAPI.labels_of_edge_In. eapply enfa_labeled_edges_char_label_iff.
+Qed.
+
+Lemma fragment_lgraph_start_vertex (frag : fragment)
+  : frag.(frag_start) ∈ (fragment_lgraph frag).(GraphAPI.GRAPH).(GraphAPI.enum_vertices).
+Proof.
+  unfold fragment_lgraph, enfa_lgraph_from, fragment_vertices.
+  eapply GraphAPI.buildLabeledFiniteGraphWithVertices_vertex. simpl. left. reflexivity.
+Qed.
+
+Lemma fragment_lgraph_accept_vertex (frag : fragment)
+  : frag.(frag_accept) ∈ (fragment_lgraph frag).(GraphAPI.GRAPH).(GraphAPI.enum_vertices).
+Proof.
+  unfold fragment_lgraph, enfa_lgraph_from, fragment_vertices.
+  eapply GraphAPI.buildLabeledFiniteGraphWithVertices_vertex. simpl. right. left. reflexivity.
+Qed.
+
+Lemma fragments_lgraph_start_vertex (frags : list (Rule.t * fragment))
+  : 0 ∈ (fragments_lgraph frags).(GraphAPI.GRAPH).(GraphAPI.enum_vertices).
+Proof.
+  unfold fragments_lgraph, enfa_lgraph_from, fragments_vertices.
+  eapply GraphAPI.buildLabeledFiniteGraphWithVertices_vertex. simpl. left. reflexivity.
+Qed.
+
+Lemma fragments_lgraph_fragment_start_vertex (frags : list (Rule.t * fragment)) (rule : Rule.t) (frag : fragment)
+  (IN : (rule, frag) ∈ frags)
+  : frag.(frag_start) ∈ (fragments_lgraph frags).(GraphAPI.GRAPH).(GraphAPI.enum_vertices).
+Proof.
+  unfold fragments_lgraph, enfa_lgraph_from, fragments_vertices.
+  eapply GraphAPI.buildLabeledFiniteGraphWithVertices_vertex. simpl. right.
+  rewrite L.in_flat_map. exists (rule, frag). simpl. done.
+Qed.
+
+Lemma fragments_lgraph_fragment_accept_vertex (frags : list (Rule.t * fragment)) (rule : Rule.t) (frag : fragment)
+  (IN : (rule, frag) ∈ frags)
+  : frag.(frag_accept) ∈ (fragments_lgraph frags).(GraphAPI.GRAPH).(GraphAPI.enum_vertices).
+Proof.
+  unfold fragments_lgraph, enfa_lgraph_from, fragments_vertices.
+  eapply GraphAPI.buildLabeledFiniteGraphWithVertices_vertex. simpl. right.
+  rewrite L.in_flat_map. exists (rule, frag). simpl. done.
+Qed.
+
+Lemma fragments_lgraph_eps_label_iff (frags : list (Rule.t * fragment)) (q : nat) (q' : nat)
+  : GraphAPI.has_label (fragments_lgraph frags) (q, q') None <-> (q, q') ∈ fragment_eps_edges frags.
+Proof.
+  unfold fragments_lgraph. eapply enfa_lgraph_eps_label_iff.
+Qed.
+
+Lemma fragments_lgraph_char_label_iff (frags : list (Rule.t * fragment)) (q : nat) (q' : nat) (c : ascii)
+  : GraphAPI.has_label (fragments_lgraph frags) (q, q') (Some c) <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ fragment_char_edges frags.
+Proof.
+  unfold fragments_lgraph. eapply enfa_lgraph_char_label_iff.
+Qed.
+
 Lemma in_enfa_eps_step_iff (q : nat) (q' : nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge)
   : q' ∈ enfa_eps_step (enfa_labeled_edges eps_edges char_edges) q <-> (q, q') ∈ eps_edges.
 Proof.
@@ -806,10 +887,10 @@ Variant TaggedENFA_COMPILED (M : TaggedENFA.t) (rules : list Rule.t) (qmax : nat
 
 Variant TaggedENFA_FRAGMENTS (frags : list (Rule.t * fragment)) (rule : Rule.t) (frag : fragment) : Prop :=
   | TaggedENFA_FRAGMENTS_INTRO
-    (IN1 : None ∈ GraphAPI.labels_of_edge (enfa_labeled_edges (fragment_eps_edges frags) (fragment_char_edges frags)) (0, frag.(frag_start)))
+    (IN1 : GraphAPI.has_label (fragments_lgraph frags) (0, frag.(frag_start)) None)
     (IN2 : (frag.(frag_accept), rule.(Rule.token)) ∈ map (fun '(rule, frag) => (frag.(frag_accept), rule.(Rule.token))) frags)
-    (EPS : forall q, forall q', (q, q') ∈ frag.(frag_eps_edges) -> None ∈ GraphAPI.labels_of_edge (enfa_labeled_edges (fragment_eps_edges frags) (fragment_char_edges frags)) (q, q'))
-    (CHAR : forall edge, edge ∈ frag.(frag_char_edges) -> Some edge.(char_edge_label) ∈ GraphAPI.labels_of_edge (enfa_labeled_edges (fragment_eps_edges frags) (fragment_char_edges frags)) (edge.(char_edge_src), edge.(char_edge_dst))).
+    (EPS : forall q, forall q', (q, q') ∈ frag.(frag_eps_edges) -> GraphAPI.has_label (fragments_lgraph frags) (q, q') None)
+    (CHAR : forall edge, edge ∈ frag.(frag_char_edges) -> GraphAPI.has_label (fragments_lgraph frags) (edge.(char_edge_src), edge.(char_edge_dst)) (Some edge.(char_edge_label))).
 
 Theorem mkUnitedTaggedENFA_spec (M : TaggedENFA.t)
   (COMPILE : fmap mkUnitedTaggedENFA Rule.compileds = inr M)
@@ -821,10 +902,10 @@ Proof.
   exists rules, qmax, frags. split.
   - econs; eauto.
   - ii; econs; ii.
-    + rewrite enfa_labeled_edges_eps_label_iff. eapply q0_eps_qi_intro; eauto.
+    + rewrite fragments_lgraph_eps_label_iff. eapply q0_eps_qi_intro; eauto.
     + eapply qf_accept_intro; eauto.
-    + rewrite enfa_labeled_edges_eps_label_iff. eapply qi_eps_qf_intro; eauto.
-    + rewrite enfa_labeled_edges_char_label_iff. eapply qi_char_qf_intro; eauto.
+    + rewrite fragments_lgraph_eps_label_iff. eapply qi_eps_qf_intro; eauto.
+    + rewrite fragments_lgraph_char_label_iff. eapply qi_char_qf_intro; eauto.
 Qed.
 
 Definition fragments_delta_star (frags : list (Rule.t * fragment)) : nat -> Input.t -> ensemble nat :=
@@ -840,13 +921,15 @@ Proof.
   destruct FRAGMENTS as [_ _ EPS CHAR]; unnw; split.
   - intros q q' IN.
     pose proof (EPS q q' IN) as STEP.
+    rewrite fragments_lgraph_eps_label_iff in STEP.
     eapply delta_star_eps with (q1 := q').
-    + unfold enfa_eps_step. rewrite GraphAPI.successors_by_label_labels_of_edge. exact STEP.
+    + rewrite in_enfa_eps_step_iff. exact STEP.
     + constructor.
   - intros edge IN.
     pose proof (CHAR edge IN) as STEP.
+    rewrite fragments_lgraph_char_label_iff in STEP.
     eapply delta_star_char with (q1 := edge.(char_edge_dst)).
-    + unfold enfa_char_step. rewrite GraphAPI.successors_by_label_labels_of_edge. exact STEP.
+    + rewrite in_enfa_char_step_iff. exact STEP.
     + constructor.
 Qed.
 
@@ -1068,7 +1151,10 @@ Proof.
   destruct FRAGMENTS as [START ACCEPT EPS CHAR]. exists frag.(frag_accept). split.
   - change s with ([] ++ s). eapply delta_star_app with (q2 := frag.(frag_start)).
     + eapply delta_star_eps with (q1 := frag.(frag_start)).
-      * simpl. unfold TaggedENFA.eps_step. simpl. rewrite GraphAPI.successors_by_label_labels_of_edge. exact START.
+      * rewrite fragments_lgraph_eps_label_iff in START.
+        simpl. unfold TaggedENFA.eps_step. simpl.
+        rewrite GraphAPI.successors_by_label_labels_of_edge.
+        rewrite enfa_labeled_edges_eps_label_iff. exact START.
       * constructor.
     + eapply regex2fragment_complete; done.
   - exact ACCEPT.

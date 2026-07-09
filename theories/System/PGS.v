@@ -2682,10 +2682,17 @@ Proof.
 Qed.
 
 Definition lr0_lgraph_from (qs : list state) : @GraphAPI.LabeledFiniteGraph state (list V') :=
-  GraphAPI.buildLabeledFiniteGraph (lr0_labeled_edges qs).
+  GraphAPI.buildLabeledFiniteGraphWithVertices qs (lr0_labeled_edges qs).
 
 Definition lr0_lgraph : @GraphAPI.LabeledFiniteGraph state (list V') :=
   lr0_lgraph_from Q.
+
+Lemma lr0_lgraph_vertex qs q
+  (IN : q ∈ qs)
+  : q ∈ (lr0_lgraph_from qs).(GraphAPI.GRAPH).(GraphAPI.enum_vertices).
+Proof.
+  unfold lr0_lgraph_from. eapply GraphAPI.buildLabeledFiniteGraphWithVertices_vertex. exact IN.
+Qed.
 
 Lemma lr0_labeled_successors_sound p q q' X
   (IN : ((q, q'), X) ∈ lr0_labeled_successors p)
@@ -2756,22 +2763,34 @@ Proof.
   rewrite GraphAPI.labels_of_edge_In. eapply lr0_labeled_edges_correct.
 Qed.
 
+Theorem lr0_lgraph_has_label_correct qs q q' X
+  : GraphAPI.has_label (lr0_lgraph_from qs) (q, q') X <-> (q ∈ qs /\ X ∈ all_symbols /\ delta q X = Some q').
+Proof.
+  unfold lr0_lgraph_from. rewrite GraphAPI.buildLabeledFiniteGraphWithVertices_has_label.
+  eapply lr0_labeled_edges_correct.
+Qed.
+
 Definition lr0_graph_step (p : state) (X : V') (q : state) : Prop :=
-  X ∈ GraphAPI.labels_of_edge (lr0_labeled_edges [p]) (p, q).
+  GraphAPI.has_label (lr0_lgraph_from [p]) (p, q) X.
 
 Lemma lr0_graph_step_delta p X q
   : lr0_graph_step p X q <-> delta p X = Some q.
 Proof.
-  unfold lr0_graph_step. rewrite lr0_lgraph_labels_correct.
+  unfold lr0_graph_step. rewrite lr0_lgraph_has_label_correct.
   split.
   - intros (_ & _ & DELTA). exact DELTA.
   - intros DELTA. splits; [left; reflexivity | unfold all_symbols; eapply V'_all_complete | exact DELTA].
 Qed.
 
 Theorem state_successors_lgraph_correct q q'
-  : q' ∈ state_successors q <-> (exists X, X ∈ GraphAPI.labels_of_edge (lr0_labeled_edges [q]) (q, q')).
+  : q' ∈ state_successors q <-> (exists X, GraphAPI.has_label (lr0_lgraph_from [q]) (q, q') X).
 Proof.
-  unfold state_successors. eapply GraphAPI.successors_labels_of_edge.
+  unfold state_successors. rewrite GraphAPI.successors_labels_of_edge.
+  split.
+  - intros (X & LABEL). exists X. rewrite lr0_lgraph_has_label_correct.
+    rewrite lr0_lgraph_labels_correct in LABEL. exact LABEL.
+  - intros (X & LABEL). exists X. rewrite lr0_lgraph_labels_correct.
+    rewrite lr0_lgraph_has_label_correct in LABEL. exact LABEL.
 Qed.
 
 Lemma q0_items_valid it
@@ -2786,7 +2805,7 @@ Lemma state_successors_sound q q'
   : exists X, X ∈ all_symbols /\ delta q X = Some q'.
 Proof.
   use (proj1 (state_successors_lgraph_correct q q')) as (X & LABEL) with IN.
-  rewrite lr0_lgraph_labels_correct in LABEL.
+  rewrite lr0_lgraph_has_label_correct in LABEL.
   destruct LABEL as (_ & IN_X & DELTA).
   exists X. split; assumption.
 Qed.
@@ -2797,7 +2816,7 @@ Lemma state_successors_complete q X q'
   : q' ∈ state_successors q.
 Proof.
   rewrite state_successors_lgraph_correct.
-  exists X. rewrite lr0_lgraph_labels_correct.
+  exists X. rewrite lr0_lgraph_has_label_correct.
   splits; [left; reflexivity | exact IN_X | exact DELTA].
 Qed.
 

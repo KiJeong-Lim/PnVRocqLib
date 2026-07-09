@@ -1242,6 +1242,9 @@ Definition edges_Symmetric `(lG : LabeledFiniteGraph) : Prop :=
 Definition label_Symmetric `(lG : LabeledFiniteGraph) : Prop :=
   forall v, forall v', forall l, ((v, v'), l) ∈ lG.(enum_labels).(kvlist) -> ((v', v), l) ∈ lG.(enum_labels).(kvlist).
 
+Definition has_label {V : Type} {L : Type} (lG : @LabeledFiniteGraph V (list L)) (edge : V * V) (label : L) : Prop :=
+  exists labels, (edge, labels) ∈ lG.(enum_labels).(kvlist) /\ label ∈ labels.
+
 Lemma edges_Irreflexive_flag_true_elim `(lG : LabeledFiniteGraph)
   (edges_Irreflexive_true : edges_Irreflexive lG)
   : forall v, ~ (v, v) \in lG.(GRAPH).(E).
@@ -1261,6 +1264,17 @@ Lemma label_Symmetric_flag_true_elim `(lG : LabeledFiniteGraph)
   : forall v, forall v', forall l, ((v, v'), l) ∈ lG.(enum_labels).(kvlist) <-> ((v', v), l) ∈ lG.(enum_labels).(kvlist).
 Proof.
   firstorder.
+Qed.
+
+Lemma has_label_edge {V : Type} {L : Type} (lG : @LabeledFiniteGraph V (list L)) (edge : V * V) (label : L)
+  (LABEL : has_label lG edge label)
+  : edge \in lG.(GRAPH).(E).
+Proof.
+  destruct LABEL as (labels & LABELS & _).
+  pose proof lG.(enum_labels_contains_all) as HH.
+  rewrite list_corresponds_to_finite_ensemble_iff in HH.
+  rewrite <- HH. rewrite L.in_map_iff.
+  exists (edge, labels). done.
 Qed.
 
 Context {V : Type} {L : Type} `{V_hasEqDec : hasEqDec V}.
@@ -1406,6 +1420,51 @@ Qed.
 #[local] Hint Resolve in_labeled_edge_vertices_src : core.
 #[local] Hint Resolve in_labeled_edge_vertices_dst : core.
 
+#[refine]
+Definition buildFiniteGraphWithVertices (vertices : list V) (edges : list (V * V * L)) : @FiniteGraph V :=
+  {|
+    E := fun edge => edge ∈ map fst edges;
+    V_dec := V_hasEqDec;
+    E_dec := fun v : V => fun v' : V => L.in_dec (pair_hasEqdec V_hasEqDec V_hasEqDec) (v, v') (map fst edges);
+    enum_vertices := vertices ++ labeled_edge_vertices edges;
+  |}.
+Proof.
+  rewrite -> FS.subset_lemma. intros v [[v_in EDGE] | [v_out EDGE]]; rewrite L.in_app_iff; right; eauto.
+Defined.
+
+#[refine]
+Definition buildLabeledFiniteGraphWithVertices (vertices : list V) (edges : list (V * V * L)) : @LabeledFiniteGraph V (list L) :=
+  {|
+    GRAPH := buildFiniteGraphWithVertices vertices edges;
+    enum_labels := {| kvlist := map (fun edge => (edge, labels_of_edge edges edge)) (labeled_edge_keys edges) |};
+  |}.
+Proof.
+  - cbn. rewrite labeled_edge_enum_keys. eapply labeled_edge_keys_NoDup.
+  - rewrite list_corresponds_to_finite_ensemble_iff. intros edge.
+    cbn. rewrite labeled_edge_enum_keys. eapply labeled_edge_keys_In.
+Defined.
+
+Lemma buildLabeledFiniteGraphWithVertices_vertex (vertices : list V) (edges : list (V * V * L)) (v : V)
+  (IN : v ∈ vertices)
+  : v ∈ (buildLabeledFiniteGraphWithVertices vertices edges).(GRAPH).(enum_vertices).
+Proof.
+  cbn. rewrite L.in_app_iff. now left.
+Qed.
+
+Lemma buildLabeledFiniteGraphWithVertices_has_label (vertices : list V) (edges : list (V * V * L)) (edge : V * V) (label : L)
+  : has_label (buildLabeledFiniteGraphWithVertices vertices edges) edge label <-> (edge, label) ∈ edges.
+Proof.
+  unfold has_label. cbn. split.
+  - intros (labels & LABELS & IN_LABEL).
+    rewrite L.in_map_iff in LABELS. destruct LABELS as (edge' & EQ & _).
+    inv EQ. now rewrite labels_of_edge_In in IN_LABEL.
+  - intros IN_EDGE. exists (labels_of_edge edges edge). split.
+    + rewrite L.in_map_iff. exists edge. split; [reflexivity | ].
+      rewrite labeled_edge_keys_In. rewrite L.in_map_iff.
+      exists (edge, label). done.
+    + now rewrite labels_of_edge_In.
+Qed.
+
 Section BUILD.
 
 Variable edges : list (V * V * L).
@@ -1433,6 +1492,20 @@ Proof.
   - rewrite list_corresponds_to_finite_ensemble_iff. intros edge.
     cbn. rewrite labeled_edge_enum_keys. eapply labeled_edge_keys_In.
 Defined.
+
+Lemma buildLabeledFiniteGraph_has_label (edge : V * V) (label : L)
+  : has_label buildLabeledFiniteGraph edge label <-> (edge, label) ∈ edges.
+Proof.
+  unfold has_label. cbn. split.
+  - intros (labels & LABELS & IN_LABEL).
+    rewrite L.in_map_iff in LABELS. destruct LABELS as (edge' & EQ & _).
+    inv EQ. now rewrite labels_of_edge_In in IN_LABEL.
+  - intros IN_EDGE. exists (labels_of_edge edges edge). split.
+    + rewrite L.in_map_iff. exists edge. split; [reflexivity | ].
+      rewrite labeled_edge_keys_In. rewrite L.in_map_iff.
+      exists (edge, label). done.
+    + now rewrite labels_of_edge_In.
+Qed.
 
 End BUILD.
 
