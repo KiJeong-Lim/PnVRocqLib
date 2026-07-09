@@ -925,15 +925,15 @@ Fixpoint successors (edges : list (V * V * L)) (src : V) {struct edges} : list V
   end.
 
 Lemma successors_In (edges : list (V * V * L)) (src : V) (dst : V)
-  : dst ∈ successors edges src <-> exists label, ((src, dst), label) ∈ edges.
+  : dst ∈ successors edges src <-> (exists label, ((src, dst), label) ∈ edges).
 Proof.
   induction edges as [ | edge_label edges IH]; simpl.
   - split; [intros [] | intros (label & [])].
-  - destruct edge_label as [[src0 dst0] label0]. simpl.
-    destruct (B.decide (src = src0)) as [EQ | NE].
-    + subst src0. simpl. rewrite IH. split.
+  - destruct edge_label as [[src' dst'] label']. simpl.
+    destruct (B.decide (src = src')) as [EQ | NE].
+    + subst src'. simpl. rewrite IH. split.
       * intros [EQ | [label IN]].
-        { subst dst0. exists label0. left. reflexivity. }
+        { subst dst'. exists label'. left. reflexivity. }
         { exists label. right. exact IN. }
       * intros (label & [EQ | IN]).
         { inv EQ. left. reflexivity. }
@@ -946,7 +946,7 @@ Proof.
 Qed.
 
 Lemma successors_labels_of_edge (edges : list (V * V * L)) (src : V) (dst : V)
-  : dst ∈ successors edges src <-> exists label, label ∈ labels_of_edge edges (src, dst).
+  : dst ∈ successors edges src <-> (exists label, label ∈ labels_of_edge edges (src, dst)).
 Proof.
   rewrite successors_In. split.
   - intros (label & IN). exists label. now rewrite labels_of_edge_In.
@@ -985,7 +985,7 @@ Definition const_labeled_edges (label : L) (edges : list (V * V)) : list (V * V 
   map (fun edge => (edge, label)) edges.
 
 Lemma const_labeled_edges_In (label0 : L) (edges : list (V * V)) (edge : V * V) (label : L)
-  : (edge, label) ∈ const_labeled_edges label0 edges <-> edge ∈ edges /\ label = label0.
+  : (edge, label) ∈ const_labeled_edges label0 edges <-> (edge ∈ edges /\ label = label0).
 Proof.
   unfold const_labeled_edges. rewrite L.in_map_iff. split.
   - intros (edge' & EQ & IN). inv EQ. done.
@@ -999,7 +999,7 @@ Proof.
 Qed.
 
 Lemma labels_of_edge_const_labeled_edges (label0 : L) (edges : list (V * V)) (edge : V * V) (label : L)
-  : label ∈ labels_of_edge (const_labeled_edges label0 edges) edge <-> edge ∈ edges /\ label = label0.
+  : label ∈ labels_of_edge (const_labeled_edges label0 edges) edge <-> (edge ∈ edges /\ label = label0).
 Proof.
   rewrite labels_of_edge_In. eapply const_labeled_edges_In.
 Qed.
@@ -1057,7 +1057,7 @@ Proof.
 Defined.
 
 #[refine]
-Definition buildLabeledFiniteGraph (edges : list ((V * V) * L)) : @LabeledFiniteGraph V (list L) :=
+Definition buildLabeledFiniteGraph (edges : list (V * V * L)) : @LabeledFiniteGraph V (list L) :=
   {|
     GRAPH := buildFiniteGraph edges;
     enum_labels := {| kvlist := map (fun edge => (edge, labels_of_edge edges edge)) (labeled_edge_keys edges) |};
