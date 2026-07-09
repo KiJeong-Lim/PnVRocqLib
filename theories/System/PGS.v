@@ -2560,7 +2560,7 @@ Definition lr0_labeled_successors (q : state) : list ((state * state) * V') :=
 Definition lr0_labeled_edges (qs : list state) : list ((state * state) * V') :=
   qs >>= lr0_labeled_successors.
 
-Definition lr0_lgraph_from (qs : list state) : @GraphAPI.LabeledFiniteGraph state (list V') :=
+Definition lr0_lgraph_from (qs : list state) : @GraphAPI.LabeledFiniteGraph state (fin_ensemble V') :=
   GraphAPI.buildLabeledFiniteGraphWithVertices qs (lr0_labeled_edges qs).
 
 Definition state_successors (q : state) : list state :=
@@ -2684,7 +2684,7 @@ Proof.
   exists parent. exists gamma. split; [exact IN_PARENT | exact RIGHT].
 Qed.
 
-Definition lr0_lgraph : @GraphAPI.LabeledFiniteGraph state (list V') :=
+Definition lr0_lgraph : @GraphAPI.LabeledFiniteGraph state (fin_ensemble V') :=
   lr0_lgraph_from Q.
 
 Lemma lr0_lgraph_vertex qs q
@@ -2779,12 +2779,13 @@ Qed.
 Theorem state_successors_lgraph_correct q q'
   : q' ∈ state_successors q <-> (exists X, GraphAPI.has_label (lr0_lgraph_from [q]) (q, q') X).
 Proof.
-  unfold state_successors. rewrite L.in_flat_map.
+  unfold state_successors.
   split.
-  - intros (X & _ & STEP). exists X.
+  - intros IN.
+    use in_list_bind_elim as (X & _ & STEP) with IN. exists X.
     now rewrite GraphAPI.successors_by_label_of_lgraph_has_label in STEP.
   - intros (X & LABEL). rewrite lr0_lgraph_has_label_correct in LABEL.
-    destruct LABEL as (_ & IN_X & DELTA). exists X. split; [exact IN_X | ].
+    destruct LABEL as (_ & IN_X & DELTA). eapply in_list_bind_intro with (x := X); [exact IN_X | ].
     rewrite GraphAPI.successors_by_label_of_lgraph_has_label.
     rewrite lr0_lgraph_has_label_correct. splits; [left; reflexivity | exact IN_X | exact DELTA].
 Qed.

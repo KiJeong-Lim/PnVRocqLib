@@ -1242,13 +1242,12 @@ Definition edges_Symmetric `(lG : LabeledFiniteGraph) : Prop :=
 Definition label_Symmetric `(lG : LabeledFiniteGraph) : Prop :=
   forall v, forall v', forall l, ((v, v'), l) ∈ lG.(enum_labels).(kvlist) -> ((v', v), l) ∈ lG.(enum_labels).(kvlist).
 
-Definition has_label {V : Type} {L : Type} (lG : @LabeledFiniteGraph V (list L)) (edge : V * V) (label : L) : Prop :=
+Definition has_label {V : Type} {L : Type} (lG : @LabeledFiniteGraph V (fin_ensemble L)) (edge : V * V) (label : L) : Prop :=
   exists labels, (edge, labels) ∈ lG.(enum_labels).(kvlist) /\ label ∈ labels.
 
-Definition successors_by_label_of_lgraph {V : Type} {L : Type} `{L_hasEqDec : hasEqDec L} (lG : @LabeledFiniteGraph V (list L)) : L -> V -> list V :=
+Definition successors_by_label_of_lgraph {V : Type} {L : Type} `{L_hasEqDec : hasEqDec L} (lG : @LabeledFiniteGraph V (fin_ensemble L)) : L -> V -> list V :=
   let V_hasEqDec : hasEqDec V := lG.(GRAPH).(V_dec) in
-  fun label : L => fun src : V =>
-  L.flat_map (fun '(edge, labels) => if B.decide (fst edge = src) then if L.in_dec L_hasEqDec label labels then [snd edge] else [] else []) lG.(enum_labels).(kvlist).
+  fun label : L => fun src : V => L.flat_map (fun '(edge, labels) => if B.decide (fst edge = src) then if L.in_dec L_hasEqDec label labels then [snd edge] else [] else []) lG.(enum_labels).(kvlist).
 
 Lemma edges_Irreflexive_flag_true_elim `(lG : LabeledFiniteGraph)
   (edges_Irreflexive_true : edges_Irreflexive lG)
@@ -1271,7 +1270,7 @@ Proof.
   firstorder.
 Qed.
 
-Lemma has_label_edge {V : Type} {L : Type} (lG : @LabeledFiniteGraph V (list L)) (edge : V * V) (label : L)
+Lemma has_label_edge {V : Type} {L : Type} (lG : @LabeledFiniteGraph V (fin_ensemble L)) (edge : V * V) (label : L)
   (LABEL : has_label lG edge label)
   : edge \in lG.(GRAPH).(E).
 Proof.
@@ -1282,7 +1281,7 @@ Proof.
   exists (edge, labels). done.
 Qed.
 
-Lemma successors_by_label_of_lgraph_has_label {V : Type} {L : Type} `{L_hasEqDec : hasEqDec L} (lG : @LabeledFiniteGraph V (list L)) (src : V) (dst : V) (label : L)
+Lemma successors_by_label_of_lgraph_has_label {V : Type} {L : Type} `{L_hasEqDec : hasEqDec L} (lG : @LabeledFiniteGraph V (fin_ensemble L)) (src : V) (dst : V) (label : L)
   : dst ∈ successors_by_label_of_lgraph lG label src <-> has_label lG (src, dst) label.
 Proof.
   unfold successors_by_label_of_lgraph, has_label. simpl.
@@ -1456,7 +1455,7 @@ Proof.
 Defined.
 
 #[refine]
-Definition buildLabeledFiniteGraphWithVertices (vertices : list V) (edges : list (V * V * L)) : @LabeledFiniteGraph V (list L) :=
+Definition buildLabeledFiniteGraphWithVertices (vertices : list V) (edges : list (V * V * L)) : @LabeledFiniteGraph V (fin_ensemble L) :=
   {|
     GRAPH := buildFiniteGraphWithVertices vertices edges;
     enum_labels := {| kvlist := map (fun edge => (edge, labels_of_edge edges edge)) (labeled_edge_keys edges) |};
@@ -1503,7 +1502,7 @@ Next Obligation.
 Qed.
 
 #[refine]
-Definition buildLabeledFiniteGraph : @LabeledFiniteGraph V (list L) :=
+Definition buildLabeledFiniteGraph : @LabeledFiniteGraph V (fin_ensemble L) :=
   {|
     GRAPH := buildFiniteGraph;
     enum_labels := {| kvlist := map (fun edge => (edge, labels_of_edge edges edge)) (labeled_edge_keys edges) |};

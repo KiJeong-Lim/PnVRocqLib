@@ -386,7 +386,7 @@ Record t : Type :=
 
 #[global] Existing Instance state_hasEqDec.
 
-Definition lgraph (M : TaggedENFA.t) : @GraphAPI.LabeledFiniteGraph M.(TaggedENFA.state) (list enfa_edge_label) :=
+Definition lgraph (M : TaggedENFA.t) : @GraphAPI.LabeledFiniteGraph M.(TaggedENFA.state) (fin_ensemble enfa_edge_label) :=
   GraphAPI.buildLabeledFiniteGraphWithVertices M.(TaggedENFA.states) M.(TaggedENFA.labeled_edges).
 
 Definition eps_step (M : TaggedENFA.t) (q : M.(TaggedENFA.state)) : fin_ensemble M.(TaggedENFA.state) :=
@@ -636,25 +636,25 @@ Definition char_labeled_edges (edges : list char_edge) : list (nat * nat * enfa_
 Definition enfa_labeled_edges (eps_edges : list (nat * nat)) (char_edges : list char_edge) : list (nat * nat * enfa_edge_label) :=
   eps_labeled_edges eps_edges ++ char_labeled_edges char_edges.
 
-Definition enfa_lgraph_from (vertices : list nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge) : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label) :=
+Definition enfa_lgraph_from (vertices : list nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge) : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label) :=
   GraphAPI.buildLabeledFiniteGraphWithVertices vertices (enfa_labeled_edges eps_edges char_edges).
 
-Definition enfa_lgraph (eps_edges : list (nat * nat)) (char_edges : list char_edge) : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label) :=
+Definition enfa_lgraph (eps_edges : list (nat * nat)) (char_edges : list char_edge) : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label) :=
   enfa_lgraph_from [] eps_edges char_edges.
 
-Definition fragment_lgraph (frag : fragment) : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label) :=
+Definition fragment_lgraph (frag : fragment) : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label) :=
   enfa_lgraph_from (fragment_vertices frag) frag.(frag_eps_edges) frag.(frag_char_edges).
 
-Definition fragments_lgraph (frags : list (Rule.t * fragment)) : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label) :=
+Definition fragments_lgraph (frags : list (Rule.t * fragment)) : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label) :=
   enfa_lgraph_from (fragments_vertices frags) (fragment_eps_edges frags) (fragment_char_edges frags).
 
-Definition enfa_eps_step (lG : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label)) (q : nat) : list nat :=
+Definition enfa_eps_step (lG : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label)) (q : nat) : list nat :=
   GraphAPI.successors_by_label_of_lgraph lG None q.
 
-Definition enfa_char_step (lG : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label)) (q : nat) (c : ascii) : list nat :=
+Definition enfa_char_step (lG : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label)) (q : nat) (c : ascii) : list nat :=
   GraphAPI.successors_by_label_of_lgraph lG (Some c) q.
 
-Definition enfa_delta_star (lG : @GraphAPI.LabeledFiniteGraph nat (list enfa_edge_label)) : nat -> Input.t -> ensemble nat :=
+Definition enfa_delta_star (lG : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label)) : nat -> Input.t -> ensemble nat :=
   delta_star (enfa_eps_step lG) (enfa_char_step lG).
 
 Definition fragments2TaggedENFA (qmax : nat) (frags : list (Rule.t * fragment)) : TaggedENFA.t :=
