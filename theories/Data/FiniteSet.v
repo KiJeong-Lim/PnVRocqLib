@@ -85,20 +85,18 @@ Proof.
   rewrite list_corresponds_to_finite_ensemble_iff.
   intros b. rewrite L.in_flat_map. split.
   - intros (x & x_in & b_in). exists x. split.
-    + pose proof xs_sim as XS_SIM.
-      rewrite list_corresponds_to_finite_ensemble_iff in XS_SIM.
-      exact (proj1 (XS_SIM x) x_in).
-    + pose proof (f_sim x) as F_SIM.
-      rewrite list_corresponds_to_finite_ensemble_iff in F_SIM.
-      exact (proj1 (F_SIM x_in b) b_in).
+    + rewrite list_corresponds_to_finite_ensemble_iff in xs_sim.
+      now rewrite <- xs_sim.
+    + use f_sim as fx_sim.
+      rewrite list_corresponds_to_finite_ensemble_iff in fx_sim.
+      now rewrite <- fx_sim.
   - intros (x & x_in & b_in). exists x. split.
-    + pose proof xs_sim as XS_SIM.
-      rewrite list_corresponds_to_finite_ensemble_iff in XS_SIM.
-      exact (proj2 (XS_SIM x) x_in).
-    + pose proof (f_sim x) as F_SIM.
-      rewrite list_corresponds_to_finite_ensemble_iff in F_SIM.
-      assert (x ∈ xs) as HH by done.
-      exact (proj2 (F_SIM HH b) b_in).
+    + rewrite list_corresponds_to_finite_ensemble_iff in xs_sim.
+      now rewrite -> xs_sim.
+    + rewrite list_corresponds_to_finite_ensemble_iff in xs_sim.
+      rewrite <- xs_sim in x_in. use f_sim as fx_sim.
+      rewrite list_corresponds_to_finite_ensemble_iff in fx_sim.
+      now rewrite -> fx_sim.
 Qed.
 
 Definition mem {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) : bool :=
@@ -225,7 +223,7 @@ Lemma index_of_in_seq {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A)
   (IN : x ∈ xs)
   : index_of x xs ∈ seq 0 (length xs).
 Proof.
-  rewrite in_seq. pose proof (index_of_lt x xs IN). lia.
+  rewrite in_seq. use index_of_lt as ?. lia.
 Qed.
 
 Lemma index_of_inj {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (y : A) (zs : list A)
