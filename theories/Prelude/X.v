@@ -3,7 +3,7 @@ Require Import PnV.Prelude.Prelude.
 Notation "lhs ≠ rhs" := (~ (lhs = rhs)) : type_scope.
 
 Tactic Notation "use" uconstr( H ) :=
-  hexploit H; cycle -1; [i | eauto with * ..]; cycle 1.
+  unshelve hexploit H; [eauto .. | intros p].
 
 Tactic Notation "use" uconstr( H ) "as" simple_intropattern( p ) :=
   hexploit H; cycle -1; [intros p | try eassumption ..]; cycle 1.

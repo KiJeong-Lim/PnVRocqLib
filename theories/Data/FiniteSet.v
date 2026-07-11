@@ -46,12 +46,12 @@ Instance fin_ensemble_isSetoid (Elem : Type@{U_fs}) (Elem_isSetoid : isSetoid El
   { eqProp (lhs : list Elem) (rhs : list Elem) := (forall e : Elem, forall IN : e ∈ lhs, exists e', e' ∈ rhs /\ e == e') /\ (forall e : Elem, forall IN : e ∈ rhs, exists e', e' ∈ lhs /\ e' == e) }.
 Next Obligation.
   split; [intros xs | intros xs ys [xs_ys ys_xs] | intros xs ys zs [xs_ys ys_xs] [ys_zs zs_ys]]; split; i.
-  - exists e. splits; auto. reflexivity; eauto.
-  - exists e. splits; auto. reflexivity; eauto.
-  - use ys_xs as (e1 & H_in & H_eq) with IN. exists e1. splits; auto. symmetry; eauto.
-  - use xs_ys as (e1 & H_in & H_eq) with IN. exists e1. splits; auto. symmetry; eauto.
-  - use xs_ys as (e1 & H_in & H_eq) with IN. use ys_zs as (e2 & H_in' & H_eq') with H_in. exists e2. splits; auto. transitivity e1; eauto.
-  - use zs_ys as (e1 & H_in & H_eq) with IN. use ys_xs as (e2 & H_in' & H_eq') with H_in. exists e2. splits; auto. transitivity e1; eauto.
+  - exists e. splits; auto. now reflexivity.
+  - exists e. splits; auto. now reflexivity.
+  - use ys_xs as (e1 & H_in & H_eq) with IN. exists e1. splits; auto. now symmetry.
+  - use xs_ys as (e1 & H_in & H_eq) with IN. exists e1. splits; auto. now symmetry.
+  - use xs_ys as (e1 & H_in & H_eq) with IN. use ys_zs as (e2 & H_in' & H_eq') with H_in. exists e2. splits; auto. now transitivity e1.
+  - use zs_ys as (e1 & H_in & H_eq) with IN. use ys_xs as (e2 & H_in' & H_eq') with H_in. exists e2. splits; auto. now transitivity e1.
 Qed.
 
 #[global]
@@ -84,16 +84,14 @@ Theorem list_corresponds_to_finite_ensemble_flat_map {A : Type} {B : Type} (xs :
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff.
   intros b. rewrite L.in_flat_map. split.
-  - intros [x [x_in b_in]].
-    exists x. split.
+  - intros (x & x_in & b_in). exists x. split.
     + pose proof xs_sim as XS_SIM.
       rewrite list_corresponds_to_finite_ensemble_iff in XS_SIM.
       exact (proj1 (XS_SIM x) x_in).
     + pose proof (f_sim x) as F_SIM.
       rewrite list_corresponds_to_finite_ensemble_iff in F_SIM.
       exact (proj1 (F_SIM x_in b) b_in).
-  - intros [x [x_in b_in]].
-    exists x. split.
+  - intros (x & x_in & b_in). exists x. split.
     + pose proof xs_sim as XS_SIM.
       rewrite list_corresponds_to_finite_ensemble_iff in XS_SIM.
       exact (proj2 (XS_SIM x) x_in).
@@ -101,18 +99,6 @@ Proof.
       rewrite list_corresponds_to_finite_ensemble_iff in F_SIM.
       assert (x ∈ xs) as HH by done.
       exact (proj2 (F_SIM HH b) b_in).
-Qed.
-
-Fact existsb_iff (A : Type) (p : A -> bool) (xs : list A)
-  : existsb p xs = true <-> (exists x : A, x ∈ xs /\ p x = true).
-Proof.
-  eapply L.existsb_exists.
-Qed.
-
-Fact forallb_iff (A : Type) (p : A -> bool) (xs : list A)
-  : forallb p xs = true <-> (forall x : A, x ∈ xs -> p x = true).
-Proof.
-  eapply L.forallb_forall.
 Qed.
 
 Definition mem {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) : bool :=
@@ -176,9 +162,7 @@ Fixpoint unions {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (xss : list (list A)) {
 Lemma in_unions_iff (A : Type) `(EQ_DEC : hasEqDec A) (xss : list (list A))
   : forall z, z ∈ unions xss <-> (exists xs, xs ∈ xss /\ z ∈ xs).
 Proof.
-  induction xss as [ | xs xss IH]; simpl; i; s!.
-  - done.
-  - rewrite IH. clear IH. done.
+  induction xss as [ | xs xss IH]; simpl; i; ss!.
 Qed.
 
 #[global] Hint Rewrite in_unions_iff : simplication_hints.
@@ -188,10 +172,10 @@ Lemma remove_length_lt {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A)
   : length (remove EQ_DEC x xs) < length xs.
 Proof.
   revert x IN; induction xs as [ | y ys IH]; simpl; ii.
-  - contradiction.
-  - destruct (EQ_DEC _ _) as [EQ | NE]; simpl.
-    + use (@remove_length_le _ EQ_DEC ys x) as HH. lia.
-    + destruct IN as [EQ | IN]; done.
+  - ss!.
+  - des_ifs.
+    + use remove_length_le; ss!.
+    + des; ss!.
 Qed.
 
 Fixpoint powerset {A : Type@{U_fs}} (xs : list A) : list (list A) :=
@@ -211,7 +195,7 @@ Qed.
 Lemma powerset_length@{u} {A : Type@{u}} (xs : list A)
   : length (powerset xs) = pow2 (length xs).
 Proof.
-  induction xs as [ | x xs IH]; simpl; ss!.
+  induction xs as [ | x xs IH]; ss!.
 Qed.
 
 Fixpoint index_of {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) {struct xs} : nat :=
@@ -270,8 +254,8 @@ Theorem product_iff (A : Type) (B : Type) (xs : list A) (ys : list B)
   : forall x, forall y, (x, y) ∈ product xs ys <-> x ∈ xs /\ y ∈ ys.
 Proof.
   ii; unfold product; split; intros H_in.
-  - repeat ss!.
-  - s!. exists (concat (map (fun y : B => pure (x, y)) ys)). s!. split.
+  - done.
+  - s!. exists (concat (map (fun y => pure (x, y)) ys)). s!. split.
     + exists x. ss!.
     + exists [(x, y)]. ss!.
 Qed.

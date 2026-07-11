@@ -120,8 +120,8 @@ Instance BuildErrorM_isMonad@{u} : isMonad@{u u} BuildErrorM@{u} :=
 
 #[local] Hint Rewrite eqb_spec@{Set} : simplication_hints.
 #[local] Hint Rewrite mem_spec : simplication_hints.
-#[local] Hint Rewrite existsb_iff : simplication_hints.
-#[local] Hint Rewrite forallb_iff : simplication_hints.
+#[local] Hint Rewrite L.existsb_exists : simplication_hints.
+#[local] Hint Rewrite L.forallb_forall : simplication_hints.
 
 #[local] Hint Rewrite in_union_iff: simplication_hints.
 #[local] Hint Rewrite in_normalize_iff : simplication_hints.
