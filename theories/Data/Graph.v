@@ -1245,7 +1245,7 @@ Definition label_Symmetric `(lG : LabeledFiniteGraph) : Prop :=
 Definition has_label {V : Type} {L : Type} (lG : @LabeledFiniteGraph V (fin_ensemble L)) (edge : V * V) (label : L) : Prop :=
   exists labels, (edge, labels) ∈ lG.(enum_labels).(kvlist) /\ label ∈ labels.
 
-Definition successors_by_label_of_lgraph {V : Type} {L : Type} `{L_hasEqDec : hasEqDec L} (lG : @LabeledFiniteGraph V (fin_ensemble L)) : L -> V -> list V :=
+Definition successors_by_label_of_graph {V : Type} {L : Type} `{L_hasEqDec : hasEqDec L} (lG : @LabeledFiniteGraph V (fin_ensemble L)) : L -> V -> list V :=
   let V_hasEqDec : hasEqDec V := lG.(GRAPH).(V_dec) in
   fun label : L => fun src : V => L.flat_map (fun '(edge, labels) => if B.decide (fst edge = src) then if L.in_dec L_hasEqDec label labels then [snd edge] else [] else []) lG.(enum_labels).(kvlist).
 
@@ -1281,10 +1281,10 @@ Proof.
   exists (edge, labels). done.
 Qed.
 
-Lemma successors_by_label_of_lgraph_has_label {V : Type} {L : Type} `{L_hasEqDec : hasEqDec L} (lG : @LabeledFiniteGraph V (fin_ensemble L)) (src : V) (dst : V) (label : L)
-  : dst ∈ successors_by_label_of_lgraph lG label src <-> has_label lG (src, dst) label.
+Lemma successors_by_label_of_graph_has_label {V : Type} {L : Type} `{L_hasEqDec : hasEqDec L} (lG : @LabeledFiniteGraph V (fin_ensemble L)) (src : V) (dst : V) (label : L)
+  : dst ∈ successors_by_label_of_graph lG label src <-> has_label lG (src, dst) label.
 Proof.
-  unfold successors_by_label_of_lgraph, has_label. simpl.
+  unfold successors_by_label_of_graph, has_label. simpl.
   rewrite L.in_flat_map. split.
   - intros ([[src' dst'] labels] & LABELS & IN_DST); simpl in *.
     destruct (B.decide (src' = src)) as [EQ_SRC | NE_SRC]; [subst src' | contradiction].
