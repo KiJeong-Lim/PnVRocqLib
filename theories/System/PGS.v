@@ -6705,7 +6705,7 @@ Proof.
   unfold read_domain_entry in IN_ENTRY.
   destruct (dN _ _) as [n' | ] eqn: H_OBS in IN_ENTRY.
   - simpl in IN_ENTRY. destruct IN_ENTRY as [EQ | []]. rewrite inject_pair_eq in EQ.
-    des; subst. exists n'. replace* (dN _ _) by H_OBS. congruence.
+    des; subst. exists n'. rewrite* (dN _ _) by H_OBS. congruence.
   - inv IN_ENTRY.
 Qed.
 
@@ -6777,7 +6777,7 @@ Proof.
   unfold DR. rewrite STEP_N.
   eapply in_fin_ensemble_bind_intro with (x := t).
   - eapply T'_all_complete.
-  - replace* (dN _ _) by STEP_T. simpl. tauto.
+  - rewrite* (dN _ _) by STEP_T. simpl. tauto.
 Qed.
 
 Definition reads_deps (node : read_node) : fin_ensemble read_node :=
@@ -6809,9 +6809,9 @@ Proof.
   unfold reads_deps. rewrite STEP_N.
   eapply in_fin_ensemble_bind_intro with (x := C).
   - eapply N'_all_complete.
-  - replace* (nullableb _) by NULLABLE.
+  - rewrite* (nullableb _) by NULLABLE.
     rewrite <- mem_true_iff in IN_D.
-    replace* (mem _ _) by IN_D.
+    rewrite* (mem _ _) by IN_D.
     simpl; tauto.
 Qed.
 

@@ -2,7 +2,7 @@ Require Import PnV.Prelude.Prelude.
 
 Notation "lhs ≠ rhs" := (~ (lhs = rhs)) : type_scope.
 
-Tactic Notation "replace*" uconstr( t ) "by" ident ( H_EQ ) :=
+Tactic Notation "rewrite*" uconstr( t ) "by" ident ( H_EQ ) :=
   let lhs := fresh "lhs" in
   set (lhs := t) in |- *;
   match type of H_EQ with
