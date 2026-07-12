@@ -18,6 +18,43 @@ Module FS.
 Definition fin_ensemble@{u | } (Elem : Type@{u}) : Type@{u} :=
   list Elem.
 
+Definition Similarity_list_finite_ensemble {ELEM : Type} {ELEM' : Type} (ELEM_sim : Similarity ELEM ELEM') : Similarity (fin_ensemble ELEM) (ensemble ELEM') :=
+  fun xs : fin_ensemble ELEM => fun X' : ensemble ELEM' => ⟪ SUBSET1 : forall x, x ∈ xs -> (exists x', x =~= x' /\ x' \in X') ⟫ /\ ⟪ SUBSET2 : forall x', x' \in X' -> (exists x, x =~= x' /\ x ∈ xs) ⟫.
+
+#[global]
+Instance list_corresponds_to_finite_ensemble {ELEM : Type} : Similarity (fin_ensemble ELEM) (ensemble ELEM) :=
+  Similarity_list_finite_ensemble eq.
+
+Theorem list_corresponds_to_finite_ensemble_iff (A : Type) (xs : fin_ensemble A) (X : ensemble A)
+  : xs =~= X <-> (forall x, x ∈ xs <-> x \in X).
+Proof.
+  done!.
+Qed.
+
+#[global] Hint Rewrite list_corresponds_to_finite_ensemble_iff : simplication_hints.
+
+Theorem list_corresponds_to_finite_ensemble_flat_map {A : Type} {B : Type} (xs : fin_ensemble A) (X : ensemble A) (f : A -> fin_ensemble B) (F : A -> ensemble B)
+  (xs_sim : xs =~= X)
+  (f_sim : forall x, x ∈ xs -> f x =~= F x)
+  : L.flat_map f xs =~= (X >>= F).
+Proof.
+  rewrite list_corresponds_to_finite_ensemble_iff.
+  intros b. rewrite L.in_flat_map. split.
+  - intros (x & x_in & b_in). exists x. split.
+    + rewrite list_corresponds_to_finite_ensemble_iff in xs_sim.
+      now rewrite <- xs_sim.
+    + use f_sim as fx_sim.
+      rewrite list_corresponds_to_finite_ensemble_iff in fx_sim.
+      now rewrite <- fx_sim.
+  - intros (x & x_in & b_in). exists x. split.
+    + rewrite list_corresponds_to_finite_ensemble_iff in xs_sim.
+      now rewrite -> xs_sim.
+    + rewrite list_corresponds_to_finite_ensemble_iff in xs_sim.
+      rewrite <- xs_sim in x_in. use f_sim as fx_sim.
+      rewrite list_corresponds_to_finite_ensemble_iff in fx_sim.
+      now rewrite -> fx_sim.
+Qed.
+
 #[global] Typeclasses Opaque fin_ensemble.
 
 #[global] Hint Rewrite L.in_concat : simplication_hints.
@@ -25,21 +62,6 @@ Definition fin_ensemble@{u | } (Elem : Type@{u}) : Type@{u} :=
 #[global] Hint Rewrite L.in_flat_map : simplication_hints.
 #[global] Hint Rewrite length_app : simplication_hints.
 #[global] Hint Rewrite length_map : simplication_hints.
-
-Definition Similarity_list_finite_ensemble {ELEM : Type} {ELEM' : Type} (ELEM_sim : Similarity ELEM ELEM') : Similarity (fin_ensemble ELEM) (ensemble ELEM') :=
-  fun xs : list ELEM => fun X' : ensemble ELEM' => ⟪ SUBSET1 : forall x, x ∈ xs -> (exists x', x =~= x' /\ x' \in X') ⟫ /\ ⟪ SUBSET2 : forall x', x' \in X' -> (exists x, x =~= x' /\ x ∈ xs) ⟫.
-
-#[global]
-Instance list_corresponds_to_finite_ensemble {ELEM : Type} : Similarity (list ELEM) (ensemble ELEM) :=
-  Similarity_list_finite_ensemble eq.
-
-Theorem list_corresponds_to_finite_ensemble_iff (A : Type) (xs : list A) (X : ensemble A)
-  : xs =~= X <-> (forall x, x ∈ xs <-> x \in X).
-Proof.
-  done!.
-Qed.
-
-#[global] Hint Rewrite list_corresponds_to_finite_ensemble_iff : simplication_hints.
 
 #[global, program]
 Instance fin_ensemble_isSetoid (Elem : Type@{U_fs}) (Elem_isSetoid : isSetoid Elem) : isSetoid (fin_ensemble@{U_fs} Elem) :=
@@ -77,32 +99,10 @@ Proof.
   split; i; rewrite fin_ensemble_isSetoid1_eq_iff in *; i; ss!; ss!; exists x0; ss!.
 Qed.
 
-Theorem list_corresponds_to_finite_ensemble_flat_map {A : Type} {B : Type} (xs : list A) (X : ensemble A) (f : A -> list B) (F : A -> ensemble B)
-  (xs_sim : xs =~= X)
-  (f_sim : forall x, x ∈ xs -> f x =~= F x)
-  : L.flat_map f xs =~= (X >>= F).
-Proof.
-  rewrite list_corresponds_to_finite_ensemble_iff.
-  intros b. rewrite L.in_flat_map. split.
-  - intros (x & x_in & b_in). exists x. split.
-    + rewrite list_corresponds_to_finite_ensemble_iff in xs_sim.
-      now rewrite <- xs_sim.
-    + use f_sim as fx_sim.
-      rewrite list_corresponds_to_finite_ensemble_iff in fx_sim.
-      now rewrite <- fx_sim.
-  - intros (x & x_in & b_in). exists x. split.
-    + rewrite list_corresponds_to_finite_ensemble_iff in xs_sim.
-      now rewrite -> xs_sim.
-    + rewrite list_corresponds_to_finite_ensemble_iff in xs_sim.
-      rewrite <- xs_sim in x_in. use f_sim as fx_sim.
-      rewrite list_corresponds_to_finite_ensemble_iff in fx_sim.
-      now rewrite -> fx_sim.
-Qed.
-
-Definition mem {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) : bool :=
+Definition mem {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : fin_ensemble A) : bool :=
   if in_dec EQ_DEC x xs then true else false.
 
-Theorem mem_spec (A : Type) `(EQ_DEC : hasEqDec A) (x : A) (xs : list A)
+Theorem mem_spec (A : Type) `(EQ_DEC : hasEqDec A) (x : A) (xs : fin_ensemble A)
   : forall b, mem x xs = b <-> (if b then x ∈ xs else ~ x ∈ xs).
 Proof.
   unfold mem; intros [ | ]; revert x; induction xs; intros; simpl; des_ifs; done.
@@ -110,10 +110,10 @@ Qed.
 
 #[global] Hint Rewrite mem_spec : simplication_hints.
 
-Definition add {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) : list A :=
+Definition add {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : fin_ensemble A) : fin_ensemble A :=
   if mem x xs then xs else x :: xs.
 
-Theorem in_add_iff (A : Type) `(EQ_DEC : hasEqDec A) (x : A) (xs : list A)
+Theorem in_add_iff (A : Type) `(EQ_DEC : hasEqDec A) (x : A) (xs : fin_ensemble A)
   : forall y, y ∈ add x xs <-> (x = y \/ y ∈ xs).
 Proof.
   i; unfold add, mem; des_ifs; done.
@@ -121,13 +121,13 @@ Qed.
 
 #[global] Hint Rewrite in_add_iff : simplication_hints.
 
-Fixpoint union {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (xs : list A) (ys : list A) {struct xs} : list A :=
+Fixpoint union {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (xs : fin_ensemble A) (ys : fin_ensemble A) {struct xs} : fin_ensemble A :=
   match xs with
   | [] => ys
   | x :: xs' => union xs' (add x ys)
   end.
 
-Theorem in_union_iff (A : Type) `(EQ_DEC : hasEqDec A) (xs : list A) (ys : list A)
+Theorem in_union_iff (A : Type) `(EQ_DEC : hasEqDec A) (xs : fin_ensemble A) (ys : fin_ensemble A)
   : forall z, z ∈ union xs ys <-> (z ∈ xs \/ z ∈ ys).
 Proof.
   revert ys; induction xs as [ | x xs IH]; ii; simpl; s!.
@@ -137,13 +137,13 @@ Qed.
 
 #[global] Hint Rewrite in_union_iff : simplication_hints.
 
-Fixpoint normalize {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (xs : list A) {struct xs} : list A :=
+Fixpoint normalize {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (xs : fin_ensemble A) {struct xs} : fin_ensemble A :=
   match xs with
   | [] => []
   | x :: xs' => add x (normalize xs')
   end.
 
-Theorem in_normalize_iff (A : Type) `(EQ_DEC : hasEqDec A) (xs : list A)
+Theorem in_normalize_iff (A : Type) `(EQ_DEC : hasEqDec A) (xs : fin_ensemble A)
   : forall z, z ∈ normalize xs <-> z ∈ xs.
 Proof.
   induction xs as [ | x xs IH]; simpl; ii; done.
@@ -151,13 +151,13 @@ Qed.
 
 #[global] Hint Rewrite in_normalize_iff : simplication_hints.
 
-Fixpoint unions {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (xss : list (list A)) {struct xss} : list A :=
+Fixpoint unions {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (xss : fin_ensemble (fin_ensemble A)) {struct xss} : fin_ensemble A :=
   match xss with
   | [] => []
   | xs :: xss' => union xs (unions xss')
   end.
 
-Lemma in_unions_iff (A : Type) `(EQ_DEC : hasEqDec A) (xss : list (list A))
+Lemma in_unions_iff (A : Type) `(EQ_DEC : hasEqDec A) (xss : fin_ensemble (fin_ensemble A))
   : forall z, z ∈ unions xss <-> (exists xs, xs ∈ xss /\ z ∈ xs).
 Proof.
   induction xss as [ | xs xss IH]; simpl; i; ss!.
@@ -176,7 +176,7 @@ Proof.
     + des; ss!.
 Qed.
 
-Fixpoint powerset {A : Type@{U_fs}} (xs : list A) : list (list A) :=
+Fixpoint powerset {A : Type@{U_fs}} (xs : fin_ensemble A) : fin_ensemble (fin_ensemble A) :=
   match xs with
   | [] => [[]]
   | x :: xs' =>
@@ -184,16 +184,19 @@ Fixpoint powerset {A : Type@{U_fs}} (xs : list A) : list (list A) :=
     ps ++ map (fun ys => x :: ys) ps
   end.
 
-Lemma filter_in_powerset {A : Type} (p : A -> bool) (xs : list A)
+Lemma filter_in_powerset {A : Type} (p : A -> bool) (xs : fin_ensemble A)
   : filter p xs ∈ powerset xs.
 Proof.
   induction xs as [ | x xs IH]; simpl; des_ifs; ss!.
 Qed.
 
-Lemma powerset_length@{u} {A : Type@{u}} (xs : list A)
+Lemma powerset_length@{u} {A : Type@{u}} (xs : fin_ensemble A)
   : length (powerset xs) = pow2 (length xs).
 Proof.
-  induction xs as [ | x xs IH]; ss!.
+  induction xs as [ | x xs IH]; simpl.
+  - reflexivity.
+  - rewrite length_app, length_map, IH. f_equal.
+    transitivity (pow2 (length xs)); [exact IH | symmetry; apply Nat.add_0_r].
 Qed.
 
 Fixpoint index_of {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A) {struct xs} : nat :=
@@ -248,8 +251,8 @@ Qed.
 Definition product@{u v} {A : Type@{u}} {B : Type@{v}} (xs : list A) (ys : list B) : list (A * B) :=
   xs >>= fun x => ys >>= fun y => pure (x, y).
 
-Theorem product_iff (A : Type) (B : Type) (xs : list A) (ys : list B)
-  : forall x, forall y, (x, y) ∈ product xs ys <-> x ∈ xs /\ y ∈ ys.
+Theorem product_iff (A : Type) (B : Type) (xs : fin_ensemble A) (ys : fin_ensemble B)
+  : forall x, forall y, (x, y) ∈ product xs ys <-> (x ∈ xs /\ y ∈ ys).
 Proof.
   ii; unfold product; split; intros H_in.
   - done.
@@ -315,13 +318,13 @@ Proof.
   - ii; eapply INJ; ss!.
 Qed.
 
-Lemma subset_lemma (A : Type@{U_fs}) (xs : list A) (X : ensemble A)
+Lemma subset_lemma (A : Type@{U_fs}) (xs : fin_ensemble A) (X : ensemble A)
   : (exists X' : ensemble@{U_fs} A, xs =~= E.union X X') <-> (forall x : A, E.In x X -> L.In x xs).
 Proof.
   ss!. exists (E.fromList xs). ss!.
 Qed.
 
-Lemma superset_lemma (A : Type@{U_fs}) (xs : list A) (X : ensemble A)
+Lemma superset_lemma (A : Type@{U_fs}) (xs : fin_ensemble A) (X : ensemble A)
   : (exists X' : ensemble@{U_fs} A, xs =~= E.intersection X X') <-> (forall x : A, L.In x xs -> E.In x X).
 Proof.
   ss!. exists (E.fromList xs). ss!.
