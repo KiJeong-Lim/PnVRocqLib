@@ -114,31 +114,6 @@ Proof.
   cbn [bind fin_ensemble_isMonad] in IN. rewrite L.in_flat_map in IN. exact IN.
 Qed.
 
-Lemma in_fin_ensemble_option_match_intro {A : Type} {B : Type} (o : option A) (f : A -> fin_ensemble B) (a : A) (x : B)
-  (EQ : o = Some a)
-  (IN : L.In x (f a))
-  : L.In x (match o with Some a' => f a' | None => [] end).
-Proof.
-  subst o. exact IN.
-Qed.
-
-Lemma in_fin_ensemble_option_match_elim {A : Type} {B : Type} (o : option A) (f : A -> fin_ensemble B) (x : B)
-  (IN : L.In x (match o with Some a => f a | None => [] end))
-  : exists a, o = Some a /\ L.In x (f a).
-Proof.
-  destruct o as [a | ].
-  - exists a. split; [reflexivity | exact IN].
-  - contradiction.
-Qed.
-
-Lemma in_fin_ensemble_if_true_intro {A : Type} (b : bool) (xs : fin_ensemble A) (ys : fin_ensemble A) (x : A)
-  (EQ : b = true)
-  (IN : L.In x xs)
-  : L.In x (if b then xs else ys).
-Proof.
-  subst b. exact IN.
-Qed.
-
 Definition mem {A : Type@{U_fs}} `{EQ_DEC : hasEqDec A} (x : A) (xs : fin_ensemble A) : bool :=
   if in_dec EQ_DEC x xs then true else false.
 

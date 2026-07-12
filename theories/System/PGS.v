@@ -6703,8 +6703,10 @@ Proof.
   use in_fin_ensemble_bind_elim as (n0 & IN_N & IN_A_BIND) with IN.
   use in_fin_ensemble_bind_elim as (A0 & IN_A & IN_ENTRY) with IN_A_BIND.
   unfold read_domain_entry in IN_ENTRY.
-  use in_fin_ensemble_option_match_elim as (r & STEP & IN_SINGLE) with IN_ENTRY.
-  simpl in IN_SINGLE. destruct IN_SINGLE as [EQ | []]. inv EQ. exists r. exact STEP.
+  destruct (dN _ _) as [n' | ] eqn: H_OBS in IN_ENTRY.
+  - simpl in IN_ENTRY. destruct IN_ENTRY as [EQ | []]. rewrite inject_pair_eq in EQ.
+    des; subst. exists n'. replace* (dN _ _) by H_OBS. congruence.
+  - inv IN_ENTRY.
 Qed.
 
 Lemma read_domain_complete n A r
@@ -6775,7 +6777,7 @@ Proof.
   unfold DR. rewrite STEP_N.
   eapply in_fin_ensemble_bind_intro with (x := t).
   - eapply T'_all_complete.
-  - eapply in_fin_ensemble_option_match_intro with (a := s); [exact STEP_T | ]. simpl. left. reflexivity.
+  - replace* (dN _ _) by STEP_T. simpl. tauto.
 Qed.
 
 Definition reads_deps (node : read_node) : fin_ensemble read_node :=
@@ -6807,9 +6809,10 @@ Proof.
   unfold reads_deps. rewrite STEP_N.
   eapply in_fin_ensemble_bind_intro with (x := C).
   - eapply N'_all_complete.
-  - eapply in_fin_ensemble_if_true_intro; [exact NULLABLE | ].
+  - replace* (nullableb _) by NULLABLE.
     rewrite <- mem_true_iff in IN_D.
-    eapply in_fin_ensemble_if_true_intro; [exact IN_D | ]. simpl. left. reflexivity.
+    replace* (mem _ _) by IN_D.
+    simpl; tauto.
 Qed.
 
 Lemma reads_deps_closed x y
