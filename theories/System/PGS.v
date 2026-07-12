@@ -16,26 +16,26 @@ Import FM.
 #[local] Infix "=~=" := (is_similar_to (Similarity := Re.in_regex eq)) : type_scope.
 #[local] Infix "∈" := L.In.
 
-Lemma mem_true_iff {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A)
+Lemma mem_true_iff {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : fin_ensemble A)
   : mem (EQ_DEC := EQ_DEC) x xs = true <-> x ∈ xs.
 Proof.
   eapply mem_spec.
 Qed.
 
-Lemma mem_false_iff {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : list A)
+Lemma mem_false_iff {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : fin_ensemble A)
   : mem (EQ_DEC := EQ_DEC) x xs = false <-> ~ x ∈ xs.
 Proof.
   eapply mem_spec.
 Qed.
 
-Lemma digraph_closure_trace {X : Type} {A : Type} (seed : X -> list A) (deps : X -> list X) (x : X) (a : A)
+Lemma digraph_closure_trace {X : Type} {A : Type} (seed : X -> fin_ensemble A) (deps : X -> fin_ensemble X) (x : X) (a : A)
   (CLOS : digraph_closure seed deps a x)
   : exists tr, tr \in digraph_trace seed deps a x.
 Proof.
   eapply digraph_closure_iff_trace. exact CLOS.
 Qed.
 
-Lemma digraph_value_sound {X : Type} {A : Type} `{EQ_DEC : hasEqDec A} (fuel : nat) (seed : X -> list A) (deps : X -> list X) (x : X) (a : A)
+Lemma digraph_value_sound {X : Type} {A : Type} `{EQ_DEC : hasEqDec A} (fuel : nat) (seed : X -> fin_ensemble A) (deps : X -> fin_ensemble X) (x : X) (a : A)
   (IN : a ∈ digraph_value fuel seed deps x)
   : digraph_closure seed deps a x.
 Proof.
@@ -50,7 +50,7 @@ Declare Module TM : FINITE_ENUM.
 
 Parameter start : NT.t.
 
-Parameter productions : list (NT.t * list (NT.t + TM.t)).
+Parameter productions : fin_ensemble (NT.t * list (NT.t + TM.t)).
 
 End GRAMMAR_SPEC.
 
@@ -65,7 +65,7 @@ Definition t : Set :=
 Instance t_hasEqDec : hasEqDec Option.t :=
   option_hasEqDec E.t_hasEqDec.
 
-Definition all : list Option.t :=
+Definition all : fin_ensemble Option.t :=
   None :: map Some E.all.
 
 Lemma all_complete
@@ -103,7 +103,7 @@ Definition t : Set :=
 Instance t_hasEqDec : hasEqDec Sum.t :=
   sum_hasEqDec E1.t_hasEqDec E2.t_hasEqDec.
 
-Definition all : list Sum.t :=
+Definition all : fin_ensemble Sum.t :=
   map inl E1.all ++ map inr E2.all.
 
 Lemma all_complete
@@ -282,7 +282,7 @@ Definition inject (p : N * list V) : prod' :=
 Definition augmented_prod : prod' :=
   {| p_lhs := start_prime; p_rhs := [inl (lift_N Grammar.start); inr eof] |}.
 
-Definition P' : list prod' :=
+Definition P' : fin_ensemble prod' :=
   augmented_prod :: map inject Grammar.productions.
 
 Inductive rm_step : list V' -> list V' -> Prop :=
@@ -973,29 +973,29 @@ Proof.
   - eapply ProductiveStr_GenStr.
 Qed.
 
-Definition gen_symbol_in (known : list N') (X : V') : bool :=
+Definition gen_symbol_in (known : fin_ensemble N') (X : V') : bool :=
   match X with
   | inl A => mem (EQ_DEC := N'_hasEqDec) A known
   | inr _ => true
   end.
 
-Definition gen_rhs_in (known : list N') (rhs : list V') : bool :=
+Definition gen_rhs_in (known : fin_ensemble N') (rhs : list V') : bool :=
   forallb (gen_symbol_in known) rhs.
 
-Definition gen_prod_in (known : list N') (p : prod') : list N' :=
+Definition gen_prod_in (known : fin_ensemble N') (p : prod') : fin_ensemble N' :=
   if gen_rhs_in known p.(p_rhs) then
     [p.(p_lhs)]
   else
     [].
 
-Definition gen_step (known : list N') : list N' :=
+Definition gen_step (known : fin_ensemble N') : fin_ensemble N' :=
   L.nodup (N'_hasEqDec)
     (known ++ (P' >>= fun p => gen_prod_in known p)).
 
 Definition gen_fuel : nat :=
   length N'_FinEnum.all.
 
-Definition gen_set : list N' :=
+Definition gen_set : fin_ensemble N' :=
   iter gen_fuel gen_step [].
 
 Definition genb (A : N') : bool :=
@@ -1051,7 +1051,7 @@ Proof.
   unfold gen_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply KNOWN_SOUND. exact IN.
-  - use in_list_bind_elim as (p & PROD & IN_PROD) with IN.
+  - use in_fin_ensemble_bind_elim as (p & PROD & IN_PROD) with IN.
     unfold gen_prod_in in IN_PROD.
     destruct (gen_rhs_in known p.(p_rhs)) eqn: RHS; [ | contradiction].
     destruct IN_PROD as [EQ | []]. subst A.
@@ -1113,8 +1113,8 @@ Proof.
   unfold gen_step in *. rewrite L.nodup_In in *. rewrite in_app_iff in *.
   destruct IN as [IN | IN].
   - left. eapply INCL. exact IN.
-  - right. use in_list_bind_elim as (p & PROD & IN_PROD) with IN.
-    eapply in_list_bind_intro with (x := p); [exact PROD | ].
+  - right. use in_fin_ensemble_bind_elim as (p & PROD & IN_PROD) with IN.
+    eapply in_fin_ensemble_bind_intro with (x := p); [exact PROD | ].
     unfold gen_prod_in in *.
     destruct (gen_rhs_in known1 p.(p_rhs)) eqn: RHS1; [ | contradiction].
     rewrite gen_rhs_in_monotone with (known1 := known1); [exact IN_PROD | exact INCL | exact RHS1].
@@ -1164,7 +1164,7 @@ Proof.
   - eapply IH; [ | exact IN]. intros B IN_B. eapply gen_step_all. exact IN_B.
 Qed.
 
-Definition gen_list_subsetb (xs : list N') (ys : list N') : bool :=
+Definition gen_list_subsetb (xs : fin_ensemble N') (ys : fin_ensemble N') : bool :=
   forallb (fun x => mem (EQ_DEC := N'_hasEqDec) x ys) xs.
 
 Lemma gen_list_subsetb_sound xs ys
@@ -1191,7 +1191,7 @@ Proof.
   exists x. split; [exact IN | ]. rewrite mem_false_iff in MEM. exact MEM.
 Qed.
 
-Lemma gen_NoDup_incl_remove_length_lt (xs : list N') (ys : list N') (x : N')
+Lemma gen_NoDup_incl_remove_length_lt (xs : fin_ensemble N') (ys : fin_ensemble N') (x : N')
   (NO_DUP_XS : NoDup xs)
   (NO_DUP_YS : NoDup ys)
   (IN_XS : x ∈ xs)
@@ -1347,7 +1347,7 @@ Proof.
   - destruct GEN as [A rhs PROD RHS].
     eapply gen_fixed_at_fuel.
     unfold gen_step. rewrite L.nodup_In. rewrite in_app_iff. right.
-    eapply in_list_bind_intro with (x := {| p_lhs := A; p_rhs := rhs |}); [exact PROD | ].
+    eapply in_fin_ensemble_bind_intro with (x := {| p_lhs := A; p_rhs := rhs |}); [exact PROD | ].
     unfold gen_prod_in.
     rewrite gen_rhs_in_gen_set.
     + simpl. left. reflexivity.
@@ -1835,7 +1835,7 @@ Proof.
   - right. intros EQ. inv EQ. contradiction.
 Defined.
 
-Definition state : Set := list item.
+Definition state : Set := fin_ensemble item.
 
 #[global]
 Instance state_hasEqDec : hasEqDec state :=
@@ -1850,7 +1850,7 @@ Definition valid_item (it : item) : Prop :=
 Definition complete_item (it : item) : Prop :=
   it.(i_right) = [].
 
-Fixpoint splits {A : Type} (xs : list A) : list (list A * list A) :=
+Fixpoint splits {A : Type} (xs : list A) : fin_ensemble (list A * list A) :=
   match xs with
   | [] => [([], [])]
   | x :: xs' => ([], x :: xs') :: map (fun lr => (x :: fst lr, snd lr)) (splits xs')
@@ -1880,13 +1880,13 @@ Qed.
 Definition item_of_split (p : prod') (lr : list V' * list V') : item :=
   {| i_lhs := p.(p_lhs); i_left := fst lr; i_right := snd lr |}.
 
-Definition items_of_prod (p : prod') : list item :=
+Definition items_of_prod (p : prod') : fin_ensemble item :=
   map (item_of_split p) (splits p.(p_rhs)).
 
-Definition raw_all_items : list item :=
+Definition raw_all_items : fin_ensemble item :=
   P' >>= items_of_prod.
 
-Definition all_items : list item :=
+Definition all_items : fin_ensemble item :=
   L.nodup item_hasEqDec raw_all_items.
 
 Lemma items_of_prod_complete p left right
@@ -1904,7 +1904,7 @@ Lemma raw_all_items_complete it
   : it ∈ raw_all_items.
 Proof.
   unfold valid_item in VALID. unfold raw_all_items.
-  eapply in_list_bind_intro with (x := item_prod it).
+  eapply in_fin_ensemble_bind_intro with (x := item_prod it).
   - exact VALID.
   - destruct it as [A left right]. simpl.
     eapply items_of_prod_complete with (p := {| p_lhs := A; p_rhs := left ++ right |}).
@@ -1929,7 +1929,7 @@ Lemma valid_item_all_items it
   : valid_item it.
 Proof.
   unfold all_items in IN. rewrite L.nodup_In in IN.
-  unfold raw_all_items in IN. use in_list_bind_elim as (p & PROD & IN_ITEMS) with IN.
+  unfold raw_all_items in IN. use in_fin_ensemble_bind_elim as (p & PROD & IN_ITEMS) with IN.
   unfold items_of_prod in IN_ITEMS. rewrite L.in_map_iff in IN_ITEMS.
   destruct IN_ITEMS as ([left right] & EQ & IN_SPLIT). subst it.
   destruct p as [lhs rhs]. simpl in *.
@@ -1967,7 +1967,7 @@ Qed.
 Definition initial_item : item :=
   {| i_lhs := start_prime; i_left := []; i_right := [inl (lift_N Grammar.start); inr eof] |}.
 
-Definition closure_seed_for (A : N') : list item :=
+Definition closure_seed_for (A : N') : fin_ensemble item :=
   map (fun p => {| i_lhs := p.(p_lhs); i_left := []; i_right := p.(p_rhs) |}) (filter (fun p => eqb p.(p_lhs) A) P').
 
 Lemma closure_seed_for_sound A it
@@ -1998,16 +1998,16 @@ Proof.
   unfold valid_item, item_prod. simpl. exact PROD.
 Qed.
 
-Definition closure_step_items (it : item) : list item :=
+Definition closure_step_items (it : item) : fin_ensemble item :=
   match it.(i_right) with
   | inl A :: _ => closure_seed_for A
   | _ => []
   end.
 
-Definition item_seed (it : item) : list item :=
+Definition item_seed (it : item) : fin_ensemble item :=
   [it].
 
-Definition item_deps : item -> list item :=
+Definition item_deps : item -> fin_ensemble item :=
   closure_step_items.
 
 Lemma closure_step_items_complete A omega B beta gamma
@@ -2042,7 +2042,7 @@ Lemma closure_step_edge q parent child
   : child ∈ closure_step q.
 Proof.
   unfold closure_step. rewrite L.nodup_In. rewrite in_app_iff. right.
-  eapply in_list_bind_intro with (x := parent); eauto.
+  eapply in_fin_ensemble_bind_intro with (x := parent); eauto.
 Qed.
 
 Lemma closure_step_sound seed q it
@@ -2053,7 +2053,7 @@ Proof.
   unfold closure_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply INCL. exact IN.
-  - use in_list_bind_elim as (parent & IN_PARENT & IN_CHILD) with IN.
+  - use in_fin_ensemble_bind_elim as (parent & IN_PARENT & IN_CHILD) with IN.
     destruct parent as [B beta right]. destruct right as [ | X gamma]; simpl in IN_CHILD; [contradiction | ].
     destruct X as [A | t]; simpl in IN_CHILD; [ | contradiction].
     use closure_seed_for_sound as (omega & EQ & PROD) with IN_CHILD. subst it.
@@ -2068,7 +2068,7 @@ Proof.
   unfold closure_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply VALID_Q. exact IN.
-  - use in_list_bind_elim as (parent & _ & IN_CHILD) with IN.
+  - use in_fin_ensemble_bind_elim as (parent & _ & IN_CHILD) with IN.
     eapply closure_step_items_valid. exact IN_CHILD.
 Qed.
 
@@ -2088,8 +2088,8 @@ Proof.
   unfold closure_step in *. rewrite L.nodup_In in *. rewrite in_app_iff in *.
   destruct IN as [IN | IN].
   - left. eapply INCL. exact IN.
-  - right. use in_list_bind_elim as (parent & IN_PARENT & IN_CHILD) with IN.
-    eapply in_list_bind_intro with (x := parent); [eapply INCL; exact IN_PARENT | exact IN_CHILD].
+  - right. use in_fin_ensemble_bind_elim as (parent & IN_PARENT & IN_CHILD) with IN.
+    eapply in_fin_ensemble_bind_intro with (x := parent); [eapply INCL; exact IN_PARENT | exact IN_CHILD].
 Qed.
 
 Lemma closure_step_generated q A omega B beta gamma
@@ -2098,7 +2098,7 @@ Lemma closure_step_generated q A omega B beta gamma
   : {| i_lhs := A; i_left := []; i_right := omega |} ∈ closure_step q.
 Proof.
   unfold closure_step. rewrite L.nodup_In. rewrite in_app_iff. right.
-  eapply in_list_bind_intro with (x := {| i_lhs := B; i_left := beta; i_right := inl A :: gamma |}).
+  eapply in_fin_ensemble_bind_intro with (x := {| i_lhs := B; i_left := beta; i_right := inl A :: gamma |}).
   - exact IN_PARENT.
   - eapply closure_step_items_complete. exact PROD.
 Qed.
@@ -2382,7 +2382,7 @@ Lemma goto_kernel_sound q X it'
   (IN : it' ∈ goto_kernel q X)
   : exists it, exists gamma, it ∈ q /\ it.(i_right) = X :: gamma /\ it' = {| i_lhs := it.(i_lhs); i_left := it.(i_left) ++ [X]; i_right := gamma |}.
 Proof.
-  unfold goto_kernel in IN. use in_list_bind_elim as (it & IN_IT & IN_SHIFT) with IN.
+  unfold goto_kernel in IN. use in_fin_ensemble_bind_elim as (it & IN_IT & IN_SHIFT) with IN.
   cbn in IN_SHIFT.
   destruct (shift_dot it X) as [shifted | ] eqn: SHIFT; simpl in IN_SHIFT; [ | contradiction].
   destruct IN_SHIFT as [EQ | []]. subst shifted.
@@ -2395,7 +2395,7 @@ Lemma goto_kernel_complete q it X gamma
   (RIGHT : it.(i_right) = X :: gamma)
   : {| i_lhs := it.(i_lhs); i_left := it.(i_left) ++ [X]; i_right := gamma |} ∈ goto_kernel q X.
 Proof.
-  unfold goto_kernel. eapply in_list_bind_intro with (x := it).
+  unfold goto_kernel. eapply in_fin_ensemble_bind_intro with (x := it).
   - exact IN.
   - rewrite shift_dot_complete with (gamma := gamma); [simpl; left; reflexivity | exact RIGHT].
 Qed.
@@ -2414,7 +2414,7 @@ Lemma goto_kernel_valid q X it
   (IN : it ∈ goto_kernel q X)
   : valid_item it.
 Proof.
-  unfold goto_kernel in IN. use in_list_bind_elim as (parent & IN_PARENT & IN_SHIFT) with IN.
+  unfold goto_kernel in IN. use in_fin_ensemble_bind_elim as (parent & IN_PARENT & IN_SHIFT) with IN.
   cbn in IN_SHIFT.
   destruct (shift_dot parent X) as [shifted | ] eqn: SHIFT; simpl in IN_SHIFT; [ | contradiction].
   destruct IN_SHIFT as [EQ | []]. subst shifted.
@@ -2426,8 +2426,8 @@ Lemma goto_kernel_monotone q1 q2 X it
   (IN : it ∈ goto_kernel q1 X)
   : it ∈ goto_kernel q2 X.
 Proof.
-  unfold goto_kernel in *. use in_list_bind_elim as (parent & IN_PARENT & IN_SHIFT) with IN.
-  eapply in_list_bind_intro with (x := parent); [eapply INCL; exact IN_PARENT | exact IN_SHIFT].
+  unfold goto_kernel in *. use in_fin_ensemble_bind_elim as (parent & IN_PARENT & IN_SHIFT) with IN.
+  eapply in_fin_ensemble_bind_intro with (x := parent); [eapply INCL; exact IN_PARENT | exact IN_SHIFT].
 Qed.
 
 Definition goto (q : state) (X : V') : state :=
@@ -2546,64 +2546,64 @@ Import Item.
 Instance state_hasEqDec : hasEqDec state :=
   list_hasEqDec item_hasEqDec.
 
-Definition all_symbols : list V' :=
+Definition all_symbols : fin_ensemble V' :=
   V'_FinEnum.all.
 
 Definition q0 : state :=
   kernel.
 
-Definition lr0_labeled_successors (q : state) : list ((state * state) * V') :=
+Definition lr0_labeled_successors (q : state) : fin_ensemble ((state * state) * V') :=
   all_symbols >>= fun X =>
   let q' := goto q X in
   if nonempty q' then [((q, q'), X)] else [].
 
-Definition lr0_labeled_edges (qs : list state) : list ((state * state) * V') :=
+Definition lr0_labeled_edges (qs : fin_ensemble state) : fin_ensemble ((state * state) * V') :=
   qs >>= lr0_labeled_successors.
 
-Definition lr0_graph_from (qs : list state) : @GraphAPI.LabeledFiniteGraph state (fin_ensemble V') :=
+Definition lr0_graph_from (qs : fin_ensemble state) : @GraphAPI.LabeledFiniteGraph state (fin_ensemble V') :=
   GraphAPI.buildLabeledFiniteGraphWithVertices qs (lr0_labeled_edges qs).
 
-Definition state_successors (q : state) : list state :=
+Definition state_successors (q : state) : fin_ensemble state :=
   all_symbols >>= fun X => GraphAPI.successors_by_label_of_graph (lr0_graph_from [q]) X q.
 
-Definition states_step (qs : list state) : list state :=
+Definition states_step (qs : fin_ensemble state) : fin_ensemble state :=
   L.nodup state_hasEqDec (qs ++ (qs >>= state_successors)).
 
-Fixpoint lists_of_length (xs : list item) (n : nat) {struct n} : list state :=
+Fixpoint lists_of_length (xs : fin_ensemble item) (n : nat) {struct n} : fin_ensemble state :=
   match n with
   | O => [[]]
   | S n' => xs >>= fun x => map (cons x) (lists_of_length xs n')
   end.
 
-Fixpoint lists_upto_length (xs : list item) (n : nat) {struct n} : list state :=
+Fixpoint lists_upto_length (xs : fin_ensemble item) (n : nat) {struct n} : fin_ensemble state :=
   match n with
   | O => [[]]
   | S n' => lists_upto_length xs n' ++ lists_of_length xs (S n')
   end.
 
-Definition all_state_lists : list state :=
+Definition all_state_lists : fin_ensemble state :=
   lists_upto_length all_items (length all_items).
 
 Definition state_fuel : nat :=
   length all_state_lists.
 
-Definition compute_states : list state :=
+Definition compute_states : fin_ensemble state :=
   iter state_fuel states_step [q0].
 
-Definition PT : list state :=
+Definition PT : fin_ensemble state :=
   compute_states.
 
-Definition Q : list state :=
+Definition Q : fin_ensemble state :=
   filter nonempty PT.
 
-Lemma nonempty_of_in {A : Type} (xs : list A) (x : A)
+Lemma nonempty_of_in {A : Type} (xs : fin_ensemble A) (x : A)
   (IN : x ∈ xs)
   : nonempty xs = true.
 Proof.
   destruct xs as [ | y ys]; simpl in *; [contradiction | reflexivity].
 Qed.
 
-Lemma nonempty_exists {A : Type} (xs : list A)
+Lemma nonempty_exists {A : Type} (xs : fin_ensemble A)
   (NONEMPTY : nonempty xs = true)
   : exists x, x ∈ xs.
 Proof.
@@ -2699,7 +2699,7 @@ Lemma lr0_labeled_successors_sound p q q' X
   : q = p /\ X ∈ all_symbols /\ delta p X = Some q'.
 Proof.
   unfold lr0_labeled_successors in IN.
-  use in_list_bind_elim as (Y & IN_Y & IN_EDGE) with IN.
+  use in_fin_ensemble_bind_elim as (Y & IN_Y & IN_EDGE) with IN.
   change (((q, q'), X) ∈ (if nonempty (goto p Y) then [((p, goto p Y), Y)] else [])) in IN_EDGE.
   destruct (nonempty (goto p Y)) eqn: NONEMPTY; simpl in IN_EDGE; [ | contradiction].
   destruct IN_EDGE as [EQ | []]. inv EQ.
@@ -2715,7 +2715,7 @@ Proof.
   unfold delta in DELTA.
   destruct (nonempty (goto q X)) eqn: NONEMPTY; inv DELTA.
   unfold lr0_labeled_successors.
-  eapply in_list_bind_intro with (x := X); [exact IN_X | ].
+  eapply in_fin_ensemble_bind_intro with (x := X); [exact IN_X | ].
   rewrite NONEMPTY. simpl. left. reflexivity.
 Qed.
 
@@ -2733,7 +2733,7 @@ Lemma lr0_labeled_edges_sound qs q q' X
   : q ∈ qs /\ X ∈ all_symbols /\ delta q X = Some q'.
 Proof.
   unfold lr0_labeled_edges in IN.
-  use in_list_bind_elim as (p & IN_P & IN_SUCC) with IN.
+  use in_fin_ensemble_bind_elim as (p & IN_P & IN_SUCC) with IN.
   use lr0_labeled_successors_sound as (EQ & IN_X & DELTA) with IN_SUCC.
   subst q. splits; eauto.
 Qed.
@@ -2745,7 +2745,7 @@ Lemma lr0_labeled_edges_complete qs q q' X
   : ((q, q'), X) ∈ lr0_labeled_edges qs.
 Proof.
   unfold lr0_labeled_edges.
-  eapply in_list_bind_intro with (x := q); [exact IN_Q | ].
+  eapply in_fin_ensemble_bind_intro with (x := q); [exact IN_Q | ].
   eapply lr0_labeled_successors_complete; eauto.
 Qed.
 
@@ -2782,10 +2782,10 @@ Proof.
   unfold state_successors.
   split.
   - intros IN.
-    use in_list_bind_elim as (X & _ & STEP) with IN. exists X.
+    use in_fin_ensemble_bind_elim as (X & _ & STEP) with IN. exists X.
     now rewrite GraphAPI.successors_by_label_of_graph_has_label in STEP.
   - intros (X & LABEL). rewrite lr0_graph_has_label_correct in LABEL.
-    destruct LABEL as (_ & IN_X & DELTA). eapply in_list_bind_intro with (x := X); [exact IN_X | ].
+    destruct LABEL as (_ & IN_X & DELTA). eapply in_fin_ensemble_bind_intro with (x := X); [exact IN_X | ].
     rewrite GraphAPI.successors_by_label_of_graph_has_label.
     rewrite lr0_graph_has_label_correct. splits; [left; reflexivity | exact IN_X | exact DELTA].
 Qed.
@@ -2843,7 +2843,7 @@ Proof.
   unfold states_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply VALID_QS. exact IN.
-  - use in_list_bind_elim as (q0 & IN_Q0 & IN_SUCC) with IN.
+  - use in_fin_ensemble_bind_elim as (q0 & IN_Q0 & IN_SUCC) with IN.
     eapply state_successors_valid; [eapply VALID_QS; exact IN_Q0 | exact IN_SUCC].
 Qed.
 
@@ -2854,7 +2854,7 @@ Lemma states_step_successor qs q X q'
   : q' ∈ states_step qs.
 Proof.
   unfold states_step. rewrite L.nodup_In. rewrite in_app_iff. right.
-  eapply in_list_bind_intro with (x := q); [exact IN | ].
+  eapply in_fin_ensemble_bind_intro with (x := q); [exact IN | ].
   eapply state_successors_complete; [exact IN_X | exact DELTA].
 Qed.
 
@@ -2866,8 +2866,8 @@ Proof.
   unfold states_step in *. rewrite L.nodup_In in *. rewrite in_app_iff in *.
   destruct IN as [IN | IN].
   - left. eapply INCL. exact IN.
-  - right. use in_list_bind_elim as (p & IN_P & IN_SUCC) with IN.
-    eapply in_list_bind_intro with (x := p); [eapply INCL; exact IN_P | exact IN_SUCC].
+  - right. use in_fin_ensemble_bind_elim as (p & IN_P & IN_SUCC) with IN.
+    eapply in_fin_ensemble_bind_intro with (x := p); [eapply INCL; exact IN_P | exact IN_SUCC].
 Qed.
 
 Lemma states_iter_valid n qs q
@@ -2908,7 +2908,7 @@ Lemma lists_of_length_complete xs q
 Proof.
   induction q as [ | it q IH]; simpl.
   - left. reflexivity.
-  - eapply in_list_bind_intro with (x := it).
+  - eapply in_fin_ensemble_bind_intro with (x := it).
     + eapply INCL. left. reflexivity.
     + rewrite L.in_map_iff. exists q. split; [reflexivity | ].
       eapply IH. intros it0 IN. eapply INCL. right. exact IN.
@@ -2991,7 +2991,7 @@ Proof.
   unfold states_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply NO_DUP_QS. exact IN.
-  - use in_list_bind_elim as (q0 & _ & IN_SUCC) with IN.
+  - use in_fin_ensemble_bind_elim as (q0 & _ & IN_SUCC) with IN.
     eapply state_successors_state_no_dup. exact IN_SUCC.
 Qed.
 
@@ -3037,7 +3037,7 @@ Proof.
   - eapply states_iter_all_items. exact IN.
 Qed.
 
-Definition state_list_subsetb (xs : list state) (ys : list state) : bool :=
+Definition state_list_subsetb (xs : fin_ensemble state) (ys : fin_ensemble state) : bool :=
   forallb (fun q => mem (EQ_DEC := Item.state_hasEqDec) q ys) xs.
 
 Lemma state_list_subsetb_sound xs ys
@@ -3065,7 +3065,7 @@ Proof.
   exists q. split; [exact IN | ]. rewrite mem_false_iff in MEM. exact MEM.
 Qed.
 
-Lemma state_NoDup_incl_remove_length_lt (xs : list state) (ys : list state) (q : state)
+Lemma state_NoDup_incl_remove_length_lt (xs : fin_ensemble state) (ys : fin_ensemble state) (q : state)
   (NO_DUP_XS : NoDup xs)
   (NO_DUP_YS : NoDup ys)
   (IN_XS : q ∈ xs)
@@ -3283,7 +3283,7 @@ Proof.
   unfold states_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply CLOSED_QS. exact IN.
-  - use in_list_bind_elim as (q0 & _ & IN_SUCC) with IN.
+  - use in_fin_ensemble_bind_elim as (q0 & _ & IN_SUCC) with IN.
     eapply state_successors_closed. exact IN_SUCC.
 Qed.
 
@@ -3831,7 +3831,7 @@ Proof.
     rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
     destruct IN as [IN_PREV | IN_NEXT].
     + eapply IH; [lia | exact IN_PREV].
-    + use in_list_bind_elim as (p & IN_P & IN_SUCC) with IN_NEXT.
+    + use in_fin_ensemble_bind_elim as (p & IN_P & IN_SUCC) with IN_NEXT.
       assert (LE_N : n <= state_fuel) by lia.
       use IH as (alpha & PATH_P) with LE_N IN_P.
       use state_successors_sound as (X & IN_X & DELTA) with IN_SUCC.
@@ -3857,7 +3857,7 @@ Proof.
     rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
     destruct IN as [IN_PREV | IN_NEXT].
     + assert (LE_N : n <= state_fuel) by lia. use IH as (alpha & PATH & LEN) with LE_N IN_PREV. exists alpha. split; [exact PATH | lia].
-    + use in_list_bind_elim as (p & IN_P & IN_SUCC) with IN_NEXT.
+    + use in_fin_ensemble_bind_elim as (p & IN_P & IN_SUCC) with IN_NEXT.
       assert (LE_N : n <= state_fuel) by lia.
       use IH as (alpha & PATH_P & LEN_P) with LE_N IN_P.
       use state_successors_sound as (X & IN_X & DELTA) with IN_SUCC.
@@ -3990,7 +3990,7 @@ Definition completed_prod_of_item (it : item) : option prod' :=
   | _ :: _ => None
   end.
 
-Definition reduce (q : state) : list prod' :=
+Definition reduce (q : state) : fin_ensemble prod' :=
   q >>= fun it =>
   match completed_prod_of_item it with
   | None => []
@@ -4001,7 +4001,7 @@ Lemma reduce_sound q pr
   (IN : pr ∈ reduce q)
   : exists it, it ∈ q /\ it.(i_right) = [] /\ pr = {| p_lhs := it.(i_lhs); p_rhs := it.(i_left) |} /\ pr ∈ P'.
 Proof.
-  unfold reduce in IN. use in_list_bind_elim as (it & IN_IT & IN_PR) with IN.
+  unfold reduce in IN. use in_fin_ensemble_bind_elim as (it & IN_IT & IN_PR) with IN.
   destruct it as [A beta right]. destruct right as [ | X gamma]; simpl in IN_PR; [ | contradiction].
   destruct (mem (EQ_DEC := prod'_hasEqDec) {| p_lhs := A; p_rhs := beta |} P') eqn: MEM; [ | contradiction].
   destruct IN_PR as [EQ | []]. subst pr. exists {| i_lhs := A; i_left := beta; i_right := [] |}.
@@ -4014,7 +4014,7 @@ Lemma reduce_complete q it
   (VALID : valid_item it)
   : {| p_lhs := it.(i_lhs); p_rhs := it.(i_left) |} ∈ reduce q.
 Proof.
-  unfold reduce. eapply in_list_bind_intro with (x := it); [exact IN | ].
+  unfold reduce. eapply in_fin_ensemble_bind_intro with (x := it); [exact IN | ].
   destruct it as [A beta right]. simpl in *. subst right. simpl.
   unfold valid_item, item_prod in VALID. simpl in VALID.
   rewrite app_nil_r in VALID.
@@ -5801,7 +5801,7 @@ Proof.
     + eapply index_of_state_of. exact STATE_F.
 Qed.
 
-Definition reduceN (n : nat) : list prod' :=
+Definition reduceN (n : nat) : fin_ensemble prod' :=
   match state_of n with
   | Some q => reduce q
   | None => []
@@ -6107,29 +6107,29 @@ with NullStr : list V' -> Prop :=
     (REST : NullStr rhs)
     : NullStr (inl A :: rhs).
 
-Definition nullable_symbol_in (known : list N') (X : V') : bool :=
+Definition nullable_symbol_in (known : fin_ensemble N') (X : V') : bool :=
   match X with
   | inl A => mem (EQ_DEC := N'_hasEqDec) A known
   | inr _ => false
   end.
 
-Definition nullable_rhs_in (known : list N') (rhs : list V') : bool :=
+Definition nullable_rhs_in (known : fin_ensemble N') (rhs : list V') : bool :=
   forallb (nullable_symbol_in known) rhs.
 
-Definition nullable_prod_in (known : list N') (p : prod') : list N' :=
+Definition nullable_prod_in (known : fin_ensemble N') (p : prod') : fin_ensemble N' :=
   if nullable_rhs_in known p.(p_rhs) then
     [p.(p_lhs)]
   else
     [].
 
-Definition nullable_step (known : list N') : list N' :=
+Definition nullable_step (known : fin_ensemble N') : fin_ensemble N' :=
   L.nodup (N'_hasEqDec)
     (known ++ (P' >>= fun p => nullable_prod_in known p)).
 
 Definition nullable_fuel : nat :=
   length N'_FinEnum.all.
 
-Definition nullable_set : list N' :=
+Definition nullable_set : fin_ensemble N' :=
   iter nullable_fuel nullable_step [].
 
 Definition nullableb (A : N') : bool :=
@@ -6182,7 +6182,7 @@ Proof.
   unfold nullable_step in IN. rewrite L.nodup_In in IN. rewrite in_app_iff in IN.
   destruct IN as [IN | IN].
   - eapply KNOWN_SOUND. exact IN.
-  - use in_list_bind_elim as (p & PROD & IN_PROD) with IN.
+  - use in_fin_ensemble_bind_elim as (p & PROD & IN_PROD) with IN.
     unfold nullable_prod_in in IN_PROD.
     destruct (nullable_rhs_in known p.(p_rhs)) eqn: RHS; [ | contradiction].
     destruct IN_PROD as [EQ | []]. subst A.
@@ -6248,8 +6248,8 @@ Proof.
   unfold nullable_step in *. rewrite L.nodup_In in *. rewrite in_app_iff in *.
   destruct IN as [IN | IN].
   - left. eapply INCL. exact IN.
-  - right. use in_list_bind_elim as (p & PROD & IN_PROD) with IN.
-    eapply in_list_bind_intro with (x := p); [exact PROD | ].
+  - right. use in_fin_ensemble_bind_elim as (p & PROD & IN_PROD) with IN.
+    eapply in_fin_ensemble_bind_intro with (x := p); [exact PROD | ].
     unfold nullable_prod_in in *.
     destruct (nullable_rhs_in known1 p.(p_rhs)) eqn: RHS1; [ | contradiction].
     rewrite nullable_rhs_in_monotone with (known1 := known1); [exact IN_PROD | exact INCL | exact RHS1].
@@ -6299,7 +6299,7 @@ Proof.
   - eapply IH; [ | exact IN]. intros B IN_B. eapply nullable_step_all. exact IN_B.
 Qed.
 
-Definition list_subsetb (xs : list N') (ys : list N') : bool :=
+Definition list_subsetb (xs : fin_ensemble N') (ys : fin_ensemble N') : bool :=
   forallb (fun x => mem (EQ_DEC := N'_hasEqDec) x ys) xs.
 
 Lemma list_subsetb_sound xs ys
@@ -6326,7 +6326,7 @@ Proof.
   exists x. split; [exact IN | ]. rewrite mem_false_iff in MEM. exact MEM.
 Qed.
 
-Lemma NoDup_incl_remove_length_lt (xs : list N') (ys : list N') (x : N')
+Lemma NoDup_incl_remove_length_lt (xs : fin_ensemble N') (ys : fin_ensemble N') (x : N')
   (NO_DUP_XS : NoDup xs)
   (NO_DUP_YS : NoDup ys)
   (IN_XS : x ∈ xs)
@@ -6483,7 +6483,7 @@ Proof.
   - destruct NULL as [A rhs PROD RHS].
     eapply nullable_fixed_at_fuel.
     unfold nullable_step. rewrite L.nodup_In. rewrite in_app_iff. right.
-    eapply in_list_bind_intro with (x := {| p_lhs := A; p_rhs := rhs |}); [exact PROD | ].
+    eapply in_fin_ensemble_bind_intro with (x := {| p_lhs := A; p_rhs := rhs |}); [exact PROD | ].
     unfold nullable_prod_in.
     rewrite nullable_rhs_in_nullable_set.
     + simpl. left. reflexivity.
@@ -6683,16 +6683,16 @@ Definition read_node : Set :=
 Instance read_node_hasEqDec : hasEqDec read_node :=
   pair_hasEqdec nat_hasEqDec N'_hasEqDec.
 
-Definition read_domain_entry (n : nat) (A : N') : list read_node :=
+Definition read_domain_entry (n : nat) (A : N') : fin_ensemble read_node :=
   match dN n (inl A) with
   | Some _ => [(n, A)]
   | None => []
   end.
 
-Definition read_domain_raw : list read_node :=
+Definition read_domain_raw : fin_ensemble read_node :=
   seq 0 num_states >>= fun n => N'_FinEnum.all >>= fun A => read_domain_entry n A.
 
-Definition D : list read_node :=
+Definition D : fin_ensemble read_node :=
   L.nodup read_node_hasEqDec read_domain_raw.
 
 Lemma read_domain_sound n A
@@ -6700,10 +6700,11 @@ Lemma read_domain_sound n A
   : exists r, dN n (inl A) = Some r.
 Proof.
   unfold D, read_domain_raw in IN. rewrite L.nodup_In in IN.
-  use in_list_bind_elim as (n0 & IN_N & IN_A_BIND) with IN.
-  use in_list_bind_elim as (A0 & IN_A & IN_ENTRY) with IN_A_BIND.
-  unfold read_domain_entry in IN_ENTRY. destruct (dN n0 (inl A0)) as [r | ] eqn: STEP; [ | contradiction].
-  destruct IN_ENTRY as [EQ | []]. inv EQ. exists r. exact STEP.
+  use in_fin_ensemble_bind_elim as (n0 & IN_N & IN_A_BIND) with IN.
+  use in_fin_ensemble_bind_elim as (A0 & IN_A & IN_ENTRY) with IN_A_BIND.
+  unfold read_domain_entry in IN_ENTRY.
+  use in_fin_ensemble_option_match_elim as (r & STEP & IN_SINGLE) with IN_ENTRY.
+  simpl in IN_SINGLE. destruct IN_SINGLE as [EQ | []]. inv EQ. exists r. exact STEP.
 Qed.
 
 Lemma read_domain_complete n A r
@@ -6712,9 +6713,9 @@ Lemma read_domain_complete n A r
   : (n, A) ∈ D.
 Proof.
   unfold D, read_domain_raw. rewrite L.nodup_In.
-  eapply in_list_bind_intro with (x := n).
+  eapply in_fin_ensemble_bind_intro with (x := n).
   - rewrite in_seq. lia.
-  - eapply in_list_bind_intro with (x := A).
+  - eapply in_fin_ensemble_bind_intro with (x := A).
     + eapply N'_all_complete.
     + unfold read_domain_entry. rewrite STEP. simpl. left. reflexivity.
 Qed.
@@ -6749,7 +6750,7 @@ Proof.
   unfold D. eapply L.NoDup_nodup.
 Qed.
 
-Definition DR (node : read_node) : list T' :=
+Definition DR (node : read_node) : fin_ensemble T' :=
   let '(p, A) := node in
   match dN p (inl A) with
   | Some r => T'_FinEnum.all >>= fun t => match dN r (inr t) with Some _ => [t] | None => [] end
@@ -6761,7 +6762,7 @@ Lemma DR_sound p A t
   : exists r, exists s, dN p (inl A) = Some r /\ dN r (inr t) = Some s.
 Proof.
   unfold DR in IN. destruct (dN p (inl A)) as [r | ] eqn: STEP_N; [ | contradiction].
-  use! (in_list_bind_elim _ _ _ IN) as (t0 & IN_T & IN_ENTRY) with *.
+  use! (in_fin_ensemble_bind_elim _ _ _ IN) as (t0 & IN_T & IN_ENTRY) with *.
   destruct (dN r (inr t0)) as [s | ] eqn: STEP_T; [ | contradiction].
   destruct IN_ENTRY as [EQ | []]. subst t0. exists r. exists s. split; [reflexivity | exact STEP_T].
 Qed.
@@ -6772,12 +6773,12 @@ Lemma DR_complete p A r t s
   : t ∈ DR (p, A).
 Proof.
   unfold DR. rewrite STEP_N.
-  eapply in_list_bind_intro with (x := t).
+  eapply in_fin_ensemble_bind_intro with (x := t).
   - eapply T'_all_complete.
-  - rewrite STEP_T. simpl. left. reflexivity.
+  - eapply in_fin_ensemble_option_match_intro with (a := s); [exact STEP_T | ]. simpl. left. reflexivity.
 Qed.
 
-Definition reads_deps (node : read_node) : list read_node :=
+Definition reads_deps (node : read_node) : fin_ensemble read_node :=
   let '(p, A) := node in
   match dN p (inl A) with
   | Some r => N'_FinEnum.all >>= fun C => if nullableb C then if mem (r, C) D then [(r, C)] else [] else []
@@ -6789,7 +6790,7 @@ Lemma reads_deps_sound p A node
   : exists r, exists C, node = (r, C) /\ dN p (inl A) = Some r /\ nullableb C = true /\ (r, C) ∈ D.
 Proof.
   unfold reads_deps in IN. destruct (dN p (inl A)) as [r | ] eqn: STEP_N; [ | contradiction].
-  use! (in_list_bind_elim _ _ _ IN) as (C & IN_C & IN_ENTRY) with *.
+  use! (in_fin_ensemble_bind_elim _ _ _ IN) as (C & IN_C & IN_ENTRY) with *.
   destruct (nullableb C) eqn: NULLABLE; [ | contradiction].
   destruct (mem (r, C) D) eqn: MEM; [ | contradiction].
   destruct IN_ENTRY as [EQ | []]. subst node.
@@ -6804,9 +6805,11 @@ Lemma reads_deps_complete p A r C
   : (r, C) ∈ reads_deps (p, A).
 Proof.
   unfold reads_deps. rewrite STEP_N.
-  eapply in_list_bind_intro with (x := C).
+  eapply in_fin_ensemble_bind_intro with (x := C).
   - eapply N'_all_complete.
-  - rewrite NULLABLE. rewrite <- mem_true_iff in IN_D. rewrite IN_D. simpl. left. reflexivity.
+  - eapply in_fin_ensemble_if_true_intro; [exact NULLABLE | ].
+    rewrite <- mem_true_iff in IN_D.
+    eapply in_fin_ensemble_if_true_intro; [exact IN_D | ]. simpl. left. reflexivity.
 Qed.
 
 Lemma reads_deps_closed x y
@@ -6816,7 +6819,7 @@ Proof.
   destruct x as [p A]. use reads_deps_sound as (r & C & EQ & _ & _ & IN_D) with IN. subst y. exact IN_D.
 Qed.
 
-Definition Read_bang (node : read_node) : list T' :=
+Definition Read_bang (node : read_node) : fin_ensemble T' :=
   @digraph_value read_node T' read_terminal_hasEqDec (length D) DR reads_deps node.
 
 Definition Read_closure (node : read_node) (t : T') : Prop :=
@@ -6971,7 +6974,7 @@ Instance follow_terminal_hasEqDec : hasEqDec T' :=
 Instance follow_node_hasEqDec : hasEqDec read_node :=
   pair_hasEqdec nat_hasEqDec N'_hasEqDec.
 
-Definition incl_candidate_from_item (p : nat) (A : N') (it : item) (candidate : read_node) : list read_node :=
+Definition incl_candidate_from_item (p : nat) (A : N') (it : item) (candidate : read_node) : fin_ensemble read_node :=
   let '(p', B) := candidate in
   match it.(i_right) with
   | inl A0 :: gamma =>
@@ -6982,10 +6985,10 @@ Definition incl_candidate_from_item (p : nat) (A : N') (it : item) (candidate : 
   | _ => []
   end.
 
-Definition incl_item_deps (p : nat) (A : N') (it : item) : list read_node :=
+Definition incl_item_deps (p : nat) (A : N') (it : item) : fin_ensemble read_node :=
   D >>= fun candidate => incl_candidate_from_item p A it candidate.
 
-Definition incl_deps (node : read_node) : list read_node :=
+Definition incl_deps (node : read_node) : fin_ensemble read_node :=
   let '(p, A) := node in
   match state_of p with
   | Some q => q >>= fun it => incl_item_deps p A it
@@ -7048,7 +7051,7 @@ Lemma incl_item_deps_sound p A it candidate
   (IN : candidate ∈ incl_item_deps p A it)
   : incl_item_deps_sound_spec p A it candidate.
 Proof.
-  unfold incl_item_deps in IN. use in_list_bind_elim as (candidate0 & IN_D & IN_CAND) with IN.
+  unfold incl_item_deps in IN. use in_fin_ensemble_bind_elim as (candidate0 & IN_D & IN_CAND) with IN.
   use incl_candidate_from_item_sound as CAND with IN_CAND.
   destruct CAND as [p' B gamma CANDIDATE_EQ SOURCE_EQ LHS RIGHT NULLABLE PATH].
   subst candidate. subst candidate0. econstructor; [exact IN_D | reflexivity | exact LHS | exact RIGHT | exact NULLABLE | exact PATH].
@@ -7062,7 +7065,7 @@ Lemma incl_item_deps_complete p A it p' B gamma
   (PATH : npath it.(i_left) p' p)
   : (p', B) ∈ incl_item_deps p A it.
 Proof.
-  unfold incl_item_deps. eapply in_list_bind_intro with (x := (p', B)).
+  unfold incl_item_deps. eapply in_fin_ensemble_bind_intro with (x := (p', B)).
   - exact IN_D.
   - eapply incl_candidate_from_item_complete; [exact LHS | exact RIGHT | exact NULLABLE | exact PATH].
 Qed.
@@ -7084,7 +7087,7 @@ Lemma incl_deps_sound p A candidate
   : incl_deps_sound_spec p A candidate.
 Proof.
   unfold incl_deps in IN. destruct (state_of p) as [q | ] eqn: STATE; [ | contradiction].
-  use in_list_bind_elim as (it & IN_IT & IN_ITEM) with IN.
+  use in_fin_ensemble_bind_elim as (it & IN_IT & IN_ITEM) with IN.
   use incl_item_deps_sound as ITEM with IN_ITEM.
   destruct ITEM as [p' B gamma IN_D CANDIDATE_EQ LHS RIGHT NULLABLE PATH].
   econstructor; [exact IN_D | exact STATE | exact IN_IT | exact CANDIDATE_EQ | exact LHS | exact RIGHT | exact NULLABLE | exact PATH].
@@ -7101,7 +7104,7 @@ Lemma incl_deps_complete p A q it p' B gamma
   : (p', B) ∈ incl_deps (p, A).
 Proof.
   unfold incl_deps. rewrite STATE.
-  eapply in_list_bind_intro with (x := it).
+  eapply in_fin_ensemble_bind_intro with (x := it).
   - exact IN_IT.
   - eapply incl_item_deps_complete; [exact IN_D | exact LHS | exact RIGHT | exact NULLABLE | exact PATH].
 Qed.
@@ -7113,7 +7116,7 @@ Proof.
   destruct x as [p A]. use incl_deps_sound as SOUND with IN. destruct SOUND as [q it p' B gamma IN_D STATE IN_IT CANDIDATE_EQ LHS RIGHT NULLABLE PATH]. exact IN_D.
 Qed.
 
-Definition Follow_bang (node : read_node) : list T' :=
+Definition Follow_bang (node : read_node) : fin_ensemble T' :=
   @digraph_value read_node T' follow_terminal_hasEqDec (length D) Read_bang incl_deps node.
 
 Definition Follow_closure (node : read_node) (t : T') : Prop :=
@@ -9072,17 +9075,17 @@ Import Follow.
 
 #[local] Existing Instance N'_hasEqDec.
 
-Definition LB_candidate (q : nat) (it : item) (candidate : read_node) : list read_node :=
+Definition LB_candidate (q : nat) (it : item) (candidate : read_node) : fin_ensemble read_node :=
   let '(p, A) := candidate in
   if eqb A it.(i_lhs) && npathb it.(i_left) p q then
     [candidate]
   else
     [].
 
-Definition LB (q : nat) (it : item) : list read_node :=
+Definition LB (q : nat) (it : item) : fin_ensemble read_node :=
   D >>= fun candidate => LB_candidate q it candidate.
 
-Definition LA_impl (q : nat) (it : item) : list T' :=
+Definition LA_impl (q : nat) (it : item) : fin_ensemble T' :=
   LB q it >>= fun node => Follow_bang node.
 
 Definition LA_closure (q : nat) (it : item) (t : T') : Prop :=
@@ -9127,7 +9130,7 @@ Lemma LB_sound q it candidate
   (IN : candidate ∈ LB q it)
   : candidate ∈ D /\ (exists p, exists A, candidate = (p, A) /\ it.(i_lhs) = A /\ npathb it.(i_left) p q = true).
 Proof.
-  unfold LB in IN. use in_list_bind_elim as (source & IN_D & IN_CANDIDATE) with IN.
+  unfold LB in IN. use in_fin_ensemble_bind_elim as (source & IN_D & IN_CANDIDATE) with IN.
   use LB_candidate_sound as (EQ_CANDIDATE & p & A & EQ_SOURCE & LHS & PATH) with IN_CANDIDATE.
   subst candidate. split; [exact IN_D | ]. exists p. exists A. splits; [exact EQ_SOURCE | exact LHS | exact PATH].
 Qed.
@@ -9138,7 +9141,7 @@ Lemma LB_complete q it p A
   (PATH : npath it.(i_left) p q)
   : (p, A) ∈ LB q it.
 Proof.
-  unfold LB. eapply in_list_bind_intro with (x := (p, A)).
+  unfold LB. eapply in_fin_ensemble_bind_intro with (x := (p, A)).
   - exact IN_D.
   - eapply LB_candidate_complete; [exact LHS | exact PATH].
 Qed.
@@ -9147,7 +9150,7 @@ Lemma LA_impl_sound q it t
   (IN : t ∈ LA_impl q it)
   : exists p, exists A, (p, A) ∈ D /\ it.(i_lhs) = A /\ npathb it.(i_left) p q = true /\ t ∈ Follow_bang (p, A).
 Proof.
-  unfold LA_impl in IN. use in_list_bind_elim as (node & IN_LB & IN_FOLLOW) with IN.
+  unfold LA_impl in IN. use in_fin_ensemble_bind_elim as (node & IN_LB & IN_FOLLOW) with IN.
   use LB_sound as (IN_D & p & A & EQ_NODE & LHS & PATH) with IN_LB.
   subst node. exists p. exists A. splits; [exact IN_D | exact LHS | exact PATH | exact IN_FOLLOW].
 Qed.
@@ -9159,7 +9162,7 @@ Lemma LA_impl_complete q it p A t
   (IN_FOLLOW : t ∈ Follow_bang (p, A))
   : t ∈ LA_impl q it.
 Proof.
-  unfold LA_impl. eapply in_list_bind_intro with (x := (p, A)).
+  unfold LA_impl. eapply in_fin_ensemble_bind_intro with (x := (p, A)).
   - eapply LB_complete; [exact IN_D | exact LHS | exact PATH].
   - exact IN_FOLLOW.
 Qed.
@@ -9588,7 +9591,7 @@ Proof.
   - left. reflexivity.
 Defined.
 
-Definition reduce_LA_item (q : nat) (t : T') (it : item) : list prod' :=
+Definition reduce_LA_item (q : nat) (t : T') (it : item) : fin_ensemble prod' :=
   match completed_prod_of_item it with
   | Some pr =>
     if mem (EQ_DEC := prod'_hasEqDec) pr P' && mem (EQ_DEC := T'_hasEqDec) t (LA_impl q it) then
@@ -9598,22 +9601,22 @@ Definition reduce_LA_item (q : nat) (t : T') (it : item) : list prod' :=
   | None => []
   end.
 
-Definition reduce_LA (q : nat) (t : T') : list prod' :=
+Definition reduce_LA (q : nat) (t : T') : fin_ensemble prod' :=
   match state_of q with
   | Some st => st >>= fun it => reduce_LA_item q t it
   | None => []
   end.
 
-Definition shift_action (q : nat) (t : T') : list action :=
+Definition shift_action (q : nat) (t : T') : fin_ensemble action :=
   match dN q (inr t) with
   | Some q' => [Shift q']
   | None => []
   end.
 
-Definition reduce_actions (q : nat) (t : T') : list action :=
+Definition reduce_actions (q : nat) (t : T') : fin_ensemble action :=
   reduce_LA q t >>= fun pr => [Reduce pr].
 
-Definition accept_action (q : nat) (t : T') : list action :=
+Definition accept_action (q : nat) (t : T') : fin_ensemble action :=
   match nq_f with
   | Some qf =>
     if eqb q qf && eqb t eof then
@@ -9623,7 +9626,7 @@ Definition accept_action (q : nat) (t : T') : list action :=
   | None => []
   end.
 
-Definition actions (q : nat) (t : T') : list action :=
+Definition actions (q : nat) (t : T') : fin_ensemble action :=
   shift_action q t ++ reduce_actions q t ++ accept_action q t.
 
 Definition table : Set :=
@@ -9635,7 +9638,7 @@ Definition action_of (q : nat) (t : T') : option action :=
   | _ => None
   end.
 
-Definition action_conflictb (acts : list action) : bool :=
+Definition action_conflictb (acts : fin_ensemble action) : bool :=
   match acts with
   | _ :: _ :: _ => true
   | _ => false
@@ -9653,12 +9656,12 @@ Definition check_action (q : nat) (t : T') : BuildErrorM unit :=
   else
     inr tt.
 
-Definition table_entries : list (nat * T') := do
+Definition table_entries : fin_ensemble (nat * T') := do
   'q <- seq 0 num_states;
   't <- T'_FinEnum.all;
   ret (q, t).
 
-Fixpoint check_table_entries (entries : list (nat * T')) {struct entries} : BuildErrorM unit :=
+Fixpoint check_table_entries (entries : fin_ensemble (nat * T')) {struct entries} : BuildErrorM unit :=
   match entries with
   | [] => inr tt
   | (q, t) :: entries' =>
@@ -9718,7 +9721,7 @@ Lemma reduce_LA_sound q t pr
   : reduce_LA_sound_spec q t pr.
 Proof.
   unfold reduce_LA in IN. destruct (state_of q) as [st | ] eqn: STATE; [ | contradiction].
-  use in_list_bind_elim as (it & IN_IT & IN_ITEM) with IN.
+  use in_fin_ensemble_bind_elim as (it & IN_IT & IN_ITEM) with IN.
   use reduce_LA_item_sound as (DONE & EQ_PR & PROD & IN_LA) with IN_ITEM.
   econstructor.
   - unfold reduceN. rewrite STATE. rewrite EQ_PR. eapply reduce_complete.
@@ -10035,7 +10038,7 @@ Lemma reduce_LA_complete q t st it
   (IN_LA : t ∈ LA_impl q it)
   : {| p_lhs := it.(i_lhs); p_rhs := it.(i_left) |} ∈ reduce_LA q t.
 Proof.
-  unfold reduce_LA. rewrite STATE. eapply in_list_bind_intro with (x := it).
+  unfold reduce_LA. rewrite STATE. eapply in_fin_ensemble_bind_intro with (x := it).
   - exact IN_IT.
   - eapply reduce_LA_item_complete; [exact DONE | | exact IN_LA].
     use state_of_sound as (IN_Q & _) with STATE.
@@ -10161,7 +10164,7 @@ Record reduce_edge_entry : Set :=
   ; reduce_edge_entry_target : nat
   } as edge.
 
-Definition reduce_edge_targets_from_prod (lookahead : T') (q : nat) (pr : prod') : list nat :=
+Definition reduce_edge_targets_from_prod (lookahead : T') (q : nat) (pr : prod') : fin_ensemble nat :=
   seq 0 num_states >>= fun p =>
   if npathb pr.(p_rhs) p q then
     match dN p (inl pr.(p_lhs)) with
@@ -10171,14 +10174,14 @@ Definition reduce_edge_targets_from_prod (lookahead : T') (q : nat) (pr : prod')
   else
     [].
 
-Definition reduce_edge_targets (lookahead : T') (q : nat) : list nat := do
+Definition reduce_edge_targets (lookahead : T') (q : nat) : fin_ensemble nat := do
   'pr <- reduce_LA q lookahead;
   reduce_edge_targets_from_prod lookahead q pr.
 
-Definition reduce_edge_entries_at (lookahead : T') (q : nat) : list reduce_edge_entry :=
+Definition reduce_edge_entries_at (lookahead : T') (q : nat) : fin_ensemble reduce_edge_entry :=
   reduce_edge_targets lookahead q >>= fun q' => [{| reduce_edge_entry_lookahead := lookahead; reduce_edge_entry_source := q; reduce_edge_entry_target := q' |}].
 
-Definition reduce_edge_entries : list reduce_edge_entry := do
+Definition reduce_edge_entries : fin_ensemble reduce_edge_entry := do
   'lookahead <- T'_FinEnum.all;
   'q <- seq 0 num_states;
   reduce_edge_entries_at lookahead q.
@@ -10223,9 +10226,9 @@ Lemma table_entries_complete q t st
   (STATE : state_of q = Some st)
   : (q, t) ∈ table_entries.
 Proof.
-  unfold table_entries. eapply in_list_bind_intro with (x := q).
+  unfold table_entries. eapply in_fin_ensemble_bind_intro with (x := q).
   - rewrite in_seq. split; [lia | ]. eapply state_of_lt. exact STATE.
-  - eapply in_list_bind_intro with (x := t).
+  - eapply in_fin_ensemble_bind_intro with (x := t).
     + eapply T'_all_complete.
     + simpl. left. reflexivity.
 Qed.
@@ -10363,7 +10366,7 @@ Lemma reduce_edge_targets_from_prod_sound lookahead q pr q'
   : exists p, npath pr.(p_rhs) p q /\ dN p (inl pr.(p_lhs)) = Some q'.
 Proof.
   unfold reduce_edge_targets_from_prod in IN.
-  use! (in_list_bind_elim _ _ _ IN) as (p & _ & IN_TARGET) with *.
+  use! (in_fin_ensemble_bind_elim _ _ _ IN) as (p & _ & IN_TARGET) with *.
   destruct (npathb pr.(p_rhs) p q) eqn: PATHB; [ | contradiction].
   destruct (dN p (inl pr.(p_lhs))) as [q'' | ] eqn: STEP; [ | contradiction].
   destruct IN_TARGET as [EQ | []]. subst q''.
@@ -10375,7 +10378,7 @@ Lemma reduce_edge_targets_from_prod_complete lookahead q pr p q'
   (STEP : dN p (inl pr.(p_lhs)) = Some q')
   : q' ∈ reduce_edge_targets_from_prod lookahead q pr.
 Proof.
-  unfold reduce_edge_targets_from_prod. eapply in_list_bind_intro with (x := p).
+  unfold reduce_edge_targets_from_prod. eapply in_fin_ensemble_bind_intro with (x := p).
   - use npath_source_state as (p_state & STATE_P) with PATH.
     rewrite in_seq. split; [lia | ].
     eapply state_of_lt. exact STATE_P.
@@ -10389,7 +10392,7 @@ Lemma reduce_edge_targets_sound lookahead q q'
   : exists pr, exists p, pr ∈ reduce_LA q lookahead /\ npath pr.(p_rhs) p q /\ dN p (inl pr.(p_lhs)) = Some q'.
 Proof.
   unfold reduce_edge_targets in IN.
-  use in_list_bind_elim as (pr & IN_REDUCE & IN_TARGET) with IN.
+  use in_fin_ensemble_bind_elim as (pr & IN_REDUCE & IN_TARGET) with IN.
   use reduce_edge_targets_from_prod_sound as (p & PATH & STEP) with IN_TARGET.
   exists pr. exists p. splits; [exact IN_REDUCE | exact PATH | exact STEP].
 Qed.
@@ -10400,7 +10403,7 @@ Lemma reduce_edge_targets_complete lookahead q pr p q'
   (STEP : dN p (inl pr.(p_lhs)) = Some q')
   : q' ∈ reduce_edge_targets lookahead q.
 Proof.
-  unfold reduce_edge_targets. eapply in_list_bind_intro with (x := pr).
+  unfold reduce_edge_targets. eapply in_fin_ensemble_bind_intro with (x := pr).
   - exact IN_REDUCE.
   - eapply reduce_edge_targets_from_prod_complete; [exact PATH | exact STEP].
 Qed.
@@ -10410,10 +10413,10 @@ Theorem reduce_edge_entries_sound edge
   : reduce_edge edge.(reduce_edge_entry_lookahead) edge.(reduce_edge_entry_source) edge.(reduce_edge_entry_target).
 Proof.
   unfold reduce_edge_entries in IN.
-  use in_list_bind_elim as (lookahead & _ & IN_LOOKAHEAD) with IN.
-  use in_list_bind_elim as (q & _ & IN_Q) with IN_LOOKAHEAD.
+  use in_fin_ensemble_bind_elim as (lookahead & _ & IN_LOOKAHEAD) with IN.
+  use in_fin_ensemble_bind_elim as (q & _ & IN_Q) with IN_LOOKAHEAD.
   unfold reduce_edge_entries_at in IN_Q.
-  use in_list_bind_elim as (q' & IN_TARGET & IN_ENTRY) with IN_Q.
+  use in_fin_ensemble_bind_elim as (q' & IN_TARGET & IN_ENTRY) with IN_Q.
   destruct IN_ENTRY as [EQ | []]. subst edge.
   use reduce_edge_targets_sound as (pr & p & IN_REDUCE & PATH & STEP) with IN_TARGET.
   exists pr. exists p. splits; [exact IN_REDUCE | exact PATH | exact STEP].
@@ -10424,12 +10427,12 @@ Theorem reduce_edge_entries_complete lookahead q q'
   : {| reduce_edge_entry_lookahead := lookahead; reduce_edge_entry_source := q; reduce_edge_entry_target := q' |} ∈ reduce_edge_entries.
 Proof.
   destruct EDGE as (pr & p & IN_REDUCE & PATH & STEP).
-  unfold reduce_edge_entries. eapply in_list_bind_intro with (x := lookahead).
+  unfold reduce_edge_entries. eapply in_fin_ensemble_bind_intro with (x := lookahead).
   - eapply T'_all_complete.
-  - eapply in_list_bind_intro with (x := q).
+  - eapply in_fin_ensemble_bind_intro with (x := q).
     + use reduce_LA_sound as SOUND with IN_REDUCE. destruct SOUND as [st it IN_REDUCE_N STATE IN_IT DONE EQ_PR PROD IN_LA].
       rewrite in_seq. split; [lia | eapply state_of_lt; exact STATE].
-    + unfold reduce_edge_entries_at. eapply in_list_bind_intro with (x := q').
+    + unfold reduce_edge_entries_at. eapply in_fin_ensemble_bind_intro with (x := q').
       * eapply reduce_edge_targets_complete; [exact IN_REDUCE | exact PATH | exact STEP].
       * simpl. left. reflexivity.
 Qed.
@@ -10498,8 +10501,8 @@ Lemma table_entries_sound_state q t
   : exists st, state_of q = Some st.
 Proof.
   unfold table_entries in IN.
-  use in_list_bind_elim as (q0 & IN_Q & IN_TAIL) with IN.
-  use in_list_bind_elim as (t0 & _ & IN_PAIR) with IN_TAIL.
+  use in_fin_ensemble_bind_elim as (q0 & IN_Q & IN_TAIL) with IN.
+  use in_fin_ensemble_bind_elim as (t0 & _ & IN_PAIR) with IN_TAIL.
   simpl in IN_PAIR. destruct IN_PAIR as [EQ | []]. inv EQ.
   rewrite in_seq in IN_Q. destruct IN_Q as (_ & LT).
   assert (LTB : Nat.ltb q num_states = true).
@@ -10631,7 +10634,7 @@ Lemma reduce_action_in_actions q t pr
   (IN_REDUCE : pr ∈ reduce_LA q t)
   : Reduce pr ∈ actions q t.
 Proof.
-  unfold actions. rewrite L.in_app_iff. right. rewrite L.in_app_iff. left. unfold reduce_actions. eapply in_list_bind_intro with (x := pr).
+  unfold actions. rewrite L.in_app_iff. right. rewrite L.in_app_iff. left. unfold reduce_actions. eapply in_fin_ensemble_bind_intro with (x := pr).
   - exact IN_REDUCE.
   - simpl. left. reflexivity.
 Qed.
@@ -10778,7 +10781,7 @@ Lemma reduce_actions_sound q t act
   (IN : act ∈ reduce_actions q t)
   : exists pr, pr ∈ reduce_LA q t /\ act = Reduce pr.
 Proof.
-  unfold reduce_actions in IN. use in_list_bind_elim as (pr & IN_REDUCE & IN_ACT) with IN.
+  unfold reduce_actions in IN. use in_fin_ensemble_bind_elim as (pr & IN_REDUCE & IN_ACT) with IN.
   destruct IN_ACT as [EQ | []]. subst act. exists pr. split; [exact IN_REDUCE | reflexivity].
 Qed.
 
@@ -10786,7 +10789,7 @@ Lemma reduce_actions_complete q t pr
   (IN : pr ∈ reduce_LA q t)
   : Reduce pr ∈ reduce_actions q t.
 Proof.
-  unfold reduce_actions. eapply in_list_bind_intro with (x := pr).
+  unfold reduce_actions. eapply in_fin_ensemble_bind_intro with (x := pr).
   - exact IN.
   - simpl. left. reflexivity.
 Qed.
@@ -10823,7 +10826,7 @@ Proof.
     destruct right as [ | X gamma].
     + destruct (mem (EQ_DEC := prod'_hasEqDec) {| p_lhs := A; p_rhs := beta |} P' && mem (EQ_DEC := T'_hasEqDec) t (LA_impl q {| i_lhs := A; i_left := beta; i_right := [] |})) eqn: GUARD; simpl.
       * constructor.
-        { intros IN_TAIL. use in_list_bind_elim as (it_tail & IN_ST & IN_ITEM) with IN_TAIL. use reduce_LA_item_sound as (DONE & EQ_PR & _ & _) with IN_ITEM. destruct it_tail as [A_tail beta_tail right_tail]. simpl in DONE. subst right_tail. simpl in EQ_PR. inv EQ_PR. contradiction. }
+        { intros IN_TAIL. use in_fin_ensemble_bind_elim as (it_tail & IN_ST & IN_ITEM) with IN_TAIL. use reduce_LA_item_sound as (DONE & EQ_PR & _ & _) with IN_ITEM. destruct it_tail as [A_tail beta_tail right_tail]. simpl in DONE. subst right_tail. simpl in EQ_PR. inv EQ_PR. contradiction. }
         { eapply IH. exact NO_DUP_TAIL. }
       * eapply IH. exact NO_DUP_TAIL.
     + eapply IH. exact NO_DUP_TAIL.
@@ -10856,7 +10859,7 @@ Proof.
   - constructor.
   - inversion NO_DUP_REDUCE as [ | pr0 prs0 NOTIN NO_DUP_TAIL]; subst.
     constructor.
-    + intros IN. use! (in_list_bind_elim _ _ _ IN) as (pr_tail & IN_TAIL & IN_ACT) with *. destruct IN_ACT as [EQ | []]. inv EQ. contradiction.
+    + intros IN. use! (in_fin_ensemble_bind_elim _ _ _ IN) as (pr_tail & IN_TAIL & IN_ACT) with *. destruct IN_ACT as [EQ | []]. inv EQ. contradiction.
     + eapply IH. exact NO_DUP_TAIL.
 Qed.
 
@@ -11656,7 +11659,7 @@ Proof.
     exists c_run'. split; [exact SHAPE_FINAL | econstructor; [exact STEP_RUN | exact STEPS_RUN]].
 Qed.
 
-Fixpoint run_reduce_target_from (alpha : list V') (src : nat) (dst : nat) (pr : prod') (candidates : list nat) {struct candidates} : option { p : nat & { dst' : nat | npath alpha src p /\ npath pr.(p_rhs) p dst /\ dN p (inl pr.(p_lhs)) = Some dst' } }.
+Fixpoint run_reduce_target_from (alpha : list V') (src : nat) (dst : nat) (pr : prod') (candidates : fin_ensemble nat) {struct candidates} : option { p : nat & { dst' : nat | npath alpha src p /\ npath pr.(p_rhs) p dst /\ dN p (inl pr.(p_lhs)) = Some dst' } }.
 Proof.
   destruct candidates as [ | p candidates'].
   - exact None.
@@ -13107,7 +13110,7 @@ Proof.
   rewrite LIVE_A'. f_equal. eapply eq_by_old_nt. simpl. exact OLD_A.
 Qed.
 
-Definition all : list t :=
+Definition all : fin_ensemble t :=
   L.nodup t_hasEqDec (G.NT.all >>= fun A => match live_of_dec A with | Some A' => [A'] | None => [] end).
 
 Lemma all_complete
@@ -13159,12 +13162,12 @@ Fixpoint live_rhs_of (rhs : list (G.NT.t + G.TM.t)) : option (list (LiveNT.t + G
   | X :: rhs' => match live_symbol_of X, live_rhs_of rhs' with | Some X', Some rhs'' => Some (X' :: rhs'') | _, _ => None end
   end.
 
-Definition pruned_prod_of (p : G.NT.t * list (G.NT.t + G.TM.t)) : list (LiveNT.t * list (LiveNT.t + G.TM.t)) :=
+Definition pruned_prod_of (p : G.NT.t * list (G.NT.t + G.TM.t)) : fin_ensemble (LiveNT.t * list (LiveNT.t + G.TM.t)) :=
   match p with
   | (A, rhs) => match LiveNT.live_of_dec A, live_rhs_of rhs with | Some A', Some rhs' => [(A', rhs')] | _, _ => [] end
   end.
 
-Definition pruned_productions : list (LiveNT.t * list (LiveNT.t + G.TM.t)) :=
+Definition pruned_productions : fin_ensemble (LiveNT.t * list (LiveNT.t + G.TM.t)) :=
   G.productions >>= pruned_prod_of.
 
 Lemma live_symbol_of_sound X X'
@@ -13248,7 +13251,7 @@ Lemma pruned_productions_sound A rhs
   : (erase_nt A, erase_rhs rhs) ∈ G.productions.
 Proof.
   unfold pruned_productions in IN.
-  use in_list_bind_elim as (p & PROD & IN_PRUNED) with IN.
+  use in_fin_ensemble_bind_elim as (p & PROD & IN_PRUNED) with IN.
   use pruned_prod_of_sound as ERASE with IN_PRUNED. subst p.
   exact PROD.
 Qed.
@@ -13262,7 +13265,7 @@ Proof.
   unfold pruned_productions.
   use pruned_prod_of_complete as (A' & rhs' & IN_PRUNED & ERASE_A & ERASE_RHS) with LIVE_A LIVE_RHS.
   exists A'. exists rhs'. splits.
-  - eapply in_list_bind_intro with (x := (A, rhs)); [exact PROD | exact IN_PRUNED].
+  - eapply in_fin_ensemble_bind_intro with (x := (A, rhs)); [exact PROD | exact IN_PRUNED].
   - exact ERASE_A.
   - exact ERASE_RHS.
 Qed.
@@ -13274,7 +13277,7 @@ Lemma pruned_productions_complete_exact A rhs A' rhs'
   : (A', rhs') ∈ pruned_productions.
 Proof.
   unfold pruned_productions.
-  eapply in_list_bind_intro with (x := (A, rhs)); [exact PROD | ].
+  eapply in_fin_ensemble_bind_intro with (x := (A, rhs)); [exact PROD | ].
   eapply pruned_prod_of_complete_exact; [exact LIVE_A | exact LIVE_RHS].
 Qed.
 
@@ -13306,7 +13309,7 @@ Module TM := G.TM.
 Definition start : NT.t :=
   {| LiveNT.old_nt := G.start; LiveNT.old_nt_live := StartLive.start_live |}.
 
-Definition productions : list (NT.t * list (NT.t + TM.t)) :=
+Definition productions : fin_ensemble (NT.t * list (NT.t + TM.t)) :=
   pruned_productions.
 
 End PrunedGrammar.
@@ -14730,7 +14733,7 @@ Record pruned_numbered_state_entry : Set :=
   ; pruned_numbered_state_entry_state : Pruned.Item.state
   }.
 
-Definition pruned_numbered_state_entries : list pruned_numbered_state_entry :=
+Definition pruned_numbered_state_entries : fin_ensemble pruned_numbered_state_entry :=
   seq 0 Pruned.Numbering.num_states >>= fun q =>
   match Pruned.Numbering.state_of q with
   | Some st => [{| pruned_numbered_state_entry_number := q; pruned_numbered_state_entry_state := st |}]
@@ -14741,7 +14744,7 @@ Lemma pruned_numbered_state_entries_complete (q : nat) (st : Pruned.Item.state)
   (STATE : Pruned.Numbering.state_of q = Some st)
   : {| pruned_numbered_state_entry_number := q; pruned_numbered_state_entry_state := st |} ∈ pruned_numbered_state_entries.
 Proof.
-  unfold pruned_numbered_state_entries. eapply in_list_bind_intro with (x := q).
+  unfold pruned_numbered_state_entries. eapply in_fin_ensemble_bind_intro with (x := q).
   - rewrite in_seq. split.
     + lia.
     + eapply Pruned.Numbering.state_of_some_lt. exact STATE.
@@ -14751,7 +14754,7 @@ Qed.
 #[projections(primitive)]
 Record pruned_semantic_merge_reduce_action_entry : Set := mk_pruned_semantic_merge_reduce_action_entry { pruned_semantic_merge_reduce_action_entry_state : nat; pruned_semantic_merge_reduce_action_entry_lookahead : Pruned.GrammarSyntax.T'; pruned_semantic_merge_reduce_action_entry_prod : Pruned.GrammarSyntax.prod' }.
 
-Definition pruned_semantic_merge_reduce_action_entries : list pruned_semantic_merge_reduce_action_entry :=
+Definition pruned_semantic_merge_reduce_action_entries : fin_ensemble pruned_semantic_merge_reduce_action_entry :=
   do 'q <- seq 0 Pruned.Numbering.num_states; 't <- Pruned.GrammarSyntax.T'_FinEnum.all; 'pr <- Pruned.Table.reduce_LA q t; [{| pruned_semantic_merge_reduce_action_entry_state := q; pruned_semantic_merge_reduce_action_entry_lookahead := t; pruned_semantic_merge_reduce_action_entry_prod := pr |}].
 
 Lemma pruned_semantic_merge_reduce_action_entries_complete (q : nat) (t : Pruned.GrammarSyntax.T') (pr : Pruned.GrammarSyntax.prod')
@@ -14761,11 +14764,11 @@ Proof.
   use Pruned.Table.reduce_actions_sound as (pr0 & IN_REDUCE & EQ) with IN_ACTION. injection EQ as EQ_PR0. subst pr0.
   use Pruned.Table.reduce_LA_sound as SOUND with IN_REDUCE.
   destruct SOUND as [st it IN_REDUCE_N STATE IN_IT DONE EQ_PR PROD IN_LA].
-  unfold pruned_semantic_merge_reduce_action_entries. eapply in_list_bind_intro with (x := q).
+  unfold pruned_semantic_merge_reduce_action_entries. eapply in_fin_ensemble_bind_intro with (x := q).
   - rewrite in_seq. split.
     + lia.
     + eapply Pruned.Numbering.state_of_some_lt. exact STATE.
-  - eapply in_list_bind_intro with (x := t); [eapply Pruned.GrammarSyntax.T'_all_complete | ]. eapply in_list_bind_intro with (x := pr); [exact IN_REDUCE | simpl; left; reflexivity].
+  - eapply in_fin_ensemble_bind_intro with (x := t); [eapply Pruned.GrammarSyntax.T'_all_complete | ]. eapply in_fin_ensemble_bind_intro with (x := pr); [exact IN_REDUCE | simpl; left; reflexivity].
 Qed.
 
 #[projections(primitive)]
@@ -14775,7 +14778,7 @@ Record pruned_semantic_merge_accept_action_entry : Set :=
   ; pruned_semantic_merge_accept_action_entry_lookahead : Pruned.GrammarSyntax.T'
   }.
 
-Definition pruned_semantic_merge_accept_action_entries : list pruned_semantic_merge_accept_action_entry := do
+Definition pruned_semantic_merge_accept_action_entries : fin_ensemble pruned_semantic_merge_accept_action_entry := do
   'q <- seq 0 Pruned.Numbering.num_states;
   't <- Pruned.GrammarSyntax.T'_FinEnum.all; 'act <- Pruned.Table.accept_action q t;
   match act with
@@ -14789,11 +14792,11 @@ Lemma pruned_semantic_merge_accept_action_entries_complete (q : nat) (t : Pruned
 Proof.
   use Pruned.Table.accept_action_sound as (_ & qf & FINAL & EQ_Q & EQ_T) with IN_ACCEPT. subst q. subst t.
   use Pruned.Numbering.nq_f_sound as (qf_state & FINAL_STATE & INDEX & STATE) with FINAL.
-  unfold pruned_semantic_merge_accept_action_entries. eapply in_list_bind_intro with (x := qf).
+  unfold pruned_semantic_merge_accept_action_entries. eapply in_fin_ensemble_bind_intro with (x := qf).
   - rewrite in_seq. split.
     + lia.
     + eapply Pruned.Numbering.state_of_some_lt. exact STATE.
-  - eapply in_list_bind_intro with (x := Pruned.GrammarSyntax.eof); [eapply Pruned.GrammarSyntax.T'_all_complete | ]. eapply in_list_bind_intro with (x := Pruned.Table.Accept); [exact IN_ACCEPT | simpl; left; reflexivity].
+  - eapply in_fin_ensemble_bind_intro with (x := Pruned.GrammarSyntax.eof); [eapply Pruned.GrammarSyntax.T'_all_complete | ]. eapply in_fin_ensemble_bind_intro with (x := Pruned.Table.Accept); [exact IN_ACCEPT | simpl; left; reflexivity].
 Qed.
 
 #[projections(primitive)]
@@ -14941,17 +14944,17 @@ Record pruned_lr0_transition_entry : Set :=
   ; pruned_lr0_transition_entry_target : nat
   }.
 
-Definition pruned_lr0_transition_entries : list pruned_lr0_transition_entry := do 'p <- seq 0 Pruned.Numbering.num_states; 'X <- Pruned.GrammarSyntax.V'_FinEnum.all; match Pruned.Numbering.dN p X with | Some q => [{| pruned_lr0_transition_entry_source := p; pruned_lr0_transition_entry_symbol := X; pruned_lr0_transition_entry_target := q |}] | None => [] end.
+Definition pruned_lr0_transition_entries : fin_ensemble pruned_lr0_transition_entry := do 'p <- seq 0 Pruned.Numbering.num_states; 'X <- Pruned.GrammarSyntax.V'_FinEnum.all; match Pruned.Numbering.dN p X with | Some q => [{| pruned_lr0_transition_entry_source := p; pruned_lr0_transition_entry_symbol := X; pruned_lr0_transition_entry_target := q |}] | None => [] end.
 
 Lemma pruned_lr0_transition_entries_complete p X q
   (STEP : Pruned.Numbering.dN p X = Some q)
   : {| pruned_lr0_transition_entry_source := p; pruned_lr0_transition_entry_symbol := X; pruned_lr0_transition_entry_target := q |} ∈ pruned_lr0_transition_entries.
 Proof.
-  unfold pruned_lr0_transition_entries. eapply in_list_bind_intro with (x := p).
+  unfold pruned_lr0_transition_entries. eapply in_fin_ensemble_bind_intro with (x := p).
   - rewrite in_seq. split.
     + lia.
     + eapply Pruned.Numbering.dN_source_lt. exact STEP.
-  - eapply in_list_bind_intro with (x := X); [eapply Pruned.GrammarSyntax.V'_all_complete | ]. rewrite STEP. simpl. left. reflexivity.
+  - eapply in_fin_ensemble_bind_intro with (x := X); [eapply Pruned.GrammarSyntax.V'_all_complete | ]. rewrite STEP. simpl. left. reflexivity.
 Qed.
 
 Definition pruned_lr0_transition_embeddingb (image : nat -> nat) (entry : pruned_numbered_state_entry) : bool := numbered_state_embedding_candidateb entry.(pruned_numbered_state_entry_number) (image entry.(pruned_numbered_state_entry_number)).
@@ -15412,19 +15415,19 @@ Proof.
   - intros lookahead q q' EDGE. eapply pruned_lr0_state_image_reduce_edge. exact EDGE.
 Qed.
 
-Fixpoint pruned_symbol_words_of_length (n : nat) : list (list Pruned.GrammarSyntax.V') :=
+Fixpoint pruned_symbol_words_of_length (n : nat) : fin_ensemble (list Pruned.GrammarSyntax.V') :=
   match n with
   | 0 => [[]]
   | S n' => Pruned.GrammarSyntax.V'_FinEnum.all >>= fun X => map (cons X) (pruned_symbol_words_of_length n')
   end.
 
-Fixpoint pruned_symbol_words_upto_length (n : nat) : list (list Pruned.GrammarSyntax.V') :=
+Fixpoint pruned_symbol_words_upto_length (n : nat) : fin_ensemble (list Pruned.GrammarSyntax.V') :=
   match n with
   | 0 => [[]]
   | S n' => pruned_symbol_words_upto_length n' ++ pruned_symbol_words_of_length (S n')
   end.
 
-Definition pruned_lr0_bounded_words : list (list Pruned.GrammarSyntax.V') :=
+Definition pruned_lr0_bounded_words : fin_ensemble (list Pruned.GrammarSyntax.V') :=
   pruned_symbol_words_upto_length Pruned.LR0.state_fuel.
 
 Lemma pruned_symbol_words_of_length_complete alpha
@@ -15432,7 +15435,7 @@ Lemma pruned_symbol_words_of_length_complete alpha
 Proof.
   induction alpha as [ | X alpha IH].
   - left. reflexivity.
-  - cbn [length pruned_symbol_words_of_length]. change ((X :: alpha) ∈ (Pruned.GrammarSyntax.V'_FinEnum.all >>= fun Y => map (cons Y) (pruned_symbol_words_of_length (length alpha)))). eapply in_list_bind_intro with (x := X); [eapply Pruned.GrammarSyntax.V'_FinEnum.all_complete | ]. rewrite L.in_map_iff. exists alpha. split; [reflexivity | exact IH].
+  - cbn [length pruned_symbol_words_of_length]. eapply in_fin_ensemble_bind_intro with (x := X); [eapply Pruned.GrammarSyntax.V'_FinEnum.all_complete | ]. rewrite L.in_map_iff. exists alpha. split; [reflexivity | exact IH].
 Qed.
 
 Lemma pruned_symbol_words_upto_length_complete alpha n

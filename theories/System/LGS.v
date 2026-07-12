@@ -52,7 +52,7 @@ Definition t : Set :=
 Definition t_hasEqDec : hasEqDec Ascii_FinEnum.t :=
   ascii_hasEqDec.
 
-Definition all : list ascii := do
+Definition all : fin_ensemble ascii := do
   'b0 <- all_bools;
   'b1 <- all_bools;
   'b2 <- all_bools;
@@ -67,15 +67,15 @@ Lemma in_all_intro
   : forall x : Ascii_FinEnum.t, L.In x Ascii_FinEnum.all.
 Proof.
   unfold all; intros [b0 b1 b2 b3 b4 b5 b6 b7].
-  eapply in_list_bind_intro with (x := b0); [eapply in_all_bools_intro | ].
-  eapply in_list_bind_intro with (x := b1); [eapply in_all_bools_intro | ].
-  eapply in_list_bind_intro with (x := b2); [eapply in_all_bools_intro | ].
-  eapply in_list_bind_intro with (x := b3); [eapply in_all_bools_intro | ].
-  eapply in_list_bind_intro with (x := b4); [eapply in_all_bools_intro | ].
-  eapply in_list_bind_intro with (x := b5); [eapply in_all_bools_intro | ].
-  eapply in_list_bind_intro with (x := b6); [eapply in_all_bools_intro | ].
-  eapply in_list_bind_intro with (x := b7); [eapply in_all_bools_intro | ].
-  eapply in_list_pure_intro.
+  eapply in_fin_ensemble_bind_intro with (x := b0); [eapply in_all_bools_intro | ].
+  eapply in_fin_ensemble_bind_intro with (x := b1); [eapply in_all_bools_intro | ].
+  eapply in_fin_ensemble_bind_intro with (x := b2); [eapply in_all_bools_intro | ].
+  eapply in_fin_ensemble_bind_intro with (x := b3); [eapply in_all_bools_intro | ].
+  eapply in_fin_ensemble_bind_intro with (x := b4); [eapply in_all_bools_intro | ].
+  eapply in_fin_ensemble_bind_intro with (x := b5); [eapply in_all_bools_intro | ].
+  eapply in_fin_ensemble_bind_intro with (x := b6); [eapply in_all_bools_intro | ].
+  eapply in_fin_ensemble_bind_intro with (x := b7); [eapply in_all_bools_intro | ].
+  simpl; left; reflexivity.
 Qed.
 
 Lemma all_no_dup
@@ -379,7 +379,7 @@ Record t : Type :=
   ; states : fin_ensemble state
   ; start_state : state
   ; accept_states : alist state Token.t
-  ; labeled_edges : list ((state * state) * enfa_edge_label)
+  ; labeled_edges : fin_ensemble ((state * state) * enfa_edge_label)
   } as M.
 
 #[global] Existing Instance state_hasEqDec.
@@ -411,7 +411,7 @@ Section TRANSITION.
 
 Context {Q : Type}.
 
-Variable eps_step : Q -> list Q.
+Variable eps_step : Q -> fin_ensemble Q.
 
 Inductive eclosure (q : Q) : ensemble Q :=
   | eclosure_refl
@@ -431,7 +431,7 @@ Proof.
   induction H1_eclosure as [q | q q1' q2' STEP REST IH]; simpl; eauto with *.
 Qed.
 
-Variable char_step : Q -> ascii -> list Q.
+Variable char_step : Q -> ascii -> fin_ensemble Q.
 
 Inductive delta_star (q : Q) : Input.t -> ensemble Q :=
   | delta_star_nil
@@ -552,8 +552,8 @@ Record fragment : Set :=
   mkFragment
   { frag_start : nat
   ; frag_accept : nat
-  ; frag_eps_edges : list (nat * nat)
-  ; frag_char_edges : list char_edge
+  ; frag_eps_edges : fin_ensemble (nat * nat)
+  ; frag_char_edges : fin_ensemble char_edge
   } as frag.
 
 Fixpoint regex2fragment (e : regex ascii) (qi : nat) {struct e} : nat * fragment :=
@@ -597,22 +597,22 @@ Fixpoint rules2fragments (qi : nat) (rules : list Rule.t) {struct rules} : nat *
     (qmax, (rule, frag) :: frags)
   end.
 
-Fixpoint fragment_eps_edges (frags : list (Rule.t * fragment)) {struct frags} : list (nat * nat) :=
+Fixpoint fragment_eps_edges (frags : list (Rule.t * fragment)) {struct frags} : fin_ensemble (nat * nat) :=
   match frags with
   | [] => []
   | (_, frag) :: frags' => (0, frag.(frag_start)) :: frag.(frag_eps_edges) ++ fragment_eps_edges frags'
   end.
 
-Fixpoint fragment_char_edges (frags : list (Rule.t * fragment)) {struct frags} : list char_edge :=
+Fixpoint fragment_char_edges (frags : list (Rule.t * fragment)) {struct frags} : fin_ensemble char_edge :=
   match frags with
   | [] => []
   | (_, frag) :: frags' => frag.(frag_char_edges) ++ fragment_char_edges frags'
   end.
 
-Definition fragment_vertices (frag : fragment) : list nat :=
+Definition fragment_vertices (frag : fragment) : fin_ensemble nat :=
   [frag.(frag_start); frag.(frag_accept)].
 
-Definition fragments_vertices (frags : list (Rule.t * fragment)) : list nat :=
+Definition fragments_vertices (frags : list (Rule.t * fragment)) : fin_ensemble nat :=
   0 :: L.flat_map (fun '(_, frag) => fragment_vertices frag) frags.
 
 #[global]
@@ -622,22 +622,22 @@ Proof.
   exact (option_hasEqDec ascii_hasEqDec).
 Defined.
 
-Definition eps_labeled_edges (edges : list (nat * nat)) : list (nat * nat * enfa_edge_label) :=
+Definition eps_labeled_edges (edges : fin_ensemble (nat * nat)) : fin_ensemble (nat * nat * enfa_edge_label) :=
   GraphAPI.const_labeled_edges None edges.
 
 Definition char_labeled_edge (edge : char_edge) : nat * nat * enfa_edge_label :=
   ((edge.(char_edge_src), edge.(char_edge_dst)), Some edge.(char_edge_label)).
 
-Definition char_labeled_edges (edges : list char_edge) : list (nat * nat * enfa_edge_label) :=
+Definition char_labeled_edges (edges : fin_ensemble char_edge) : fin_ensemble (nat * nat * enfa_edge_label) :=
   map char_labeled_edge edges.
 
-Definition enfa_labeled_edges (eps_edges : list (nat * nat)) (char_edges : list char_edge) : list (nat * nat * enfa_edge_label) :=
+Definition enfa_labeled_edges (eps_edges : fin_ensemble (nat * nat)) (char_edges : fin_ensemble char_edge) : fin_ensemble (nat * nat * enfa_edge_label) :=
   eps_labeled_edges eps_edges ++ char_labeled_edges char_edges.
 
-Definition enfa_graph_from (vertices : list nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge) : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label) :=
+Definition enfa_graph_from (vertices : fin_ensemble nat) (eps_edges : fin_ensemble (nat * nat)) (char_edges : fin_ensemble char_edge) : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label) :=
   GraphAPI.buildLabeledFiniteGraphWithVertices vertices (enfa_labeled_edges eps_edges char_edges).
 
-Definition enfa_graph (eps_edges : list (nat * nat)) (char_edges : list char_edge) : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label) :=
+Definition enfa_graph (eps_edges : fin_ensemble (nat * nat)) (char_edges : fin_ensemble char_edge) : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label) :=
   enfa_graph_from [] eps_edges char_edges.
 
 Definition fragment_graph (frag : fragment) : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label) :=
@@ -646,10 +646,10 @@ Definition fragment_graph (frag : fragment) : @GraphAPI.LabeledFiniteGraph nat (
 Definition fragments_graph (frags : list (Rule.t * fragment)) : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label) :=
   enfa_graph_from (fragments_vertices frags) (fragment_eps_edges frags) (fragment_char_edges frags).
 
-Definition enfa_eps_step (lG : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label)) (q : nat) : list nat :=
+Definition enfa_eps_step (lG : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label)) (q : nat) : fin_ensemble nat :=
   GraphAPI.successors_by_label_of_graph lG None q.
 
-Definition enfa_char_step (lG : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label)) (q : nat) (c : ascii) : list nat :=
+Definition enfa_char_step (lG : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label)) (q : nat) (c : ascii) : fin_ensemble nat :=
   GraphAPI.successors_by_label_of_graph lG (Some c) q.
 
 Definition enfa_delta_star (lG : @GraphAPI.LabeledFiniteGraph nat (fin_ensemble enfa_edge_label)) : nat -> Input.t -> ensemble nat :=
@@ -670,20 +670,20 @@ Definition mkUnitedTaggedENFA (rules : list Rule.t) : TaggedENFA.t :=
   let '(qmax, frags) := rules2fragments 1 rules in
   fragments2TaggedENFA qmax frags.
 
-Lemma in_eps_labeled_edges_iff (edge : nat * nat) (edges : list (nat * nat))
+Lemma in_eps_labeled_edges_iff (edge : nat * nat) (edges : fin_ensemble (nat * nat))
   : (edge, None) ∈ eps_labeled_edges edges <-> edge ∈ edges.
 Proof.
   unfold eps_labeled_edges. eapply GraphAPI.const_labeled_edges_same_In.
 Qed.
 
-Lemma in_eps_labeled_edges_some_absurd (edge : nat * nat) (c : ascii) (edges : list (nat * nat))
+Lemma in_eps_labeled_edges_some_absurd (edge : nat * nat) (c : ascii) (edges : fin_ensemble (nat * nat))
   : ~ (edge, Some c) ∈ eps_labeled_edges edges.
 Proof.
   intros IN. unfold eps_labeled_edges in IN.
   rewrite GraphAPI.const_labeled_edges_In in IN. destruct IN as [_ EQ]. inv EQ.
 Qed.
 
-Lemma in_char_labeled_edges_iff (q : nat) (q' : nat) (c : ascii) (edges : list char_edge)
+Lemma in_char_labeled_edges_iff (q : nat) (q' : nat) (c : ascii) (edges : fin_ensemble char_edge)
   : ((q, q'), Some c) ∈ char_labeled_edges edges <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ edges.
 Proof.
   unfold char_labeled_edges. rewrite L.in_map_iff. split.
@@ -693,14 +693,14 @@ Proof.
     now split.
 Qed.
 
-Lemma in_char_labeled_edges_none_absurd (edge : nat * nat) (edges : list char_edge)
+Lemma in_char_labeled_edges_none_absurd (edge : nat * nat) (edges : fin_ensemble char_edge)
   : ~ (edge, None) ∈ char_labeled_edges edges.
 Proof.
   intros IN. unfold char_labeled_edges in IN. rewrite L.in_map_iff in IN.
   destruct IN as (edge' & EQ & _). destruct edge' as [src label dst]. simpl in EQ. inv EQ.
 Qed.
 
-Lemma enfa_graph_eps_label_iff (vertices : list nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge) (q : nat) (q' : nat)
+Lemma enfa_graph_eps_label_iff (vertices : fin_ensemble nat) (eps_edges : fin_ensemble (nat * nat)) (char_edges : fin_ensemble char_edge) (q : nat) (q' : nat)
   : GraphAPI.has_label (enfa_graph_from vertices eps_edges char_edges) (q, q') None <-> (q, q') ∈ eps_edges.
 Proof.
   unfold enfa_graph_from. rewrite GraphAPI.buildLabeledFiniteGraphWithVertices_has_label.
@@ -711,7 +711,7 @@ Proof.
   - intros IN. left. now rewrite in_eps_labeled_edges_iff.
 Qed.
 
-Lemma enfa_graph_char_label_iff (vertices : list nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge) (q : nat) (q' : nat) (c : ascii)
+Lemma enfa_graph_char_label_iff (vertices : fin_ensemble nat) (eps_edges : fin_ensemble (nat * nat)) (char_edges : fin_ensemble char_edge) (q : nat) (q' : nat) (c : ascii)
   : GraphAPI.has_label (enfa_graph_from vertices eps_edges char_edges) (q, q') (Some c) <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ char_edges.
 Proof.
   unfold enfa_graph_from. rewrite GraphAPI.buildLabeledFiniteGraphWithVertices_has_label.
@@ -773,14 +773,14 @@ Proof.
   unfold fragments_graph. eapply enfa_graph_char_label_iff.
 Qed.
 
-Lemma in_enfa_eps_step_iff (vertices : list nat) (q : nat) (q' : nat) (eps_edges : list (nat * nat)) (char_edges : list char_edge)
+Lemma in_enfa_eps_step_iff (vertices : fin_ensemble nat) (q : nat) (q' : nat) (eps_edges : fin_ensemble (nat * nat)) (char_edges : fin_ensemble char_edge)
   : q' ∈ enfa_eps_step (enfa_graph_from vertices eps_edges char_edges) q <-> (q, q') ∈ eps_edges.
 Proof.
   unfold enfa_eps_step. rewrite GraphAPI.successors_by_label_of_graph_has_label.
   eapply enfa_graph_eps_label_iff.
 Qed.
 
-Lemma in_enfa_char_step_iff (vertices : list nat) (q : nat) (q' : nat) (c : ascii) (eps_edges : list (nat * nat)) (char_edges : list char_edge)
+Lemma in_enfa_char_step_iff (vertices : fin_ensemble nat) (q : nat) (q' : nat) (c : ascii) (eps_edges : fin_ensemble (nat * nat)) (char_edges : fin_ensemble char_edge)
   : q' ∈ enfa_char_step (enfa_graph_from vertices eps_edges char_edges) q c <-> {| char_edge_src := q; char_edge_label := c; char_edge_dst := q' |} ∈ char_edges.
 Proof.
   unfold enfa_char_step. rewrite GraphAPI.successors_by_label_of_graph_has_label.
@@ -2012,7 +2012,7 @@ Definition state_number (q : Q) : nat :=
 Definition numbered_state_denote (n : nat) : Q :=
   lookup M.(TaggedDFA.start_state) n M.(TaggedDFA.states).
 
-Definition numbered_states : list nat :=
+Definition numbered_states : fin_ensemble nat :=
   seq 0 (length M.(TaggedDFA.states)).
 
 Lemma numbered_states_NoDup
@@ -2027,7 +2027,7 @@ Definition numbered_start_state : nat :=
 Definition numbered_transition (n : nat) (c : ascii) : nat :=
   state_number (M.(TaggedDFA.transition) (numbered_state_denote n) c).
 
-Definition numbered_accept_states : list (nat * Token.t) :=
+Definition numbered_accept_states : fin_ensemble (nat * Token.t) :=
   M.(TaggedDFA.accept_states).(kvlist) >>= fun '(q, tag) => pure (state_number q, tag).
 
 Definition number_states : TaggedDFA.t :=
@@ -2065,14 +2065,14 @@ Lemma numbered_accept_states_complete (q : Q) (tag : Token.t)
   (ACCEPT : (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
   : (state_number q, tag) ∈ numbered_accept_states.
 Proof.
-  eapply in_list_bind_intro with (x := (q, tag)); done.
+  eapply in_fin_ensemble_bind_intro with (x := (q, tag)); done.
 Qed.
 
 Lemma numbered_accept_states_sound (n : nat) (tag : Token.t)
   (ACCEPT : (n, tag) ∈ numbered_accept_states)
   : exists q, (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist) /\ n = state_number q.
 Proof.
-  use! in_list_bind_elim as ([q tag'] & ACCEPT' & IN) with ACCEPT. done.
+  use! in_fin_ensemble_bind_elim as ([q tag'] & ACCEPT' & IN) with ACCEPT. done.
 Qed.
 
 Lemma numbered_delta (q : Q) (s : Input.t)
@@ -2430,18 +2430,18 @@ Proof.
   eapply eclose_in_subset_states.
 Qed.
 
-Definition subset_accept_states_of (qs : subset_state) : list (subset_state * Token.t) :=
-  bind (isMonad := B.list_isMonad) M.(TaggedENFA.accept_states).(kvlist) (fun '(q, tag) => if mem (EQ_DEC := M.(TaggedENFA.state_hasEqDec)) q qs then pure (isMonad := B.list_isMonad) (qs, tag) else []).
+Definition subset_accept_states_of (qs : subset_state) : fin_ensemble (subset_state * Token.t) :=
+  M.(TaggedENFA.accept_states).(kvlist) >>= fun '(q, tag) => if mem (EQ_DEC := M.(TaggedENFA.state_hasEqDec)) q qs then pure (qs, tag) else [].
 
-Definition subset_accept_states : list (subset_state * Token.t) :=
-  bind (isMonad := B.list_isMonad) subset_states subset_accept_states_of.
+Definition subset_accept_states : fin_ensemble (subset_state * Token.t) :=
+  subset_states >>= subset_accept_states_of.
 
 Lemma subset_accept_states_of_complete (qs : subset_state) (q : Q) (tag : Token.t)
   (ACCEPT : (q, tag) ∈ M.(TaggedENFA.accept_states).(kvlist))
   (IN : q ∈ qs)
   : (qs, tag) ∈ subset_accept_states_of qs.
 Proof.
-  eapply in_list_bind_intro with (x := (q, tag)); eauto. des_ifs; ss!.
+  eapply in_fin_ensemble_bind_intro with (x := (q, tag)); eauto. des_ifs; ss!.
 Qed.
 
 Lemma subset_accept_states_of_sound (qs : subset_state) (qs' : subset_state) (tag : Token.t)
@@ -2449,7 +2449,7 @@ Lemma subset_accept_states_of_sound (qs : subset_state) (qs' : subset_state) (ta
   : qs = qs' /\ (exists q : Q, (q, tag) ∈ M.(TaggedENFA.accept_states).(kvlist) /\ q ∈ qs).
 Proof.
   unfold subset_accept_states_of in ACCEPT.
-  use (in_list_bind_elim _ _ _ ACCEPT) as ([q tag'] & ACCEPT' & IN).
+  use (in_fin_ensemble_bind_elim _ _ _ ACCEPT) as ([q tag'] & ACCEPT' & IN).
   des_ifs; ss!.
 Qed.
 
@@ -2459,7 +2459,7 @@ Lemma subset_accept_states_complete (qs : subset_state) (q : Q) (tag : Token.t)
   (IN : q ∈ qs)
   : (qs, tag) ∈ subset_accept_states.
 Proof.
-  eapply in_list_bind_intro with (x := qs); eauto.
+  eapply in_fin_ensemble_bind_intro with (x := qs); eauto.
   eapply subset_accept_states_of_complete; eauto.
 Qed.
 
@@ -2468,7 +2468,7 @@ Lemma subset_accept_states_sound (qs : subset_state) (tag : Token.t)
   : qs ∈ subset_states /\ (exists q, (q, tag) ∈ M.(TaggedENFA.accept_states).(kvlist) /\ q ∈ qs).
 Proof.
   unfold subset_accept_states in ACCEPT.
-  use (in_list_bind_elim _ _ _ ACCEPT) as (qs' & QS & ACCEPT').
+  use (in_fin_ensemble_bind_elim _ _ _ ACCEPT) as (qs' & QS & ACCEPT').
   use subset_accept_states_of_sound as (EQ & q & ACCEPT_Q & IN) with ACCEPT'.
   subst qs'; eauto.
 Qed.
@@ -2673,14 +2673,14 @@ Definition state_ensemble : ensemble Q :=
 Definition accept_state_ensemble : ensemble (Q * Token.t) :=
   fun qtag => qtag ∈ M.(TaggedDFA.accept_states).(kvlist).
 
-Definition accepting_tags_from (q : Q) : list Token.t :=
-  bind (isMonad := B.list_isMonad) M.(TaggedDFA.accept_states).(kvlist) (fun '(q', tag) => if M.(TaggedDFA.state_hasEqDec) q q' then pure (isMonad := B.list_isMonad) tag else []).
+Definition accepting_tags_from (q : Q) : fin_ensemble Token.t :=
+  M.(TaggedDFA.accept_states).(kvlist) >>= fun '(q', tag) => if M.(TaggedDFA.state_hasEqDec) q q' then pure tag else [].
 
 Lemma accepting_tags_from_complete (q : Q) (tag : Token.t)
   (ACCEPT : (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist))
   : tag ∈ accepting_tags_from q.
 Proof.
-  eapply in_list_bind_intro with (x := (q, tag)); eauto.
+  eapply in_fin_ensemble_bind_intro with (x := (q, tag)); eauto.
   des_ifs; ss!.
 Qed.
 
@@ -2688,7 +2688,7 @@ Lemma accepting_tags_from_sound (q : Q) (tag : Token.t)
   (ACCEPT : tag ∈ accepting_tags_from q)
   : (q, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
-  use (in_list_bind_elim _ _ _ ACCEPT) as ([q' tag'] & ACCEPT' & IN).
+  use (in_fin_ensemble_bind_elim _ _ _ ACCEPT) as ([q' tag'] & ACCEPT' & IN).
   des_ifs; ss!.
 Qed.
 
@@ -2814,16 +2814,16 @@ Proof.
 Qed.
 
 Definition hopcroft_block : Set :=
-  list Q.
+  fin_ensemble Q.
 
 Definition hopcroft_partition : Set :=
-  list hopcroft_block.
+  fin_ensemble hopcroft_block.
 
 Definition hopcroft_splitter : Set :=
   hopcroft_block * ascii.
 
 Definition hopcroft_worklist : Set :=
-  list hopcroft_splitter.
+  fin_ensemble hopcroft_splitter.
 
 Definition hopcroft_block_ensemble (block : hopcroft_block) : ensemble Q :=
   fun q => q ∈ block.
@@ -2889,8 +2889,8 @@ Lemma hopcroft_all_splitters_valid (partition : hopcroft_partition)
   : hopcroft_worklist_valid partition (hopcroft_all_splitters partition).
 Proof.
   intros block c IN. unfold hopcroft_all_splitters in IN.
-  use (in_list_bind_elim _ _ _ IN) as (block0 & BLOCK & IN_C).
-  use (in_list_bind_elim _ _ _ IN_C) as (c0 & C & IN_PAIR).
+  use (in_fin_ensemble_bind_elim _ _ _ IN) as (block0 & BLOCK & IN_C).
+  use (in_fin_ensemble_bind_elim _ _ _ IN_C) as (c0 & C & IN_PAIR).
   simpl in IN_PAIR. destruct IN_PAIR as [EQ | []]. inv EQ. split; eauto.
 Qed.
 
@@ -2899,8 +2899,8 @@ Lemma hopcroft_all_splitters_complete (partition : hopcroft_partition) (block : 
   : (block, c) ∈ hopcroft_all_splitters partition.
 Proof.
   unfold hopcroft_all_splitters.
-  eapply in_list_bind_intro with (x := block); auto.
-  eapply in_list_bind_intro with (x := c).
+  eapply in_fin_ensemble_bind_intro with (x := block); auto.
+  eapply in_fin_ensemble_bind_intro with (x := c).
   - eapply in_all_asciis_intro.
   - s!; tauto.
 Qed.
@@ -2937,7 +2937,7 @@ Lemma hopcroft_update_worklist_valid_prefix (prefix : hopcroft_partition) (parti
 Proof.
   intros block c IN. unfold hopcroft_update_worklist in IN.
   destruct (hopcroft_worklist_mentions old_block worklist) eqn: MENTIONS.
-  - use (in_list_bind_elim _ _ _ IN) as ([block0 c0] & IN_WORKLIST & IN_UPDATE).
+  - use (in_fin_ensemble_bind_elim _ _ _ IN) as ([block0 c0] & IN_WORKLIST & IN_UPDATE).
     unfold hopcroft_update_splitter in IN_UPDATE.
     destruct ((list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block0 old_block) as [EQ | NE].
     + subst block0. simpl in IN_UPDATE.
@@ -2948,7 +2948,7 @@ Proof.
       split; auto. rewrite in_app_iff in BLOCK |- *.
       destruct BLOCK as [IN_PREFIX | [EQ | IN_PARTITION]]; done.
   - rewrite in_app_iff in IN. destruct IN as [IN | IN].
-    + use (in_list_bind_elim _ _ _ IN) as ([block0 c0] & IN_WORKLIST & IN_UPDATE).
+    + use (in_fin_ensemble_bind_elim _ _ _ IN) as ([block0 c0] & IN_WORKLIST & IN_UPDATE).
       unfold hopcroft_update_splitter in IN_UPDATE.
       destruct ((list_hasEqDec M.(TaggedDFA.state_hasEqDec)) block0 old_block) as [EQ | NE].
       * subst block0. simpl in IN_UPDATE.
@@ -2967,7 +2967,7 @@ Proof.
       * exact CHAR.
 Qed.
 
-Definition hopcroft_split_block (splitter : hopcroft_block) (block : hopcroft_block) : list hopcroft_block :=
+Definition hopcroft_split_block (splitter : hopcroft_block) (block : hopcroft_block) : fin_ensemble hopcroft_block :=
   let block1 : hopcroft_block := hopcroft_block_intersection block splitter in
   let block2 : hopcroft_block := hopcroft_block_difference block splitter in
   if nonempty block1 && nonempty block2 then
@@ -4427,10 +4427,10 @@ Definition hopcroft_certified_minimised_start_state : hopcroft_block :=
 Definition hopcroft_certified_minimised_transition (block : hopcroft_block) (c : ascii) : hopcroft_block :=
   hopcroft_find_block (M.(TaggedDFA.transition) (hopcroft_representative block) c) hopcroft_certified_final_partition.
 
-Definition hopcroft_certified_minimised_accept_states_of (block : hopcroft_block) : list (hopcroft_block * Token.t) :=
+Definition hopcroft_certified_minimised_accept_states_of (block : hopcroft_block) : fin_ensemble (hopcroft_block * Token.t) :=
   accepting_tags_from (hopcroft_representative block) >>= fun tag => [(block, tag)].
 
-Definition hopcroft_certified_minimised_accept_states : list (hopcroft_block * Token.t) :=
+Definition hopcroft_certified_minimised_accept_states : fin_ensemble (hopcroft_block * Token.t) :=
   hopcroft_certified_final_partition >>= hopcroft_certified_minimised_accept_states_of.
 
 Definition hopcroft_certified_minimise : TaggedDFA.t :=
@@ -4481,7 +4481,7 @@ Lemma hopcroft_certified_minimised_accept_states_of_sound (block : hopcroft_bloc
   : block0 = block /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold hopcroft_certified_minimised_accept_states_of in ACCEPT.
-  use (in_list_bind_elim _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
+  use (in_fin_ensemble_bind_elim _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
   simpl in IN. destruct IN as [EQ | []]. inv EQ.
   split; [reflexivity | ].
   eapply accepting_tags_from_sound. exact ACCEPT'.
@@ -4492,7 +4492,7 @@ Lemma hopcroft_certified_minimised_accept_states_sound (block : hopcroft_block) 
   : block ∈ hopcroft_certified_final_partition /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold hopcroft_certified_minimised_accept_states in ACCEPT.
-  use (in_list_bind_elim _ _ _ ACCEPT) as (block' & BLOCK & ACCEPT').
+  use (in_fin_ensemble_bind_elim _ _ _ ACCEPT) as (block' & BLOCK & ACCEPT').
   use (hopcroft_certified_minimised_accept_states_of_sound block' block tag) as (EQ & ACCEPT_Q) with ACCEPT'.
   subst block'. eauto.
 Qed.
@@ -4512,7 +4512,7 @@ Lemma hopcroft_certified_minimised_accept_states_of_complete (block : hopcroft_b
   : (block, tag) ∈ hopcroft_certified_minimised_accept_states_of block.
 Proof.
   unfold hopcroft_certified_minimised_accept_states_of.
-  eapply in_list_bind_intro with (x := tag); [ | simpl; left; reflexivity].
+  eapply in_fin_ensemble_bind_intro with (x := tag); [ | simpl; left; reflexivity].
   eapply accepting_tags_from_complete. exact ACCEPT.
 Qed.
 
@@ -4522,7 +4522,7 @@ Lemma hopcroft_certified_minimised_accept_states_complete (block : hopcroft_bloc
   : (block, tag) ∈ hopcroft_certified_minimised_accept_states.
 Proof.
   unfold hopcroft_certified_minimised_accept_states.
-  eapply in_list_bind_intro with (x := block); [exact BLOCK | ].
+  eapply in_fin_ensemble_bind_intro with (x := block); [exact BLOCK | ].
   eapply hopcroft_certified_minimised_accept_states_of_complete. exact ACCEPT.
 Qed.
 
@@ -4689,10 +4689,10 @@ Definition hopcroft_minimised_start_state : hopcroft_block :=
 Definition hopcroft_minimised_transition (block : hopcroft_block) (c : ascii) : hopcroft_block :=
   hopcroft_find_block (M.(TaggedDFA.transition) (hopcroft_representative block) c) hopcroft_final_partition.
 
-Definition hopcroft_minimised_accept_states_of (block : hopcroft_block) : list (hopcroft_block * Token.t) :=
+Definition hopcroft_minimised_accept_states_of (block : hopcroft_block) : fin_ensemble (hopcroft_block * Token.t) :=
   accepting_tags_from (hopcroft_representative block) >>= fun tag => [(block, tag)].
 
-Definition hopcroft_minimised_accept_states : list (hopcroft_block * Token.t) :=
+Definition hopcroft_minimised_accept_states : fin_ensemble (hopcroft_block * Token.t) :=
   hopcroft_final_partition >>= hopcroft_minimised_accept_states_of.
 
 Definition hopcroft_minimise : TaggedDFA.t :=
@@ -4733,7 +4733,7 @@ Lemma hopcroft_minimised_accept_states_of_sound (block : hopcroft_block) (block0
   : block0 = block /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold hopcroft_minimised_accept_states_of in ACCEPT.
-  use (in_list_bind_elim _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
+  use (in_fin_ensemble_bind_elim _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
   simpl in IN. destruct IN as [EQ | []]. inv EQ.
   split; [reflexivity | ].
   eapply accepting_tags_from_sound. exact ACCEPT'.
@@ -4744,7 +4744,7 @@ Lemma hopcroft_minimised_accept_states_sound (block : hopcroft_block) (tag : Tok
   : block ∈ hopcroft_final_partition /\ (hopcroft_representative block, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold hopcroft_minimised_accept_states in ACCEPT.
-  use (in_list_bind_elim _ _ _ ACCEPT) as (block' & BLOCK & ACCEPT').
+  use (in_fin_ensemble_bind_elim _ _ _ ACCEPT) as (block' & BLOCK & ACCEPT').
   use (hopcroft_minimised_accept_states_of_sound block' block tag) as (EQ & ACCEPT_Q) with ACCEPT'.
   subst block'. eauto.
 Qed.
@@ -4764,7 +4764,7 @@ Lemma hopcroft_minimised_accept_states_of_complete (block : hopcroft_block) (tag
   : (block, tag) ∈ hopcroft_minimised_accept_states_of block.
 Proof.
   unfold hopcroft_minimised_accept_states_of.
-  eapply in_list_bind_intro with (x := tag); [ | simpl; left; reflexivity].
+  eapply in_fin_ensemble_bind_intro with (x := tag); [ | simpl; left; reflexivity].
   eapply accepting_tags_from_complete. exact ACCEPT.
 Qed.
 
@@ -4774,7 +4774,7 @@ Lemma hopcroft_minimised_accept_states_complete (block : hopcroft_block) (tag : 
   : (block, tag) ∈ hopcroft_minimised_accept_states.
 Proof.
   unfold hopcroft_minimised_accept_states.
-  eapply in_list_bind_intro with (x := block); [exact BLOCK | ].
+  eapply in_fin_ensemble_bind_intro with (x := block); [exact BLOCK | ].
   eapply hopcroft_minimised_accept_states_of_complete. exact ACCEPT.
 Qed.
 
@@ -5117,8 +5117,8 @@ Fixpoint minimisation_equivb (fuel : nat) (q1 : Q) (q2 : Q) {struct fuel} : bool
   | S fuel' => same_accepting_tagsb q1 q2 && forallb (fun c => minimisation_equivb fuel' (M.(TaggedDFA.transition) q1 c) (M.(TaggedDFA.transition) q2 c)) all_asciis
   end.
 
-Definition minimisation_pair_states : list (Q * Q) :=
-  bind (isMonad := B.list_isMonad) M.(TaggedDFA.states) (fun q1 => map (fun q2 => (q1, q2)) M.(TaggedDFA.states)).
+Definition minimisation_pair_states : fin_ensemble (Q * Q) :=
+  M.(TaggedDFA.states) >>= fun q1 => map (fun q2 => (q1, q2)) M.(TaggedDFA.states).
 
 Definition minimisation_fuel : nat :=
   length minimisation_pair_states.
@@ -5238,7 +5238,7 @@ Lemma minimisation_pair_states_complete (q1 : Q) (q2 : Q)
   : (q1, q2) ∈ minimisation_pair_states.
 Proof.
   unfold minimisation_pair_states.
-  eapply in_list_bind_intro with (x := q1); [exact IN1 | ].
+  eapply in_fin_ensemble_bind_intro with (x := q1); [exact IN1 | ].
   rewrite in_map_iff. exists q2. split; [reflexivity | exact IN2].
 Qed.
 
@@ -5349,7 +5349,7 @@ Proof.
 Qed.
 
 Definition minimised_state : Set :=
-  list Q.
+  fin_ensemble Q.
 
 #[local]
 Instance minimised_state_hasEqDec : hasEqDec minimised_state :=
@@ -5394,7 +5394,7 @@ Proof.
     rewrite EQUIV1 in EQUIV. inv EQUIV.
 Qed.
 
-Definition minimised_states : list minimised_state :=
+Definition minimised_states : fin_ensemble minimised_state :=
   L.nodup minimised_state_hasEqDec (map minimisation_class M.(TaggedDFA.states)).
 
 Definition representative (qs : minimised_state) : Q :=
@@ -5506,10 +5506,10 @@ Proof.
   eapply minimised_states_representative_state. exact QS.
 Qed.
 
-Definition minimised_accept_states_of (qs : minimised_state) : list (minimised_state * Token.t) :=
+Definition minimised_accept_states_of (qs : minimised_state) : fin_ensemble (minimised_state * Token.t) :=
   accepting_tags_from (representative qs) >>= fun tag => [(qs, tag)].
 
-Definition minimised_accept_states : list (minimised_state * Token.t) :=
+Definition minimised_accept_states : fin_ensemble (minimised_state * Token.t) :=
   minimised_states >>= minimised_accept_states_of.
 
 Lemma minimised_accept_states_of_complete (qs : minimised_state) (tag : Token.t)
@@ -5517,7 +5517,7 @@ Lemma minimised_accept_states_of_complete (qs : minimised_state) (tag : Token.t)
   : (qs, tag) ∈ minimised_accept_states_of qs.
 Proof.
   unfold minimised_accept_states_of.
-  eapply in_list_bind_intro with (x := tag); [ | simpl; left; reflexivity].
+  eapply in_fin_ensemble_bind_intro with (x := tag); [ | simpl; left; reflexivity].
   eapply accepting_tags_from_complete. exact ACCEPT.
 Qed.
 
@@ -5526,7 +5526,7 @@ Lemma minimised_accept_states_of_sound (qs : minimised_state) (qs0 : minimised_s
   : qs0 = qs /\ (representative qs, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold minimised_accept_states_of in ACCEPT.
-  use (in_list_bind_elim _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
+  use (in_fin_ensemble_bind_elim _ _ _ ACCEPT) as (tag' & ACCEPT' & IN).
   simpl in IN. destruct IN as [EQ | []]. inv EQ.
   split; [reflexivity | ].
   eapply accepting_tags_from_sound. exact ACCEPT'.
@@ -5538,7 +5538,7 @@ Lemma minimised_accept_states_complete (qs : minimised_state) (tag : Token.t)
   : (qs, tag) ∈ minimised_accept_states.
 Proof.
   unfold minimised_accept_states.
-  eapply in_list_bind_intro with (x := qs); [exact QS | ].
+  eapply in_fin_ensemble_bind_intro with (x := qs); [exact QS | ].
   eapply minimised_accept_states_of_complete. exact ACCEPT.
 Qed.
 
@@ -5547,7 +5547,7 @@ Lemma minimised_accept_states_sound (qs : minimised_state) (tag : Token.t)
   : qs ∈ minimised_states /\ (representative qs, tag) ∈ M.(TaggedDFA.accept_states).(kvlist).
 Proof.
   unfold minimised_accept_states in ACCEPT.
-  use (in_list_bind_elim _ _ _ ACCEPT) as (qs' & QS & ACCEPT').
+  use (in_fin_ensemble_bind_elim _ _ _ ACCEPT) as (qs' & QS & ACCEPT').
   use (minimised_accept_states_of_sound qs' qs tag) as (EQ & ACCEPT_Q) with ACCEPT'.
   subst qs'. eauto.
 Qed.
@@ -5639,7 +5639,7 @@ Record TaggedDFA : Type :=
   mk
   { state : Set
   ; state_hasEqDec : hasEqDec state
-  ; states : list state
+  ; states : fin_ensemble state
   ; start_state : state
   ; accept_states : list (state * Token.t)
   ; transition (q : state) (c : ascii) : state
@@ -5654,7 +5654,7 @@ Variable M : TaggedDFA.t.
 #[local] Abbreviation Q := M.(TaggedDFA.state).
 
 Definition delete_state_set : Set :=
-  list Q.
+  fin_ensemble Q.
 
 Definition delete_normalize (qs : delete_state_set) : delete_state_set :=
   filter (fun q => mem (EQ_DEC := M.(TaggedDFA.state_hasEqDec)) q qs) M.(TaggedDFA.states).
@@ -5853,13 +5853,13 @@ Lemma delete_reachable_move_similarity (qs : delete_state_set)
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff. intros q'. split.
   - intros IN. unfold delete_reachable_move in IN.
-    use (in_list_bind_elim _ _ _ IN) as (q & IN_QS & IN_SUCC).
+    use (in_fin_ensemble_bind_elim _ _ _ IN) as (q & IN_QS & IN_SUCC).
     use (delete_successors_similarity q) as SUCC_SIM.
     rewrite list_corresponds_to_finite_ensemble_iff in SUCC_SIM.
     use (proj1 (SUCC_SIM q')) as (c & CHAR & EQ) with IN_SUCC.
     exists q. split; [exact IN_QS | exists c; split; [exact CHAR | exact EQ]].
   - intros (q & IN_QS & c & CHAR & EQ). unfold delete_reachable_move.
-    eapply in_list_bind_intro with (x := q); [exact IN_QS | ].
+    eapply in_fin_ensemble_bind_intro with (x := q); [exact IN_QS | ].
     use (delete_successors_similarity q) as SUCC_SIM.
     rewrite list_corresponds_to_finite_ensemble_iff in SUCC_SIM.
     rewrite -> SUCC_SIM with (x := q').
@@ -5915,13 +5915,13 @@ Lemma live_move_similarity (qs : delete_state_set)
 Proof.
   rewrite list_corresponds_to_finite_ensemble_iff. intros p. split.
   - intros IN. unfold live_move in IN.
-    use (in_list_bind_elim _ _ _ IN) as (q & IN_QS & IN_PRED).
+    use (in_fin_ensemble_bind_elim _ _ _ IN) as (q & IN_QS & IN_PRED).
     use (predecessors_similarity q) as PRED_SIM.
     rewrite list_corresponds_to_finite_ensemble_iff in PRED_SIM.
     use (proj1 (PRED_SIM p)) as [STATE (c & CHAR & EQ)] with IN_PRED.
     split; [exact STATE | exists q; split; [exact IN_QS | exists c; split; [exact CHAR | exact EQ]]].
   - intros [STATE (q & IN_QS & c & CHAR & EQ)]. unfold live_move.
-    eapply in_list_bind_intro with (x := q); [exact IN_QS | ].
+    eapply in_fin_ensemble_bind_intro with (x := q); [exact IN_QS | ].
     use (predecessors_similarity q) as PRED_SIM.
     rewrite list_corresponds_to_finite_ensemble_iff in PRED_SIM.
     rewrite -> PRED_SIM with (x := p).
