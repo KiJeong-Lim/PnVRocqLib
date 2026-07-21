@@ -845,19 +845,10 @@ Class LabeledFiniteGraph `{L : Type} : Type :=
     : forall edge, In edge (map fst enum_labels.(kvlist)) <-> edge \in GRAPH.(E)
   } as lG.
 
-#[universes(template), projections(primitive)]
-Class ColoredLabeledFiniteGraph (L : Type) (C : Type) : Type :=
-  mkColoredLabeledFiniteGraph
-  { lG : LabeledFiniteGraph (L := L)
-  ; vertex_color (v : V) : C
-  } as clG.
-
 End FiniteGraph_CONSTRUCTION.
 
 #[global] Arguments GRAPH {V} {L} lG /.
 #[global] Existing Instance GRAPH.
-
-#[global] Existing Instance lG.
 
 Section EXPORT.
 
@@ -1697,15 +1688,6 @@ Definition setLabel (v : V) (v' : V) (label : option L) (lG : @LabeledFiniteGrap
   | None => removeEdge v v' lG
   | Some label => insertEdge v v' label lG
   end.
-
-Definition getLabel' {C : Type} (v : V) (v' : V) (clG : @ColoredLabeledFiniteGraph V L C) : option L :=
-  getLabel v v' clG.(lG).
-
-Definition setLabel' {C : Type} (v : V) (v' : V) (label : option L) (clG : @ColoredLabeledFiniteGraph V L C) : @ColoredLabeledFiniteGraph V L C :=
-  {|
-    lG := setLabel v v' label clG.(lG);
-    vertex_color := clG.(vertex_color)
-  |}.
 
 End OPERATIONS.
 
