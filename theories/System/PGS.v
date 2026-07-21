@@ -16,7 +16,6 @@ Import FM.
 #[local] Infix "=~=" := (is_similar_to (Similarity := Re.in_regex eq)) : type_scope.
 #[local] Infix "∈" := L.In.
 
-
 Module Type GRAMMAR_SPEC.
 
 Parameter NT : Set.
