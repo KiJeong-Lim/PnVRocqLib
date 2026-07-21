@@ -16,31 +16,6 @@ Import FM.
 #[local] Infix "=~=" := (is_similar_to (Similarity := Re.in_regex eq)) : type_scope.
 #[local] Infix "∈" := L.In.
 
-Lemma mem_true_iff {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : fin_ensemble A)
-  : mem (EQ_DEC := EQ_DEC) x xs = true <-> x ∈ xs.
-Proof.
-  eapply mem_spec.
-Qed.
-
-Lemma mem_false_iff {A : Type} `{EQ_DEC : hasEqDec A} (x : A) (xs : fin_ensemble A)
-  : mem (EQ_DEC := EQ_DEC) x xs = false <-> ~ x ∈ xs.
-Proof.
-  eapply mem_spec.
-Qed.
-
-Lemma digraph_closure_trace {X : Type} {A : Type} (seed : X -> fin_ensemble A) (deps : X -> fin_ensemble X) (x : X) (a : A)
-  (CLOS : digraph_closure seed deps a x)
-  : exists tr, tr \in digraph_trace seed deps a x.
-Proof.
-  eapply digraph_closure_iff_trace. exact CLOS.
-Qed.
-
-Lemma digraph_value_sound {X : Type} {A : Type} `{EQ_DEC : hasEqDec A} (fuel : nat) (seed : X -> fin_ensemble A) (deps : X -> fin_ensemble X) (x : X) (a : A)
-  (IN : a ∈ digraph_value fuel seed deps x)
-  : digraph_closure seed deps a x.
-Proof.
-  eapply digraph_value_elim. exact IN.
-Qed.
 
 Module Type GRAMMAR_SPEC.
 
@@ -970,7 +945,7 @@ Proof.
   - constructor.
   - rewrite andb_true_iff in RHS. destruct RHS as (X_GEN & RHS_GEN).
     destruct X as [A | t].
-    + simpl in X_GEN. rewrite mem_true_iff in X_GEN. econstructor; [eapply KNOWN_SOUND; exact X_GEN | eapply IH; exact RHS_GEN].
+    + simpl in X_GEN. rewrite mem_spec in X_GEN. econstructor; [eapply KNOWN_SOUND; exact X_GEN | eapply IH; exact RHS_GEN].
     + constructor. eapply IH. exact RHS_GEN.
 Qed.
 
@@ -1006,7 +981,7 @@ Lemma genb_sound A
   (GEN : genb A = true)
   : Gen A.
 Proof.
-  unfold genb in GEN. rewrite mem_true_iff in GEN.
+  unfold genb in GEN. rewrite mem_spec in GEN.
   unfold gen_set in GEN.
   assert (EMPTY_SOUND : forall B, B ∈ (@nil N') -> Gen B).
   { intros B IN. simpl in IN. contradiction. }
@@ -1032,7 +1007,7 @@ Proof.
   unfold gen_rhs_in in *. induction rhs as [ | X rhs IH]; simpl in RHS |- *.
   - reflexivity.
   - rewrite andb_true_iff in RHS. destruct RHS as (X_GEN & RHS_GEN). rewrite andb_true_iff. split.
-    + destruct X as [A | t]; simpl in *; [rewrite mem_true_iff in X_GEN; rewrite mem_true_iff; eapply INCL; exact X_GEN | reflexivity].
+    + destruct X as [A | t]; simpl in *; [rewrite mem_spec in X_GEN; rewrite mem_spec; eapply INCL; exact X_GEN | reflexivity].
     + eapply IH. exact RHS_GEN.
 Qed.
 
@@ -1103,7 +1078,7 @@ Lemma gen_list_subsetb_sound xs ys
   : forall x, x ∈ xs -> x ∈ ys.
 Proof.
   unfold gen_list_subsetb in SUBSET. rewrite forallb_forall in SUBSET.
-  intros x IN. use SUBSET as MEM with IN. rewrite mem_true_iff in MEM. exact MEM.
+  intros x IN. use SUBSET as MEM with IN. rewrite mem_spec in MEM. exact MEM.
 Qed.
 
 Lemma gen_list_subsetb_complete xs ys
@@ -1111,7 +1086,7 @@ Lemma gen_list_subsetb_complete xs ys
   : gen_list_subsetb xs ys = true.
 Proof.
   unfold gen_list_subsetb. rewrite forallb_forall.
-  intros x IN. rewrite mem_true_iff. eapply SUBSET. exact IN.
+  intros x IN. rewrite mem_spec. eapply SUBSET. exact IN.
 Qed.
 
 Lemma gen_list_subsetb_false_new xs ys
@@ -1119,7 +1094,7 @@ Lemma gen_list_subsetb_false_new xs ys
   : exists x, x ∈ xs /\ ~ x ∈ ys.
 Proof.
   unfold gen_list_subsetb in SUBSET. use forallb_false_exists as (x & IN & MEM) with SUBSET.
-  exists x. split; [exact IN | ]. rewrite mem_false_iff in MEM. exact MEM.
+  exists x. split; [exact IN | ]. rewrite mem_spec in MEM. exact MEM.
 Qed.
 
 Lemma gen_NoDup_incl_remove_length_lt (xs : fin_ensemble N') (ys : fin_ensemble N') (x : N')
@@ -1287,7 +1262,7 @@ Proof.
     + reflexivity.
     + simpl. eapply gen_complete_GenStr. exact REST.
     + simpl. rewrite andb_true_iff. split.
-      * unfold genb. rewrite mem_true_iff. eapply gen_complete_Gen. exact GEN.
+      * unfold genb. rewrite mem_spec. eapply gen_complete_Gen. exact GEN.
       * eapply gen_complete_GenStr. exact REST.
 Qed.
 
@@ -1303,7 +1278,7 @@ Lemma genb_complete A
   (GEN : Gen A)
   : genb A = true.
 Proof.
-  unfold genb. rewrite mem_true_iff.
+  unfold genb. rewrite mem_spec.
   use! gen_complete_mutual as (COMPLETE & _) with *. eapply COMPLETE. exact GEN.
 Qed.
 
@@ -2179,7 +2154,7 @@ Lemma closure_complete q it
   : it ∈ closure q.
 Proof.
   use closure_rel_item_digraph as (root & ROOT & CLOS) with REL.
-  use digraph_closure_trace as (trace & TRACE) with CLOS.
+  rewrite digraph_closure_iff_trace in CLOS. destruct CLOS as (trace & TRACE).
   use (@digraph_trace_simple_bounded item item item_hasEqDec all_items item_seed item_deps root it trace item_deps_closed) as (simple & SIMPLE_TRACE & LE) with TRACE.
   unfold closure. eapply item_trace_iter with (root := root) (trace := simple).
   - rewrite L.nodup_In. exact ROOT.
@@ -2976,7 +2951,7 @@ Lemma state_list_subsetb_sound xs ys
   : forall q, q ∈ xs -> q ∈ ys.
 Proof.
   unfold state_list_subsetb in SUBSET. rewrite forallb_forall in SUBSET.
-  intros q IN. use SUBSET as MEM with IN. rewrite mem_true_iff in MEM. exact MEM.
+  intros q IN. use SUBSET as MEM with IN. rewrite mem_spec in MEM. exact MEM.
 Qed.
 
 Lemma state_list_subsetb_complete xs ys
@@ -2984,7 +2959,7 @@ Lemma state_list_subsetb_complete xs ys
   : state_list_subsetb xs ys = true.
 Proof.
   unfold state_list_subsetb. rewrite forallb_forall.
-  intros q IN. rewrite mem_true_iff. eapply SUBSET. exact IN.
+  intros q IN. rewrite mem_spec. eapply SUBSET. exact IN.
 Qed.
 
 Lemma state_list_subsetb_false_new xs ys
@@ -2993,7 +2968,7 @@ Lemma state_list_subsetb_false_new xs ys
 Proof.
   unfold state_list_subsetb in SUBSET.
   use forallb_false_exists as (q & IN & MEM) with SUBSET.
-  exists q. split; [exact IN | ]. rewrite mem_false_iff in MEM. exact MEM.
+  exists q. split; [exact IN | ]. rewrite mem_spec in MEM. exact MEM.
 Qed.
 
 Lemma state_NoDup_incl_remove_length_lt (xs : fin_ensemble state) (ys : fin_ensemble state) (q : state)
@@ -3936,7 +3911,7 @@ Proof.
   destruct it as [A beta right]. destruct right as [ | X gamma]; simpl in IN_PR; [ | contradiction].
   destruct (mem (EQ_DEC := prod'_hasEqDec) {| p_lhs := A; p_rhs := beta |} P') eqn: MEM; [ | contradiction].
   destruct IN_PR as [EQ | []]. subst pr. exists {| i_lhs := A; i_left := beta; i_right := [] |}.
-  splits; eauto with *. rewrite mem_true_iff in MEM. exact MEM.
+  splits; eauto with *. rewrite mem_spec in MEM. exact MEM.
 Qed.
 
 Lemma reduce_complete q it
@@ -3951,7 +3926,7 @@ Proof.
   rewrite app_nil_r in VALID.
   destruct (mem (EQ_DEC := prod'_hasEqDec) {| p_lhs := A; p_rhs := beta |} P') eqn: MEM; simpl.
   - left. reflexivity.
-  - rewrite mem_false_iff in MEM. contradiction.
+  - rewrite mem_spec in MEM. contradiction.
 Qed.
 
 Theorem lr0_reduce_completed_item_iff q A omega
@@ -5312,7 +5287,7 @@ Theorem index_of_complete q
 Proof.
   unfold index_of. destruct (mem q Q) eqn: MEM.
   - reflexivity.
-  - rewrite mem_false_iff in MEM. contradiction.
+  - rewrite mem_spec in MEM. contradiction.
 Qed.
 
 Theorem index_of_sound q n
@@ -5320,7 +5295,7 @@ Theorem index_of_sound q n
   : q ∈ Q /\ n = state_index_nat q /\ state_of n = Some q.
 Proof.
   unfold index_of in INDEX. destruct (mem q Q) eqn: MEM; [ | discriminate].
-  rewrite mem_true_iff in MEM. inv INDEX. split.
+  rewrite mem_spec in MEM. inv INDEX. split.
   - exact MEM.
   - split; [reflexivity | ]. eapply state_of_state_index_nat. exact MEM.
 Qed.
@@ -5337,7 +5312,7 @@ Proof.
   - exact IN.
   - unfold index_of. destruct (mem (lookup q0 n Q) Q) eqn: MEM.
     + f_equal. eapply state_index_nat_lookup_no_dup; [exact Q_no_dup | unfold num_states in LT; exact LT].
-    + rewrite mem_false_iff in MEM. contradiction.
+    + rewrite mem_spec in MEM. contradiction.
 Qed.
 
 Lemma state_of_no_dup n q
@@ -6100,7 +6075,7 @@ Proof.
   - constructor.
   - rewrite andb_true_iff in RHS. destruct RHS as (X_NULL & RHS_NULL).
     destruct X as [A | t]; simpl in X_NULL; [ | discriminate].
-    rewrite mem_true_iff in X_NULL. constructor.
+    rewrite mem_spec in X_NULL. constructor.
     + eapply KNOWN_SOUND. exact X_NULL.
     + eapply IH. exact RHS_NULL.
 Qed.
@@ -6137,7 +6112,7 @@ Theorem nullableb_sound A
   (NULLABLE : nullableb A = true)
   : Null A.
 Proof.
-  unfold nullableb in NULLABLE. rewrite mem_true_iff in NULLABLE.
+  unfold nullableb in NULLABLE. rewrite mem_spec in NULLABLE.
   unfold nullable_set in NULLABLE.
   assert (EMPTY_SOUND : forall B, B ∈ (@nil N') -> Null B).
   { intros B IN. simpl in IN. contradiction. }
@@ -6167,7 +6142,7 @@ Proof.
   - rewrite andb_true_iff in RHS. destruct RHS as (X_NULL & RHS_NULL).
     rewrite andb_true_iff. split.
     + destruct X as [A | t]; simpl in *; [ | discriminate].
-      rewrite mem_true_iff in X_NULL. rewrite mem_true_iff. eapply INCL. exact X_NULL.
+      rewrite mem_spec in X_NULL. rewrite mem_spec. eapply INCL. exact X_NULL.
     + eapply IH. exact RHS_NULL.
 Qed.
 
@@ -6238,7 +6213,7 @@ Lemma list_subsetb_sound xs ys
   : forall x, x ∈ xs -> x ∈ ys.
 Proof.
   unfold list_subsetb in SUBSET. rewrite forallb_forall in SUBSET.
-  intros x IN. use SUBSET as MEM with IN. rewrite mem_true_iff in MEM. exact MEM.
+  intros x IN. use SUBSET as MEM with IN. rewrite mem_spec in MEM. exact MEM.
 Qed.
 
 Lemma list_subsetb_complete xs ys
@@ -6246,7 +6221,7 @@ Lemma list_subsetb_complete xs ys
   : list_subsetb xs ys = true.
 Proof.
   unfold list_subsetb. rewrite forallb_forall.
-  intros x IN. rewrite mem_true_iff. eapply SUBSET. exact IN.
+  intros x IN. rewrite mem_spec. eapply SUBSET. exact IN.
 Qed.
 
 Lemma list_subsetb_false_new xs ys
@@ -6254,7 +6229,7 @@ Lemma list_subsetb_false_new xs ys
   : exists x, x ∈ xs /\ ~ x ∈ ys.
 Proof.
   unfold list_subsetb in SUBSET. use forallb_false_exists as (x & IN & MEM) with SUBSET.
-  exists x. split; [exact IN | ]. rewrite mem_false_iff in MEM. exact MEM.
+  exists x. split; [exact IN | ]. rewrite mem_spec in MEM. exact MEM.
 Qed.
 
 Lemma NoDup_incl_remove_length_lt (xs : fin_ensemble N') (ys : fin_ensemble N') (x : N')
@@ -6422,7 +6397,7 @@ Proof.
   - destruct NULL as [ | A rhs NULL REST].
     + reflexivity.
     + simpl. rewrite andb_true_iff. split.
-      * unfold nullableb. rewrite mem_true_iff.
+      * unfold nullableb. rewrite mem_spec.
         eapply nullable_complete_Null. exact NULL.
       * eapply nullable_complete_NullStr. exact REST.
 Qed.
@@ -6439,7 +6414,7 @@ Theorem nullableb_complete A
   (NULL : Null A)
   : nullableb A = true.
 Proof.
-  unfold nullableb. rewrite mem_true_iff.
+  unfold nullableb. rewrite mem_spec.
   destruct nullable_complete_mutual as (COMPLETE & _). eapply COMPLETE. exact NULL.
 Qed.
 
@@ -6728,7 +6703,7 @@ Proof.
   destruct (mem (r, C) D) eqn: MEM; [ | contradiction].
   destruct IN_ENTRY as [EQ | []]. subst node.
   exists r. exists C. splits; eauto.
-  now rewrite mem_true_iff in MEM.
+  now rewrite mem_spec in MEM.
 Qed.
 
 Lemma reads_deps_complete p A r C
@@ -6741,7 +6716,7 @@ Proof.
   eapply in_fin_ensemble_bind_intro with (x := C).
   - eapply N'_all_complete.
   - rewrite* (nullableb _) by NULLABLE.
-    rewrite <- mem_true_iff in IN_D.
+    rewrite <- (mem_spec _ _ _ _ true) in IN_D.
     rewrite* (mem _ _) by IN_D.
     simpl; tauto.
 Qed.
@@ -6784,7 +6759,7 @@ Theorem Read_bang_sound node t
   (IN : t ∈ Read_bang node)
   : Read_closure node t.
 Proof.
-  unfold Read_bang in IN. eapply digraph_value_sound. exact IN.
+  unfold Read_bang in IN. eapply digraph_value_elim. exact IN.
 Qed.
 
 Theorem Read_bang_complete node t
@@ -6792,7 +6767,7 @@ Theorem Read_bang_complete node t
   : t ∈ Read_bang node.
 Proof.
   unfold Read_closure in IN.
-  use digraph_closure_trace as (trace & TRACE) with IN.
+  rewrite digraph_closure_iff_trace in IN. destruct IN as (trace & TRACE).
   use (digraph_trace_simple_bounded D DR reads_deps node t trace reads_deps_closed) as (simple & SIMPLE_TRACE & LE) with TRACE.
   unfold Read_bang. eapply digraph_trace_value; [exact SIMPLE_TRACE | exact LE].
 Qed.
@@ -7198,7 +7173,7 @@ Theorem Follow_bang_sound node t
   (IN : t ∈ Follow_bang node)
   : Follow_closure node t.
 Proof.
-  unfold Follow_bang in IN. eapply digraph_value_sound. exact IN.
+  unfold Follow_bang in IN. eapply digraph_value_elim. exact IN.
 Qed.
 
 Theorem Follow_bang_complete node t
@@ -7206,7 +7181,7 @@ Theorem Follow_bang_complete node t
   : t ∈ Follow_bang node.
 Proof.
   unfold Follow_closure in IN.
-  use digraph_closure_trace as (trace & TRACE) with IN.
+  rewrite digraph_closure_iff_trace in IN. destruct IN as (trace & TRACE).
   use (digraph_trace_simple_bounded D Read_bang incl_deps node t trace incl_deps_closed) as (simple & SIMPLE_TRACE & LE) with TRACE.
   unfold Follow_bang. eapply digraph_trace_value; [exact SIMPLE_TRACE | exact LE].
 Qed.
@@ -9623,8 +9598,8 @@ Proof.
   simpl in IN. destruct (mem (EQ_DEC := prod'_hasEqDec) {| p_lhs := A; p_rhs := beta |} P' && mem (EQ_DEC := T'_hasEqDec) t (LA_impl q {| i_lhs := A; i_left := beta; i_right := [] |})) eqn: GUARD; [ | contradiction].
   rewrite andb_true_iff in GUARD. destruct GUARD as (PROD & IN_LA).
   destruct IN as [EQ | []]. subst pr. splits; [reflexivity | reflexivity | | ].
-  - rewrite mem_true_iff in PROD. exact PROD.
-  - rewrite mem_true_iff in IN_LA. exact IN_LA.
+  - rewrite mem_spec in PROD. exact PROD.
+  - rewrite mem_spec in IN_LA. exact IN_LA.
 Qed.
 
 Lemma reduce_LA_item_complete q t it
@@ -9635,7 +9610,7 @@ Lemma reduce_LA_item_complete q t it
 Proof.
   unfold reduce_LA_item. destruct it as [A beta right]. simpl in DONE. subst right. simpl.
   assert (GUARD : mem (EQ_DEC := prod'_hasEqDec) {| p_lhs := A; p_rhs := beta |} P' && mem (EQ_DEC := T'_hasEqDec) t (LA_impl q {| i_lhs := A; i_left := beta; i_right := [] |}) = true).
-  { rewrite andb_true_iff. split; rewrite mem_true_iff; assumption. }
+  { rewrite andb_true_iff. split; rewrite mem_spec; assumption. }
   rewrite GUARD. simpl. left. reflexivity.
 Qed.
 
@@ -13673,7 +13648,7 @@ Lemma erase_state_inclb_sound st st_orig
   : forall it, it ∈ st -> erase_item it ∈ st_orig.
 Proof.
   unfold erase_state_inclb in CHECK. rewrite forallb_forall in CHECK.
-  intros it IN. use CHECK as MEM with IN. rewrite mem_true_iff in MEM. exact MEM.
+  intros it IN. use CHECK as MEM with IN. rewrite mem_spec in MEM. exact MEM.
 Qed.
 
 Lemma erase_state_inclb_complete st st_orig
@@ -13681,7 +13656,7 @@ Lemma erase_state_inclb_complete st st_orig
   : erase_state_inclb st st_orig = true.
 Proof.
   unfold erase_state_inclb. rewrite forallb_forall.
-  intros it IN. rewrite mem_true_iff. eapply INCL. exact IN.
+  intros it IN. rewrite mem_spec. eapply INCL. exact IN.
 Qed.
 
 Definition numbered_state_embedding_candidateb (p : nat) (p_orig : nat) : bool :=
