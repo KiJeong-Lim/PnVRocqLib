@@ -1688,6 +1688,25 @@ Proof.
     pose proof (B.decide ((v_in, v_out) = (v, v'))) as [YES | NO]; ss!.
 Defined.
 
+Definition getLabel (v : V) (v' : V) (lG : @LabeledFiniteGraph V L) : option L :=
+  let V_hasEqDec : hasEqDec V := lG.(GRAPH).(V_dec) in
+  L.lookup (EQ_DEC := pair_hasEqdec V_hasEqDec V_hasEqDec) (v, v') lG.(enum_labels).(kvlist).
+
+Definition setLabel (v : V) (v' : V) (label : option L) (lG : @LabeledFiniteGraph V L) : @LabeledFiniteGraph V L :=
+  match label with
+  | None => removeEdge v v' lG
+  | Some label => insertEdge v v' label lG
+  end.
+
+Definition getLabel' {C : Type} (v : V) (v' : V) (clG : @ColoredLabeledFiniteGraph V L C) : option L :=
+  getLabel v v' clG.(lG).
+
+Definition setLabel' {C : Type} (v : V) (v' : V) (label : option L) (clG : @ColoredLabeledFiniteGraph V L C) : @ColoredLabeledFiniteGraph V L C :=
+  {|
+    lG := setLabel v v' label clG.(lG);
+    vertex_color := clG.(vertex_color)
+  |}.
+
 End OPERATIONS.
 
 End LabeledFiniteGraph.
