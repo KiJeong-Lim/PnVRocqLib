@@ -845,10 +845,19 @@ Class LabeledFiniteGraph `{L : Type} : Type :=
     : forall edge, In edge (map fst enum_labels.(kvlist)) <-> edge \in GRAPH.(E)
   } as lG.
 
+#[universes(template), projections(primitive)]
+Class ColoredLabeledFiniteGraph (L : Type) (C : Type) : Type :=
+  mkColoredLabeledFiniteGraph
+  { lG : LabeledFiniteGraph (L := L)
+  ; vertex_color (v : V) : C
+  } as clG.
+
 End FiniteGraph_CONSTRUCTION.
 
 #[global] Arguments GRAPH {V} {L} lG /.
 #[global] Existing Instance GRAPH.
+
+#[global] Existing Instance lG.
 
 Section EXPORT.
 
