@@ -44,106 +44,24 @@ Qed.
 
 Module Type GRAMMAR_SPEC.
 
-Declare Module NT : FINITE_ENUM.
+Parameter NT : Set.
 
-Declare Module TM : FINITE_ENUM.
+Parameter TM : Set.
 
-Parameter start : NT.t.
+Parameter NT_isFinite : isFinite NT.
 
-Parameter productions : fin_ensemble (NT.t * list (NT.t + TM.t)).
+Parameter TM_isFinite : isFinite TM.
+
+Parameter start : NT.
+
+Parameter productions : fin_ensemble (NT * list (NT + TM)).
 
 End GRAMMAR_SPEC.
 
-Module FinEnumFacts.
-
-Module Option (E : FINITE_ENUM) <: FINITE_ENUM.
-
-Definition t : Set :=
-  option E.t.
-
-#[local]
-Instance t_hasEqDec : hasEqDec Option.t :=
-  option_hasEqDec E.t_hasEqDec.
-
-Definition all : fin_ensemble Option.t :=
-  None :: map Some E.all.
-
-Lemma all_complete
-  : forall x : Option.t, x ∈ Option.all.
-Proof.
-  intros [x | ]; simpl.
-  - right. rewrite L.in_map_iff. exists x. split; [reflexivity | eapply E.in_all_intro].
-  - left. reflexivity.
-Qed.
-
-Lemma in_all_intro
-  : forall x : Option.t, x ∈ Option.all.
-Proof.
-  eapply all_complete.
-Qed.
-
-Lemma all_no_dup
-  : NoDup Option.all.
-Proof.
-  simpl. constructor.
-  - intros IN. rewrite L.in_map_iff in IN. destruct IN as (x & EQ & _). discriminate.
-  - eapply L.NoDup_map_injective_on.
-    + intros x y _ _ EQ. congruence.
-    + eapply E.all_no_dup.
-Qed.
-
-End Option.
-
-Module Sum (E1 : FINITE_ENUM) (E2 : FINITE_ENUM) <: FINITE_ENUM.
-
-Definition t : Set :=
-  E1.t + E2.t.
-
-#[local]
-Instance t_hasEqDec : hasEqDec Sum.t :=
-  sum_hasEqDec E1.t_hasEqDec E2.t_hasEqDec.
-
-Definition all : fin_ensemble Sum.t :=
-  map inl E1.all ++ map inr E2.all.
-
-Lemma all_complete
-  : forall x : Sum.t, x ∈ Sum.all.
-Proof.
-  intros [x | x]; unfold all; rewrite L.in_app_iff.
-  - left. rewrite L.in_map_iff. exists x. split; [reflexivity | eapply E1.in_all_intro].
-  - right. rewrite L.in_map_iff. exists x. split; [reflexivity | eapply E2.in_all_intro].
-Qed.
-
-Lemma in_all_intro
-  : forall x : Sum.t, x ∈ Sum.all.
-Proof.
-  eapply all_complete.
-Qed.
-
-Lemma all_no_dup
-  : NoDup Sum.all.
-Proof.
-  unfold all. eapply NoDup_app.
-  - eapply L.NoDup_map_injective_on.
-    + intros x y _ _ EQ. congruence.
-    + eapply E1.all_no_dup.
-  - eapply L.NoDup_map_injective_on.
-    + intros x y _ _ EQ. congruence.
-    + eapply E2.all_no_dup.
-  - intros x IN_LEFT IN_RIGHT.
-    rewrite L.in_map_iff in IN_LEFT. rewrite L.in_map_iff in IN_RIGHT.
-    destruct IN_LEFT as (x1 & EQ1 & _), IN_RIGHT as (x2 & EQ2 & _).
-    subst x. discriminate.
-Qed.
-
-End Sum.
-
-End FinEnumFacts.
-
 Module PGS (Grammar : GRAMMAR_SPEC).
 
-#[local] Existing Instance Grammar.NT.t_hasEqDec.
-#[local] Existing Instance Grammar.TM.t_hasEqDec.
+#[local] Existing Instance Grammar.NT_isFinite.
+#[local] Existing Instance Grammar.TM_isFinite.
 
 Module BuildError.
 
@@ -167,10 +85,10 @@ Instance ErrM_isMonad@{u} : isMonad@{u u} BuildErrorM@{u} :=
 Module GrammarSyntax.
 
 Definition N : Set :=
-  Grammar.NT.t.
+  Grammar.NT.
 
 Definition T : Set :=
-  Grammar.TM.t.
+  Grammar.TM.
 
 Definition N' : Set :=
   option N.
@@ -196,34 +114,47 @@ Definition lift_N (A : N) : N' :=
 Definition lift_T (t : T) : T' :=
   Some t.
 
-Module N'_FinEnum := FinEnumFacts.Option(Grammar.NT).
+Module N'_FinEnum.
+Definition all : list N' := @finite_enumeration N' _.
+Lemma all_complete : forall x : N', x ∈ all. Proof. eapply finite_enumeration_complete. Qed.
+Lemma all_no_dup : NoDup all. Proof. eapply finite_enumeration_NoDup. Qed.
+End N'_FinEnum.
 
-Module T'_FinEnum := FinEnumFacts.Option(Grammar.TM).
+Module T'_FinEnum.
+Definition all : list T' := @finite_enumeration T' _.
+Definition t_hasEqDec : hasEqDec T' := finite_hasEqDec.
+Lemma all_complete : forall x : T', x ∈ all. Proof. eapply finite_enumeration_complete. Qed.
+Lemma all_no_dup : NoDup all. Proof. eapply finite_enumeration_NoDup. Qed.
+End T'_FinEnum.
 
-Module V'_FinEnum := FinEnumFacts.Sum(N'_FinEnum)(T'_FinEnum).
+Module V'_FinEnum.
+Definition all : list V' := @finite_enumeration V' _.
+Lemma all_complete : forall x : V', x ∈ all. Proof. eapply finite_enumeration_complete. Qed.
+Lemma all_no_dup : NoDup all. Proof. eapply finite_enumeration_NoDup. Qed.
+End V'_FinEnum.
 
 #[local]
 Instance N'_hasEqDec : hasEqDec N' :=
-  N'_FinEnum.t_hasEqDec.
+  option_hasEqDec finite_hasEqDec.
 
 #[local]
 Instance T'_hasEqDec : hasEqDec T' :=
-  T'_FinEnum.t_hasEqDec.
+  option_hasEqDec finite_hasEqDec.
 
 #[local]
 Instance V'_hasEqDec : hasEqDec V' :=
-  V'_FinEnum.t_hasEqDec.
+  sum_hasEqDec N'_hasEqDec T'_hasEqDec.
 
 Lemma N'_all_complete
-  : forall x : N', x ∈ N'_FinEnum.all.
+  : forall x : N', x ∈ finite_enumeration.
 Proof.
-  eapply N'_FinEnum.all_complete.
+  eapply finite_enumeration_complete.
 Qed.
 
 Lemma T'_all_complete
-  : forall x : T', x ∈ T'_FinEnum.all.
+  : forall x : T', x ∈ finite_enumeration.
 Proof.
-  eapply T'_FinEnum.all_complete.
+  eapply finite_enumeration_complete.
 Qed.
 
 Lemma V'_all_complete
@@ -12996,12 +12927,15 @@ End PGS.
 
 Module ProductivePruningBridge (G : GRAMMAR_SPEC).
 
+#[local] Existing Instance G.NT_isFinite.
+#[local] Existing Instance G.TM_isFinite.
+
 Module Orig := PGS(G).
 
-Definition gen_ntb (A : G.NT.t) : bool :=
+Definition gen_ntb (A : G.NT) : bool :=
   Orig.GrammarSyntax.genb (Some A).
 
-Definition gen_rhsb (rhs : list (G.NT.t + G.TM.t)) : bool :=
+Definition gen_rhsb (rhs : list (G.NT + G.TM)) : bool :=
   Orig.GrammarSyntax.genstrb (map Orig.GrammarSyntax.lift_symbol rhs).
 
 Theorem gen_ntb_correct A
@@ -13037,12 +12971,12 @@ Proof.
   eapply gen_ntb_start_live_of_accepts. exact ACCEPT.
 Qed.
 
-Module LiveNT <: FINITE_ENUM.
+Module LiveNT.
 
 #[projections(primitive)]
 Record live_nt : Set :=
   mk
-  { old_nt : G.NT.t
+  { old_nt : G.NT
   ; old_nt_live : gen_ntb old_nt = true
   }.
 
@@ -13061,19 +12995,19 @@ Qed.
 Instance t_hasEqDec : hasEqDec t.
 Proof.
   intros [A LIVE_A] [B LIVE_B].
-  destruct (G.NT.t_hasEqDec A B) as [EQ | NE].
+  destruct (finite_hasEqDec A B) as [EQ | NE].
   - subst B. left. f_equal. eapply old_nt_live_pirrel.
   - right. intros EQ. inv EQ. contradiction.
 Defined.
 
-Definition live_dec (A : G.NT.t) : {gen_ntb A = true} + {gen_ntb A ≠ true}.
+Definition live_dec (A : G.NT) : {gen_ntb A = true} + {gen_ntb A ≠ true}.
 Proof.
   destruct (gen_ntb A) eqn: LIVE.
   - left. reflexivity.
   - right. discriminate.
 Defined.
 
-Definition live_of_dec (A : G.NT.t) : option t :=
+Definition live_of_dec (A : G.NT) : option t :=
   match live_dec A with
   | left LIVE => Some {| old_nt := A; old_nt_live := LIVE |}
   | right _ => None
@@ -13114,7 +13048,7 @@ Proof.
 Qed.
 
 Definition all : fin_ensemble t :=
-  L.nodup t_hasEqDec (G.NT.all >>= fun A => match live_of_dec A with | Some A' => [A'] | None => [] end).
+  L.nodup t_hasEqDec (finite_enumeration >>= fun A => match live_of_dec A with | Some A' => [A'] | None => [] end).
 
 Lemma all_complete
   : forall x : t, x ∈ all.
@@ -13123,7 +13057,7 @@ Proof.
   use live_of_dec_complete as (A' & LIVE_A & OLD_A) with LIVE.
   unfold all. rewrite L.nodup_In.
   eapply in_list_bind_intro with (x := A).
-  - eapply G.NT.in_all_intro.
+  - eapply finite_enumeration_complete.
   - rewrite LIVE_A. simpl. left. eapply eq_by_old_nt. simpl. exact OLD_A.
 Qed.
 
@@ -13141,36 +13075,48 @@ Qed.
 
 End LiveNT.
 
-Definition erase_nt (A : LiveNT.t) : G.NT.t :=
+#[local, program]
+Instance live_nt_isFinite : isFinite LiveNT.t :=
+  { finite_hasEqDec := LiveNT.t_hasEqDec
+  ; finite_enumeration := LiveNT.all
+  }.
+Next Obligation.
+  eapply LiveNT.all_complete.
+Qed.
+Next Obligation.
+  eapply LiveNT.all_no_dup.
+Qed.
+
+Definition erase_nt (A : LiveNT.t) : G.NT :=
   A.(LiveNT.old_nt).
 
-Definition erase_symbol (X : LiveNT.t + G.TM.t) : G.NT.t + G.TM.t :=
+Definition erase_symbol (X : LiveNT.t + G.TM) : G.NT + G.TM :=
   match X with
   | inl A => inl (erase_nt A)
   | inr t => inr t
   end.
 
-Definition erase_rhs (rhs : list (LiveNT.t + G.TM.t)) : list (G.NT.t + G.TM.t) :=
+Definition erase_rhs (rhs : list (LiveNT.t + G.TM)) : list (G.NT + G.TM) :=
   map erase_symbol rhs.
 
-Definition live_symbol_of (X : G.NT.t + G.TM.t) : option (LiveNT.t + G.TM.t) :=
+Definition live_symbol_of (X : G.NT + G.TM) : option (LiveNT.t + G.TM) :=
   match X with
   | inl A => match LiveNT.live_of_dec A with | Some A' => Some (inl A') | None => None end
   | inr t => Some (inr t)
   end.
 
-Fixpoint live_rhs_of (rhs : list (G.NT.t + G.TM.t)) : option (list (LiveNT.t + G.TM.t)) :=
+Fixpoint live_rhs_of (rhs : list (G.NT + G.TM)) : option (list (LiveNT.t + G.TM)) :=
   match rhs with
   | [] => Some []
   | X :: rhs' => match live_symbol_of X, live_rhs_of rhs' with | Some X', Some rhs'' => Some (X' :: rhs'') | _, _ => None end
   end.
 
-Definition pruned_prod_of (p : G.NT.t * list (G.NT.t + G.TM.t)) : fin_ensemble (LiveNT.t * list (LiveNT.t + G.TM.t)) :=
+Definition pruned_prod_of (p : G.NT * list (G.NT + G.TM)) : fin_ensemble (LiveNT.t * list (LiveNT.t + G.TM)) :=
   match p with
   | (A, rhs) => match LiveNT.live_of_dec A, live_rhs_of rhs with | Some A', Some rhs' => [(A', rhs')] | _, _ => [] end
   end.
 
-Definition pruned_productions : fin_ensemble (LiveNT.t * list (LiveNT.t + G.TM.t)) :=
+Definition pruned_productions : fin_ensemble (LiveNT.t * list (LiveNT.t + G.TM)) :=
   G.productions >>= pruned_prod_of.
 
 Lemma live_symbol_of_sound X X'
@@ -13305,14 +13251,22 @@ Module WithStart (StartLive : START_LIVE_SPEC).
 
 Module PrunedGrammar <: GRAMMAR_SPEC.
 
-Module NT := LiveNT.
+Definition NT : Set :=
+  LiveNT.t.
 
-Module TM := G.TM.
+Definition TM : Set :=
+  G.TM.
 
-Definition start : NT.t :=
+Definition NT_isFinite : isFinite NT :=
+  live_nt_isFinite.
+
+Definition TM_isFinite : isFinite TM :=
+  G.TM_isFinite.
+
+Definition start : NT :=
   {| LiveNT.old_nt := G.start; LiveNT.old_nt_live := StartLive.start_live |}.
 
-Definition productions : fin_ensemble (NT.t * list (NT.t + TM.t)) :=
+Definition productions : fin_ensemble (NT * list (NT + TM)) :=
   pruned_productions.
 
 End PrunedGrammar.

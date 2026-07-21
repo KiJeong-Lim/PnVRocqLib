@@ -40,19 +40,12 @@ Proof.
   red in A_hasEqDec |- *. decide equality.
 Defined.
 
-Abbreviation all_bools := Bool_FinEnum.all.
+Definition all_bools : list bool := @finite_enumeration bool bool_isFinite.
 
-Abbreviation in_all_bools_intro := Bool_FinEnum.in_all_intro.
+Definition in_all_bools_intro : forall x : bool, L.In x all_bools :=
+  @finite_enumeration_complete bool bool_isFinite.
 
-Module Ascii_FinEnum <: FINITE_ENUM.
-
-Definition t : Set :=
-  ascii.
-
-Definition t_hasEqDec : hasEqDec Ascii_FinEnum.t :=
-  ascii_hasEqDec.
-
-Definition all : fin_ensemble ascii := do
+Definition all_asciis : fin_ensemble ascii := do
   'b0 <- all_bools;
   'b1 <- all_bools;
   'b2 <- all_bools;
@@ -64,9 +57,9 @@ Definition all : fin_ensemble ascii := do
   ret (Ascii b0 b1 b2 b3 b4 b5 b6 b7).
 
 Lemma in_all_intro
-  : forall x : Ascii_FinEnum.t, L.In x Ascii_FinEnum.all.
+  : forall x : ascii, L.In x all_asciis.
 Proof.
-  unfold all; intros [b0 b1 b2 b3 b4 b5 b6 b7].
+  unfold all_asciis; intros [b0 b1 b2 b3 b4 b5 b6 b7].
   eapply in_fin_ensemble_bind_intro with (x := b0); [eapply in_all_bools_intro | ].
   eapply in_fin_ensemble_bind_intro with (x := b1); [eapply in_all_bools_intro | ].
   eapply in_fin_ensemble_bind_intro with (x := b2); [eapply in_all_bools_intro | ].
@@ -79,17 +72,21 @@ Proof.
 Qed.
 
 Lemma all_no_dup
-  : NoDup Ascii_FinEnum.all.
+  : NoDup all_asciis.
 Proof.
-  assert (EQ : L.nodup (ascii_hasEqDec) all = all) by reflexivity.
+  assert (EQ : L.nodup ascii_hasEqDec all_asciis = all_asciis) by reflexivity.
   rewrite <- EQ. eapply L.NoDup_nodup.
 Qed.
 
-End Ascii_FinEnum.
+#[global]
+Instance ascii_isFinite : isFinite ascii :=
+  { finite_hasEqDec := ascii_hasEqDec
+  ; finite_enumeration := all_asciis
+  ; finite_enumeration_complete := in_all_intro
+  ; finite_enumeration_NoDup := all_no_dup
+  }.
 
-Abbreviation all_asciis := Ascii_FinEnum.all.
-
-Abbreviation in_all_asciis_intro := Ascii_FinEnum.in_all_intro.
+Abbreviation in_all_asciis_intro := in_all_intro.
 
 Module Type TOKEN_SPEC.
 

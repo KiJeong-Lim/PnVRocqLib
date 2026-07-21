@@ -82,18 +82,6 @@ Proof.
   lia.
 Qed.
 
-#[projections(primitive)]
-Class isFinite@{u} (A : Type@{u}) : Type@{u} :=
-  { finite_hasEqDec : hasEqDec A
-  ; finite_enumeration : list A
-  ; finite_enumeration_complete
-    : forall x : A, L.In x finite_enumeration
-  ; finite_enumeration_NoDup
-    : NoDup finite_enumeration
-  }.
-
-#[global] Existing Instance finite_hasEqDec.
-
 Lemma inject_pair_eq (A : Type) (B : Type) (x : A) (x' : A) (y : B) (y' : B)
   : (x, y) = (x', y') <-> (x = x' /\ y = y').
 Proof.

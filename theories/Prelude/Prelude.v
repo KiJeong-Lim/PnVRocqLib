@@ -2510,112 +2510,60 @@ Class isField (K : Type) {SETOID : isSetoid K} : Type :=
 
 End A.
 
-Module Type FINITE_ENUM.
+#[projections(primitive)]
+Class isFinite@{u} (A : Type@{u}) : Type@{u} :=
+  { finite_hasEqDec : hasEqDec A
+  ; finite_enumeration : list A
+  ; finite_enumeration_complete
+    : forall x : A, L.In x finite_enumeration
+  ; finite_enumeration_NoDup
+    : NoDup finite_enumeration
+  }.
 
-Parameter t : Set.
+#[global] Existing Instance finite_hasEqDec.
 
-Parameter t_hasEqDec : hasEqDec t.
-
-Parameter all : list t.
-
-Parameter in_all_intro : forall x : t, L.In x all.
-
-Parameter all_no_dup : NoDup all.
-
-End FINITE_ENUM.
-
-Module Option (E : FINITE_ENUM) <: FINITE_ENUM.
-
-Definition t : Set :=
-  option E.t.
-
-#[local]
-Instance t_hasEqDec : hasEqDec Option.t :=
-  option_hasEqDec E.t_hasEqDec.
-
-Definition all : list Option.t :=
-  None :: map Some E.all.
-
-Lemma in_all_intro
-  : forall x : Option.t, L.In x Option.all.
+#[global, refine]
+Instance option_isFinite {A : Type} (A_isFinite : isFinite A) : isFinite (option A) :=
+  { finite_hasEqDec := option_hasEqDec finite_hasEqDec
+  ; finite_enumeration := None :: map Some finite_enumeration
+  }.
 Proof.
-  intros [x | ]; simpl.
-  - right. rewrite L.in_map_iff. exists x. split; [reflexivity | eapply E.in_all_intro].
-  - left. reflexivity.
-Qed.
+  - intros [x | ]; simpl.
+    + right. rewrite L.in_map_iff. exists x. split; [reflexivity | eapply finite_enumeration_complete].
+    + left. reflexivity.
+  - simpl. constructor.
+    + intros IN. rewrite L.in_map_iff in IN. destruct IN as (x & EQ & _). discriminate.
+    + eapply L.NoDup_map_injective_on.
+      * intros x y _ _ EQ. congruence.
+      * eapply finite_enumeration_NoDup.
+Defined.
 
-Lemma all_no_dup
-  : NoDup Option.all.
+#[global, refine]
+Instance sum_isFinite {A : Type} {B : Type} (A_isFinite : isFinite A) (B_isFinite : isFinite B) : isFinite (A + B) :=
+  { finite_hasEqDec := sum_hasEqDec finite_hasEqDec finite_hasEqDec
+  ; finite_enumeration := map inl finite_enumeration ++ map inr finite_enumeration
+  }.
 Proof.
-  simpl. constructor.
-  - intros IN. rewrite L.in_map_iff in IN. destruct IN as (x & EQ & _). discriminate.
-  - eapply L.NoDup_map_injective_on.
-    + intros x y _ _ EQ. congruence.
-    + eapply E.all_no_dup.
-Qed.
+  - intros [x | x]; rewrite L.in_app_iff.
+    + left. rewrite L.in_map_iff. exists x. split; [reflexivity | eapply finite_enumeration_complete].
+    + right. rewrite L.in_map_iff. exists x. split; [reflexivity | eapply finite_enumeration_complete].
+  - eapply NoDup_app.
+    + eapply L.NoDup_map_injective_on; [intros x y _ _ EQ; congruence | eapply finite_enumeration_NoDup].
+    + eapply L.NoDup_map_injective_on; [intros x y _ _ EQ; congruence | eapply finite_enumeration_NoDup].
+    + intros x IN_LEFT IN_RIGHT.
+      rewrite L.in_map_iff in IN_LEFT. rewrite L.in_map_iff in IN_RIGHT.
+      destruct IN_LEFT as (x1 & EQ1 & _), IN_RIGHT as (x2 & EQ2 & _).
+      subst x. discriminate.
+Defined.
 
-End Option.
-
-Module Sum (E1 : FINITE_ENUM) (E2 : FINITE_ENUM) <: FINITE_ENUM.
-
-Definition t : Set :=
-  E1.t + E2.t.
-
-#[local]
-Instance t_hasEqDec : hasEqDec Sum.t :=
-  sum_hasEqDec E1.t_hasEqDec E2.t_hasEqDec.
-
-Definition all : list Sum.t :=
-  map inl E1.all ++ map inr E2.all.
-
-Lemma in_all_intro
-  : forall x : Sum.t, L.In x Sum.all.
+#[global, refine]
+Instance bool_isFinite : isFinite bool :=
+  { finite_hasEqDec := bool_hasEqDec
+  ; finite_enumeration := [false; true]
+  }.
 Proof.
-  intros [x | x]; unfold all; rewrite L.in_app_iff.
-  - left. rewrite L.in_map_iff. exists x. split; [reflexivity | eapply E1.in_all_intro].
-  - right. rewrite L.in_map_iff. exists x. split; [reflexivity | eapply E2.in_all_intro].
-Qed.
-
-Lemma all_no_dup
-  : NoDup Sum.all.
-Proof.
-  unfold all. eapply NoDup_app.
-  - eapply L.NoDup_map_injective_on.
-    + intros x y _ _ EQ. congruence.
-    + eapply E1.all_no_dup.
-  - eapply L.NoDup_map_injective_on.
-    + intros x y _ _ EQ. congruence.
-    + eapply E2.all_no_dup.
-  - intros x IN_LEFT IN_RIGHT.
-    rewrite L.in_map_iff in IN_LEFT. rewrite L.in_map_iff in IN_RIGHT.
-    destruct IN_LEFT as (x1 & EQ1 & _), IN_RIGHT as (x2 & EQ2 & _).
-    subst x. discriminate.
-Qed.
-
-End Sum.
-
-Module Bool_FinEnum <: FINITE_ENUM.
-
-Definition t : Set :=
-  bool.
-
-Definition t_hasEqDec : hasEqDec Bool_FinEnum.t :=
-  bool_hasEqDec.
-
-Definition all : list bool :=
-  [false; true].
-
-Lemma in_all_intro
-  : forall x : Bool_FinEnum.t, L.In x Bool_FinEnum.all.
-Proof.
-  intros [ | ]; simpl; tauto.
-Qed.
-
-Lemma all_no_dup
-  : NoDup Bool_FinEnum.all.
-Proof.
-  assert (EQ : L.nodup bool_hasEqDec all = all) by reflexivity.
-  rewrite <- EQ. eapply L.NoDup_nodup.
-Qed.
-
-End Bool_FinEnum.
+  - intros [ | ]; simpl; tauto.
+  - constructor.
+    + simpl. intros [EQ | []]. discriminate.
+    + constructor; [simpl; tauto | constructor].
+Defined.
