@@ -834,6 +834,9 @@ Proof.
   intros [v v']; done.
 Qed.
 
+Class ColoredGraph {V : Type} {C : Type} (GRAPH : @FiniteGraph V) : Type :=
+  color_of_vertex : V -> C.
+
 #[universes(template), projections(primitive)]
 Class LabeledFiniteGraph `{L : Type} : Type :=
   mkLabeledFiniteGraph
